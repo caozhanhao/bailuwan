@@ -40,13 +40,10 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 
 all: default
 
+run: $(BIN)
+	@$^
+
 clean:
 	rm -rf $(BUILD_DIR)
 
-sim: $(BIN)
-	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-#	@echo "Write this Makefile by your self."
-	@echo "Simulating"
-	@$^
-
-include ../Makefile
+.PHONY: default all clean run
