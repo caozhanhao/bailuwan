@@ -1,5 +1,3 @@
-package gcd
-
 import chisel3._
 
 /** Compute GCD using subtraction method. Subtracts the smaller from the larger until register y is zero. value in
