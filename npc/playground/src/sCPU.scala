@@ -43,8 +43,6 @@ class sCPU(program: Seq[Byte]) extends Module {
 
   val brTaken = op === BNER0.U && regs(0) =/= regs(rs2)
   pc := Mux(brTaken, inst(5, 2), pc + 1.U)
-
-  BoringUtils.bore(pc)
 }
 
 object sCPU {
