@@ -138,7 +138,7 @@ static int cmd_p(char *args) {
     return 0;
   }
 
-  printf("%u\n", res);
+  printf("0x%x\n", res);
 
   return 0;
 }
@@ -208,7 +208,7 @@ static int cmd_help(char *args) {
   if (arg == NULL) {
     /* no argument given */
     for (i = 0; i < NR_CMD; i++) {
-      printf("%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+      printf("%-4s - %s\n", cmd_table[i].name, cmd_table[i].description);
     }
   } else {
     for (i = 0; i < NR_CMD; i++) {
