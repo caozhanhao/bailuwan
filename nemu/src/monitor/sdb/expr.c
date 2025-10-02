@@ -107,7 +107,7 @@ static struct rule {
     {"0[xX][0-9a-fA-F]+", TK_NUM},
     {"[0-9]+", TK_NUM},
 
-    {"\\$[A-Za-z_][A-Za-z0-9_]*", TK_REG},
+    {"\\$[A-Za-z0-9_]*", TK_REG},
 };
 
 #define NR_REGEX ARRLEN(rules)
