@@ -21,7 +21,7 @@ typedef struct watchpoint {
   int NO;
   struct watchpoint *next;
 
-  char* expr;
+  char *expr;
   word_t last_val;
   bool last_val_valid;
 } WP;
@@ -73,17 +73,34 @@ void free_wp(WP *wp) {
   panic("Watchpoint not found");
 }
 
-void wp_update() {
-  for (WP *p = head; p != NULL; p = p->next) {
-    if (!p->last_val_valid)
-      p->last_val = expr(p->expr, NULL);
-    else {
-      if (p->last_val != expr(p->expr, NULL)) {
-        Log("Watchpoint %d: %s changed from %x to %x", p->NO, p->expr, p->last_val, expr(p->expr, NULL));
-        nemu_state.state = NEMU_STOP;
-      }
-    }
+void wp_update_one(WP *p) {
+  if (!p->last_val_valid) {
+    bool success;
+    p->last_val = expr(p->expr, &success);
+    p->last_val_valid = success;
+    if (!success)
+      Log("Failed to evaluate '%s' for watchpoint %d.", p->expr, p->NO);
+    return;
   }
+
+  bool success;
+  word_t curr_val = expr(p->expr, &success);
+  if (!success) {
+    Log("Failed to evaluate '%s' for watchpoint %d.", p->expr, p->NO);
+    return;
+  }
+
+  if (p->last_val != curr_val) {
+    Log("Watchpoint %d: %s changed from %x to %x", p->NO, p->expr, p->last_val,
+        curr_val);
+    p->last_val = curr_val;
+    nemu_state.state = NEMU_STOP;
+  }
+}
+
+void wp_update() {
+  for (WP *p = head; p != NULL; p = p->next)
+    wp_update_one(p);
 }
 
 void wp_display() {
@@ -101,9 +118,7 @@ void wp_create(char *expr) {
   p->expr = strdup(expr);
   p->last_val_valid = false;
   p->last_val = 0;
-  wp_update();
+  wp_update_one(p);
 }
 
-void wp_delete(int NO) {
-  free_wp(&wp_pool[NO]);
-}
+void wp_delete(int NO) { free_wp(&wp_pool[NO]); }

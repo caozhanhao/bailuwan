@@ -463,6 +463,8 @@ static word_t eval(int p, int q, bool *success) {
 }
 
 word_t expr(char *e, bool *success) {
+  Assert(e != NULL && success != NULL, "Bad arguments.");
+
   if (!make_token(e)) {
     *success = false;
     free_token();
