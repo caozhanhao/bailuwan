@@ -282,15 +282,11 @@ int find_dominant_operator(int p, int q, bool *success) {
       continue;
     }
     if (t == TK_RPAR) {
-      if (--paren < 0) {
-        Log("find_dominant_operator: mismatched parentheses");
-        *success = false;
-        return -1;
-      }
+      --paren;
       continue;
     }
 
-    if (paren != 0)
+    if (paren > 0)
       continue;
 
     if (is_binary_token(t) || is_unary_token(t)) {
