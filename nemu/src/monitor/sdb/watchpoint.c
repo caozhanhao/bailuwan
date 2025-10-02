@@ -46,9 +46,6 @@ WP *new_wp() {
   free_ = free_->next;
   p->next = head;
   head = p;
-
-  p->last_val_valid = false;
-  p->last_val = 0;
   return p;
 }
 
@@ -97,4 +94,15 @@ void wp_display() {
     else
       printf("%-6d %-12s %s\n", p->NO, "Not evaluated", p->expr);
   }
+}
+
+void wp_create(char *expr) {
+  WP *p = new_wp();
+  p->expr = strdup(expr);
+  p->last_val_valid = false;
+  p->last_val = 0;
+}
+
+void wp_delete(int NO) {
+  free_wp(&wp_pool[NO]);
 }

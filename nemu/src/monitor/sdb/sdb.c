@@ -63,7 +63,6 @@ static int cmd_q(char *args) {
   return -1;
 }
 
-void wp_display();
 // si [N]
 static int cmd_si(char *args) {
   if (!args) {
@@ -80,6 +79,8 @@ static int cmd_si(char *args) {
   cpu_exec(n);
   return 0;
 }
+
+void wp_display();
 
 // info [r/w]
 static int cmd_info(char *args) {
@@ -141,8 +142,39 @@ static int cmd_p(char *args) {
 
   return 0;
 }
-static int cmd_w(char *args) { return 0; }
-static int cmd_d(char *args) { return 0; }
+
+void wp_create(char* expr);
+// w [EXPR]
+static int cmd_w(char *args) {
+  if (args == NULL) {
+    printf("p: Expected an expression.\n");
+    return 0;
+  }
+
+  wp_create(args);
+
+  return 0;
+}
+
+void wp_delete(int n);
+// d [N]
+static int cmd_d(char *args) {
+  if (args == NULL) {
+    printf("d: Expected an index.\n");
+    return 0;
+  }
+
+  char* endptr;
+  int n = (int)strtoll(args, &endptr, 10);
+  if (endptr == args) {
+    printf("d: Expected a number.\n");
+    return 0;
+  }
+
+  wp_delete(n);
+
+  return 0;
+}
 
 static int cmd_help(char *args);
 
