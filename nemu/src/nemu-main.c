@@ -74,19 +74,17 @@ int test_expr_eval(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc == 2 && !strcmp(argv[1], "testing")) {
-    return test_expr_eval(argc, argv);
-  }
-
-  /* Initialize the monitor. */
-#ifdef CONFIG_TARGET_AM
-  am_init_monitor();
-#else
-  init_monitor(argc, argv);
-#endif
-
-  /* Start engine. */
-  engine_start();
-
-  return is_exit_status_bad();
+  return test_expr_eval(argc, argv);
+//
+//   /* Initialize the monitor. */
+// #ifdef CONFIG_TARGET_AM
+//   am_init_monitor();
+// #else
+//   init_monitor(argc, argv);
+// #endif
+//
+//   /* Start engine. */
+//   engine_start();
+//
+//   return is_exit_status_bad();
 }
