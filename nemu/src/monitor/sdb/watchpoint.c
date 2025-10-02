@@ -122,10 +122,10 @@ void wp_display() {
 
 void wp_create(char *expr) {
   if (!syntax_check(expr)) {
-    printf("Bad expression to watch: %s", expr);
+    printf("Bad expression to watch: %s\n", expr);
     return;
   }
-  
+
   WP *p = new_wp();
   p->expr = strdup(expr);
   p->last_val_valid = false;
