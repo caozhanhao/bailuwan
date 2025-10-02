@@ -80,7 +80,7 @@ static int cmd_info(char *args) {
 static int cmd_x(char *args) {
   char* number = strtok(args, " ");
   if (!number) {
-    printf("x: Expected a number.");
+    printf("x: Expected a number.\n");
     return 0;
   }
 
@@ -89,7 +89,7 @@ static int cmd_x(char *args) {
   printf("Got Number: %lu\n", n);
 
   if (number == endptr) {
-    printf("x: Expected a number.");
+    printf("x: Expected a number.\n");
     return 0;
   }
 
