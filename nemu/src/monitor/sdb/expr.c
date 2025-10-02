@@ -74,7 +74,7 @@ static struct rule {
      * Pay attention to the precedence level of different rules.
      */
 
-    {"[ \t\n]+", TK_NOTYPE},
+    {" ", TK_NOTYPE},
 
     {"&&", TK_LAND},
     {"\\|\\|", TK_LOR},
