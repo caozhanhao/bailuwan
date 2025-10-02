@@ -35,7 +35,7 @@ CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 $(BIN): $(SCALASRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ_DIR)
 	@rm -rf $(BUILD_DIR)/*.sv
-	./mill -i playground.runMain GenVerilog --target-dir $(BUILD_DIR)/
+	./mill -i $(PRJ).runMain GenVerilog --target-dir $(BUILD_DIR)/
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(NVBOARD_ARCHIVE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
@@ -46,8 +46,7 @@ test:
 
 verilog:
 	$(call git_commit, "generate verilog")
-	mkdir -p $(BUILD_DIR)
-	./mill -i $(PRJ).runMain Elaborate --target-dir $(BUILD_DIR)
+	./mill -i $(PRJ).runMain GenVerilog --target-dir $(BUILD_DIR)
 
 help:
 	./mill -i $(PRJ).runMain Elaborate --help
