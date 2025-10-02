@@ -103,9 +103,22 @@ void wp_update() {
     wp_update_one(p);
 }
 
+static int wp_no_cmp(const void* a, const void* b) {
+  return ((WP*)a)->NO - ((WP*)b)->NO;
+}
+
 void wp_display() {
+  // Sort to make the order pretty
+  WP* buffer[NR_WP] = {};
+  int buffer_pos = 0;
+  for (WP *p = head; p != NULL; p = p->next)
+    buffer[buffer_pos++] = p;
+
+  qsort(buffer, buffer_pos, sizeof(WP*), wp_no_cmp);
+
   printf("%-6s %-15s %s\n", "Num", "LastValue", "What");
-  for (WP *p = head; p != NULL; p = p->next) {
+  for (int i = 0; i < buffer_pos; i++) {
+    WP *p = buffer[i];
     if (p->last_val_valid)
       printf("%-6d 0x%-13x %s\n", p->NO, p->last_val, p->expr);
     else
