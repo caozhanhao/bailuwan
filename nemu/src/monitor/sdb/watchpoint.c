@@ -96,8 +96,8 @@ void wp_update_one(WP *p) {
         curr_val);
     p->last_val = curr_val;
 
-    // The watch point mighted be triggered at `ebreak`.
-    // Don't change the state of NEMU if it is not running.
+    // The watch point might be triggered at `ebreak`.
+    // So don't change the state of NEMU if it is not running.
     if (nemu_state.state == NEMU_RUNNING)
       nemu_state.state = NEMU_STOP;
   }
