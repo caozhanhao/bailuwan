@@ -48,9 +48,6 @@ verilog:
 	$(call git_commit, "generate verilog")
 	./mill -i $(PRJ).runMain GenVerilog --target-dir $(BUILD_DIR)
 
-help:
-	./mill -i $(PRJ).runMain Elaborate --help
-
 reformat:
 	./mill -i __.reformat
 
@@ -66,7 +63,7 @@ idea:
 clean:
 	-rm -rf $(BUILD_DIR)
 
-.PHONY: test verilog help reformat checkformat clean
+.PHONY: test verilog reformat checkformat clean
 
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
