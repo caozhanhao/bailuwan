@@ -72,7 +72,7 @@ static int cmd_info(char *args) {
   } else if (strcmp(args, "w") == 0) {
 
   } else {
-    printf("Unknown command '%s'\n", args);
+    printf("info: Unknown subcommand '%s'\n", args);
   }
   return 0;
 }
