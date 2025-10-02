@@ -1,3 +1,5 @@
+package top
+
 object GenVerilog extends App {
   val firtoolOptions = Array(
     "--lowering-options=" + List(
