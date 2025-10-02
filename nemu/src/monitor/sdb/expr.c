@@ -104,8 +104,8 @@ static struct rule {
     {"\\(", TK_LPAR},
     {"\\)", TK_RPAR},
 
-    {"0[xX][0-9a-fA-F]+[uU]", TK_NUM},
-    {"[0-9]+[uU]", TK_NUM},
+    {"0[xX][0-9a-fA-F]+[uU]?", TK_NUM},
+    {"[0-9]+[uU]?", TK_NUM},
 
     {"\\$[A-Za-z0-9_]+", TK_REG},
 };
