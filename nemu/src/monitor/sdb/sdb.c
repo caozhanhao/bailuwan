@@ -14,6 +14,9 @@
  ***************************************************************************************/
 
 #include "sdb.h"
+
+#include "memory/vaddr.h"
+
 #include <cpu/cpu.h>
 #include <isa.h>
 #include <readline/history.h>
@@ -98,14 +101,10 @@ static int cmd_x(char *args) {
   char *endptr;
   uint64_t n = strtol(args, &endptr, 10);
 
-  Log("x: Got Number: %lu\n", n);
-
   if (args == endptr) {
     printf("x: Expected a number.\n");
     return 0;
   }
-
-  Log("x: Got Expr: %s\n", endptr ? endptr : "NULL");
 
   bool success;
   word_t res = expr(endptr, &success);
@@ -115,7 +114,9 @@ static int cmd_x(char *args) {
     return 0;
   }
 
-  printf("%u\n", res);
+  for (uint64_t i = 0; i < n; i++) {
+    printf("%lu: %08x\n", res + i * 4, vaddr_read(res + i * 4, 4));
+  }
 
   return 0;
 }

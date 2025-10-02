@@ -199,7 +199,7 @@ config WATCHPOINT
   default y
   help
     Enable watchpoints.
-    
+
 endmenu
 
 if MODE_SYSTEM
