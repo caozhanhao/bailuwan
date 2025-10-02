@@ -63,6 +63,7 @@ static int cmd_q(char *args) {
   return -1;
 }
 
+void wp_display();
 // si [N]
 static int cmd_si(char *args) {
   if (!args) {
@@ -85,6 +86,7 @@ static int cmd_info(char *args) {
   if (strcmp(args, "r") == 0) {
     isa_reg_display();
   } else if (strcmp(args, "w") == 0) {
+    wp_display();
   } else {
     printf("info: Unknown subcommand '%s'\n", args);
   }
