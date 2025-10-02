@@ -29,6 +29,18 @@ void isa_reg_display() {
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
+  if (s[0] == 'x' || s[0] == 'X') {
+    char* endptr;
+    word_t idx = strtol(s + 1, &endptr, 10);
+    if (endptr == s + 1 || idx >= 32) {
+      *success = false;
+      return 0;
+    }
+
+    *success = true;
+    return gpr(idx);
+  }
+
   for (int i = 0; i < 32; i++) {
     if (strcmp(s, regs[i]) == 0) {
       *success = true;
