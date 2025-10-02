@@ -133,13 +133,16 @@ void init_regex() {
 
 typedef struct token {
   int type;
-  char str[128];
+  char* str;
 } Token;
 
-static Token tokens[128] __attribute__((used)) = {};
+static Token* tokens __attribute__((used)) = {};
 static int nr_token __attribute__((used)) = 0;
+static size_t token_buf_size = 128;
 
 static bool make_token(char *e) {
+  tokens = malloc(token_buf_size * sizeof(Token));
+
   int position = 0;
   int i;
   regmatch_t pmatch;
@@ -167,12 +170,19 @@ static bool make_token(char *e) {
         if (rules[i].token_type == TK_NOTYPE)
           break;
 
-        Assert(nr_token < 128, "too many tokens");
+        if (nr_token >= token_buf_size) {
+          token_buf_size *= 2;
+          Token* new_tokens = realloc(tokens, token_buf_size * sizeof(Token));
+          Assert(new_tokens != NULL, "realloc failed");
+          tokens = new_tokens;
+        }
+
         tokens[nr_token].type = rules[i].token_type;
 
         switch (rules[i].token_type) {
         case TK_NUM:
         case TK_REG:
+          tokens[nr_token].str = malloc(substr_len + 1);
           strncpy(tokens[nr_token].str, substr_start, substr_len);
           tokens[nr_token].str[substr_len] = '\0';
           break;
@@ -192,6 +202,17 @@ static bool make_token(char *e) {
   }
 
   return true;
+}
+
+static void free_token() {
+  for (int i = 0; i < nr_token; i++) {
+    free(tokens[i].str);
+  }
+
+  free(tokens);
+  tokens = NULL;
+  nr_token = 0;
+  token_buf_size = 0;
 }
 
 static bool expecting_a_expr(int i) {
@@ -442,11 +463,16 @@ static word_t eval(int p, int q, bool *success) {
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
+    free_token();
     return 0;
   }
 
   match_unary_tokens();
 
   *success = true;
-  return eval(0, nr_token - 1, success);
+
+  word_t res = eval(0, nr_token - 1, success);
+  free_token();
+
+  return res;
 }
