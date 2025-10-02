@@ -105,7 +105,11 @@ static int cmd_x(char *args) {
     return 0;
   }
 
-  char* expr = strtok(NULL, " ");
+  while (isspace(*endptr))
+    ++endptr;
+
+  char* expr = endptr;
+
   printf("Got Expr: %s\n", expr ? expr : "NULL");
   return 0;
 }
