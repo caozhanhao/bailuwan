@@ -291,7 +291,7 @@ int find_dominant_operator(int p, int q, bool *success) {
 
     if (is_binary_token(t) || is_unary_token(t)) {
       int prec = get_precedence(t);
-      if (prec < min_prec) {
+      if (prec <= min_prec) {
         min_prec = prec;
         idx = i;
       }
