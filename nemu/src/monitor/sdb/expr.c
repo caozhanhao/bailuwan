@@ -220,7 +220,14 @@ static bool check_parentheses(int p, int q, bool *invalid_expr) {
     if (tokens[i].type == TK_LPAR)
       cnt++;
     else if (tokens[i].type == TK_RPAR) {
-      if (--cnt < 0) {
+      --cnt;
+
+      // Early match
+      if (cnt == 0 && i != q)
+        return false;
+
+      // mismatch
+      if (cnt < 0) {
         *invalid_expr = true;
         return false;
       }
