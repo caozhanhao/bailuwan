@@ -18,10 +18,10 @@
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
-#include "memory/vaddr.h"
-
 #include <limits.h>
 #include <regex.h>
+
+#include <memory/vaddr.h>
 
 enum {
   TK_NOTYPE = 0,
@@ -133,10 +133,10 @@ void init_regex() {
 
 typedef struct token {
   int type;
-  char* str;
+  char *str;
 } Token;
 
-static Token* tokens __attribute__((used)) = {};
+static Token *tokens __attribute__((used)) = {};
 static int nr_token __attribute__((used)) = 0;
 static size_t token_buf_size = 128;
 
@@ -172,8 +172,9 @@ static bool make_token(char *e) {
 
         if (nr_token >= token_buf_size) {
           token_buf_size *= 2;
-          Token* new_tokens = realloc(tokens, token_buf_size * sizeof(Token));
-          Assert(new_tokens != NULL, "realloc failed, new size: %lu", token_buf_size);
+          Token *new_tokens = realloc(tokens, token_buf_size * sizeof(Token));
+          Assert(new_tokens != NULL, "realloc failed, new size: %lu",
+                 token_buf_size);
           tokens = new_tokens;
         }
 
@@ -197,7 +198,7 @@ static bool make_token(char *e) {
     }
 
     if (i == NR_REGEX) {
-      printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
+      printf("Syntax Error: no match at position %d\n%s\n%*.s^\n", position, e, position, "");
       return false;
     }
   }
@@ -217,7 +218,7 @@ static void free_token() {
   token_buf_size = 128;
 }
 
-static bool expecting_a_expr(int i) {
+static bool expecting_an_expr(int i) {
   return is_binary_token(i) || is_unary_token(i) || i == TK_LPAR;
 }
 
@@ -228,7 +229,7 @@ static int to_unary(int i) {
 static void match_unary_tokens() {
   for (int i = 0; i < nr_token; i++) {
     if (has_unary(tokens[i].type)) {
-      if (i == 0 || expecting_a_expr(tokens[i - 1].type))
+      if (i == 0 || expecting_an_expr(tokens[i - 1].type))
         tokens[i].type = to_unary(tokens[i].type);
     }
   }
@@ -443,7 +444,7 @@ static word_t eval(int p, int q, bool *success) {
     MAKE_OP(TK_LOR, ||)
 #undef MAKE_OP
   case TK_ASHR:
-    return (uint32_t)((int32_t)val1 >> val2);
+    return (word_t)((sword_t)val1 >> val2);
   case TK_DIV:
     if (val2 == 0) {
       *success = false;
@@ -463,6 +464,8 @@ static word_t eval(int p, int q, bool *success) {
 }
 
 word_t expr(char *e, bool *success) {
+  Assert(e != NULL && success != NULL, "Bad arguments.");
+
   if (!make_token(e)) {
     *success = false;
     free_token();
@@ -474,6 +477,46 @@ word_t expr(char *e, bool *success) {
   *success = true;
 
   word_t res = eval(0, nr_token - 1, success);
+  free_token();
+
+  return res;
+}
+
+bool syntax_check_impl(int p, int q) {
+  if (p > q)
+    return false;
+
+  if (p == q)
+    return true;
+
+  bool invalid_expr = false;
+  if (check_parentheses(p, q, &invalid_expr))
+    return syntax_check_impl(p + 1, q - 1);
+
+  if (invalid_expr)
+    return false;
+
+  bool success = true;
+  int op = find_dominant_operator(p, q, &success);
+  if (!success)
+    return false;
+
+  if (is_unary_token(tokens[op].type))
+    return syntax_check_impl(op + 1, q);
+
+  return syntax_check_impl(p, op - 1) && syntax_check_impl(op + 1, q);
+}
+
+bool syntax_check(char* e) {
+  Assert(e != NULL, "Bad arguments.");
+
+  if (!make_token(e)) {
+    free_token();
+    return false;
+  }
+
+  match_unary_tokens();
+  bool res = syntax_check_impl(0, nr_token - 1);
   free_token();
 
   return res;

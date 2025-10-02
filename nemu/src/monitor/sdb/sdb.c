@@ -14,6 +14,9 @@
  ***************************************************************************************/
 
 #include "sdb.h"
+
+#include "memory/vaddr.h"
+
 #include <cpu/cpu.h>
 #include <isa.h>
 #include <readline/history.h>
@@ -77,11 +80,14 @@ static int cmd_si(char *args) {
   return 0;
 }
 
+void wp_display();
+
 // info [r/w]
 static int cmd_info(char *args) {
   if (strcmp(args, "r") == 0) {
     isa_reg_display();
   } else if (strcmp(args, "w") == 0) {
+    wp_display();
   } else {
     printf("info: Unknown subcommand '%s'\n", args);
   }
@@ -98,14 +104,10 @@ static int cmd_x(char *args) {
   char *endptr;
   uint64_t n = strtol(args, &endptr, 10);
 
-  Log("x: Got Number: %lu\n", n);
-
   if (args == endptr) {
     printf("x: Expected a number.\n");
     return 0;
   }
-
-  Log("x: Got Expr: %s\n", endptr ? endptr : "NULL");
 
   bool success;
   word_t res = expr(endptr, &success);
@@ -115,7 +117,9 @@ static int cmd_x(char *args) {
     return 0;
   }
 
-  printf("%u\n", res);
+  for (word_t i = 0; i < n; i++) {
+    printf("0x%x: 0x%08x\n", res + i * 4, vaddr_read(res + i * 4, 4));
+  }
 
   return 0;
 }
@@ -138,8 +142,39 @@ static int cmd_p(char *args) {
 
   return 0;
 }
-static int cmd_w(char *args) { return 0; }
-static int cmd_d(char *args) { return 0; }
+
+void wp_create(char *expr);
+// w [EXPR]
+static int cmd_w(char *args) {
+  if (args == NULL) {
+    printf("w: Expected an expression.\n");
+    return 0;
+  }
+
+  wp_create(args);
+
+  return 0;
+}
+
+void wp_delete(int n);
+// d [N]
+static int cmd_d(char *args) {
+  if (args == NULL) {
+    printf("d: Expected an index.\n");
+    return 0;
+  }
+
+  char *endptr;
+  int n = (int)strtoll(args, &endptr, 10);
+  if (endptr == args) {
+    printf("d: Expected a number.\n");
+    return 0;
+  }
+
+  wp_delete(n);
+
+  return 0;
+}
 
 static int cmd_help(char *args);
 
