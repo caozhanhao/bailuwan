@@ -76,7 +76,22 @@ static int cmd_info(char *args) {
   return 0;
 }
 
-static int cmd_x(char *args) { return 0; }
+// x [n] [EXPR]
+static int cmd_x(char *args) {
+  char* number = strtok(args, " ");
+  char* endptr;
+  uint64_t n = strtol(number, &endptr, 10);
+  printf("Got Number: %lu\n", n);
+
+  if (number == endptr) {
+    printf("x: Expected a number.");
+    return 0;
+  }
+
+  char* expr = strtok(NULL, " ");
+  printf("Got Expr: %s\n", expr ? expr : "NULL");
+  return 0;
+}
 static int cmd_p(char *args) { return 0; }
 static int cmd_w(char *args) { return 0; }
 static int cmd_d(char *args) { return 0; }
