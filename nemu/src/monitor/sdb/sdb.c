@@ -120,7 +120,24 @@ static int cmd_x(char *args) {
   return 0;
 }
 
-static int cmd_p(char *args) { return 0; }
+static int cmd_p(char *args) {
+  if (args == NULL) {
+    printf("p: Expected an expression.\n");
+    return 0;
+  }
+
+  bool success;
+  word_t res = expr(args, &success);
+
+  if (!success) {
+    printf("x: Failed to evaluate expression.\n");
+    return 0;
+  }
+
+  printf("%u\n", res);
+
+  return 0;
+}
 static int cmd_w(char *args) { return 0; }
 static int cmd_d(char *args) { return 0; }
 
