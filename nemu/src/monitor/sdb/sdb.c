@@ -79,6 +79,11 @@ static int cmd_info(char *args) {
 // x [n] [EXPR]
 static int cmd_x(char *args) {
   char* number = strtok(args, " ");
+  if (!number) {
+    printf("x: Expected a number.");
+    return 0;
+  }
+
   char* endptr;
   uint64_t n = strtol(number, &endptr, 10);
   printf("Got Number: %lu\n", n);
