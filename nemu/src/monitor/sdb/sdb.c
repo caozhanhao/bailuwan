@@ -104,12 +104,11 @@ static int cmd_x(char *args) {
     return 0;
   }
 
-  while (isspace(*endptr))
-    ++endptr;
+  printf("Got Expr: %s\n", endptr ? endptr : "NULL");
 
-  char* expr = endptr;
+  bool success;
+  expr(endptr, &success);
 
-  printf("Got Expr: %s\n", expr ? expr : "NULL");
   return 0;
 }
 
