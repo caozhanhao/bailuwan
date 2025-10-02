@@ -40,6 +40,7 @@ static char *rl_gets() {
     add_history(line_read);
   }
 
+
   return line_read;
 }
 
