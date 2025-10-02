@@ -40,6 +40,12 @@ static char *rl_gets() {
     add_history(line_read);
   }
 
+  // default to use the last command
+  if (line_read[0] == '\0') {
+    HIST_ENTRY* prev = previous_history();
+    if (prev)
+      return prev->line;
+  }
 
   return line_read;
 }
