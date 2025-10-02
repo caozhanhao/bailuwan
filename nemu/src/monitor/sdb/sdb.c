@@ -97,17 +97,25 @@ static int cmd_x(char *args) {
 
   char *endptr;
   uint64_t n = strtol(args, &endptr, 10);
-  printf("Got Number: %lu\n", n);
+
+  Log("x: Got Number: %lu\n", n);
 
   if (args == endptr) {
     printf("x: Expected a number.\n");
     return 0;
   }
 
-  printf("Got Expr: %s\n", endptr ? endptr : "NULL");
+  Log("x: Got Expr: %s\n", endptr ? endptr : "NULL");
 
   bool success;
-  expr(endptr, &success);
+  word_t res = expr(endptr, &success);
+
+  if (!success) {
+    printf("x: Failed to evaluate expression.\n");
+    return 0;
+  }
+
+  printf("%u\n", res);
 
   return 0;
 }
