@@ -29,6 +29,11 @@ void isa_reg_display() {
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
+  if (strcmp(s, "pc") == 0) {
+    *success = true;
+    return cpu.pc;
+  }
+
   if (s[0] == 'x' || s[0] == 'X') {
     char* endptr;
     word_t idx = strtol(s + 1, &endptr, 10);
