@@ -115,7 +115,7 @@ static int cmd_x(char *args) {
   }
 
   for (word_t i = 0; i < n; i++) {
-    printf("0x%x: %08x\n", res + i * 4, vaddr_read(res + i * 4, 4));
+    printf("0x%x: 0x%08x\n", res + i * 4, vaddr_read(res + i * 4, 4));
   }
 
   return 0;
