@@ -147,7 +147,7 @@ void wp_create(char* expr);
 // w [EXPR]
 static int cmd_w(char *args) {
   if (args == NULL) {
-    printf("p: Expected an expression.\n");
+    printf("w: Expected an expression.\n");
     return 0;
   }
 
