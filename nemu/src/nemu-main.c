@@ -23,7 +23,7 @@ void engine_start();
 int is_exit_status_bad();
 
 int test_expr_eval(int argc, char *argv[]) {
-  if (argc != 2) {
+  if (argc < 2) {
     printf("Usage: %s input_file\n", argv[0]);
     return 1;
   }
