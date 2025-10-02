@@ -516,8 +516,8 @@ bool syntax_check(char* e) {
   }
 
   match_unary_tokens();
-  return syntax_check_impl(0, nr_token - 1);
+  bool res = syntax_check_impl(0, nr_token - 1);
   free_token();
 
-  return true;
+  return res;
 }
