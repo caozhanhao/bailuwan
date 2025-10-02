@@ -87,12 +87,12 @@ void wp_update() {
 }
 
 void wp_display() {
-  printf("%-6s %-12s %s\n", "Num", "LastValue", "What");
+  printf("%-6s %-15s %s\n", "Num", "LastValue", "What");
   for (WP *p = head; p != NULL; p = p->next) {
     if (p->last_val_valid)
-      printf("%-6d 0x%-10x %s\n", p->NO, p->last_val, p->expr);
+      printf("%-6d 0x%-13x %s\n", p->NO, p->last_val, p->expr);
     else
-      printf("%-6d %-12s %s\n", p->NO, "Not evaluated", p->expr);
+      printf("%-6d %-15s %s\n", p->NO, "Not evaluated", p->expr);
   }
 }
 
