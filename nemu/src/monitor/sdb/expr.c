@@ -285,9 +285,9 @@ int find_dominant_operator(int p, int q, bool *success) {
       --paren;
       continue;
     }
-    //
-    // if (paren > 0)
-    //   continue;
+
+    if (paren > 0)
+      continue;
 
     if (is_binary_token(t) || is_unary_token(t)) {
       int prec = get_precedence(t);
