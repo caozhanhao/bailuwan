@@ -33,7 +33,6 @@ enum {
   TK_ADD,
   TK_SUB,
   TK_MUL,
-  TK_DEREF,
   TK_DIV,
   TK_NOT,
   TK_AND,
@@ -46,7 +45,10 @@ enum {
   TK_LAND,
   TK_LOR,
   TK_LPAR,
-  TK_RPAR
+  TK_RPAR,
+
+  TK_UNARY_MINUS,
+  TK_UNARY_DEREF,
 };
 
 static struct rule {
@@ -144,6 +146,9 @@ static bool make_token(char *e) {
          * of tokens, some extra actions should be performed.
          */
 
+        if (rules[i].token_type == TK_NOTYPE)
+          break;
+
         Assert(nr_token < 128, "too many tokens");
         tokens[nr_token].type = rules[i].token_type;
 
@@ -171,23 +176,63 @@ static bool make_token(char *e) {
   return true;
 }
 
+static bool expecting_a_expr(int i) {
+  switch (i) {
+  case TK_EQ:
+  case TK_NE:
+  case TK_LE:
+  case TK_LT:
+  case TK_GE:
+  case TK_GT:
+  case TK_ADD:
+  case TK_SUB:
+  case TK_MUL:
+  case TK_DIV:
+  case TK_NOT:
+  case TK_AND:
+  case TK_OR:
+  case TK_XOR:
+  case TK_SHL:
+  case TK_LSHR:
+  case TK_ASHR:
+  case TK_LNOT:
+  case TK_LAND:
+  case TK_LOR:
+  case TK_LPAR:
+  case TK_UNARY_MINUS:
+  case TK_UNARY_DEREF:
+      return true;
+  }
+  return false;
+}
+
+static bool has_unary(int i) {
+  return i == TK_MUL || i == TK_SUB;
+}
+static int to_unary(int i) {
+  return i == TK_MUL ? TK_UNARY_DEREF : TK_UNARY_MINUS;
+}
+static void match_unary_tokens() {
+  for (int i = 0; i < nr_token; i++) {
+    if (has_unary(tokens[i].type)) {
+      if (i == 0 || expecting_a_expr(tokens[i - 1].type))
+        tokens[i].type = to_unary(tokens[i].type);
+    }
+  }
+}
+
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
     return 0;
   }
 
-  for (int i = 0; i < nr_token; i++) {
-    if (tokens[i].type == TK_MUL &&
-        (i == 0 ||
-         (tokens[i - 1].type != TK_NUM && tokens[i - 1].type != TK_REG &&
-          tokens[i - 1].type != TK_RPAR))) {
-      tokens[i].type = TK_DEREF;
-    }
-  }
+  match_unary_tokens();
 
-  /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  for (int i = 0; i < nr_token; i++) {
+    Log("token[%d] type=%d str=%s", i, tokens[i].type, tokens[i].str);
+  }
+  // TODO: Eval
 
   return 0;
 }
