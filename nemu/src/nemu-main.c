@@ -74,7 +74,9 @@ int test_expr_eval(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+  init_monitor(argc, argv);
   return test_expr_eval(argc, argv);
+  
 //
 //   /* Initialize the monitor. */
 // #ifdef CONFIG_TARGET_AM
