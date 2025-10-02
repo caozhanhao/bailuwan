@@ -133,10 +133,10 @@ void init_regex() {
 
 typedef struct token {
   int type;
-  char* str;
+  char *str;
 } Token;
 
-static Token* tokens __attribute__((used)) = {};
+static Token *tokens __attribute__((used)) = {};
 static int nr_token __attribute__((used)) = 0;
 static size_t token_buf_size = 128;
 
@@ -172,8 +172,9 @@ static bool make_token(char *e) {
 
         if (nr_token >= token_buf_size) {
           token_buf_size *= 2;
-          Token* new_tokens = realloc(tokens, token_buf_size * sizeof(Token));
-          Assert(new_tokens != NULL, "realloc failed, new size: %lu", token_buf_size);
+          Token *new_tokens = realloc(tokens, token_buf_size * sizeof(Token));
+          Assert(new_tokens != NULL, "realloc failed, new size: %lu",
+                 token_buf_size);
           tokens = new_tokens;
         }
 

@@ -143,7 +143,7 @@ static int cmd_p(char *args) {
   return 0;
 }
 
-void wp_create(char* expr);
+void wp_create(char *expr);
 // w [EXPR]
 static int cmd_w(char *args) {
   if (args == NULL) {
@@ -164,7 +164,7 @@ static int cmd_d(char *args) {
     return 0;
   }
 
-  char* endptr;
+  char *endptr;
   int n = (int)strtoll(args, &endptr, 10);
   if (endptr == args) {
     printf("d: Expected a number.\n");
