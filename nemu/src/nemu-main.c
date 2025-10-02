@@ -43,25 +43,25 @@ int test_expr_eval(int argc, char *argv[]) {
   while ((nread = getline(&line, &len, fp)) != -1) {
     if (nread <= 1) continue;
 
-    char *tok = strtok(line, " ");
-    if (tok == NULL) continue;
+    char *p = strchr(line, ' ');
+    if (p == NULL) continue;
+    char* expr_str = p + 1;
+    *p = '\0';
 
     char* endptr;
-    unsigned expected = strtoul(tok, &endptr, 10);
-    Assert(tok != endptr, "invalid number");
+    unsigned expected = strtoul(line, &endptr, 10);
+    Assert(line != endptr, "invalid number");
 
-    tok = strtok(NULL, " ");
-
-    printf("Testing: %s\n", tok);
+    printf("Testing: %s\n", expr_str);
 
     bool success = false;
-    word_t got = expr(tok, &success);
+    word_t got = expr(expr_str, &success);
 
     total++;
     if (success && got == expected) {
       passed++;
     } else {
-      printf("[FAILED] expr: %s\n", tok);
+      printf("[FAILED] expr: %s\n", expr_str);
       printf("  expected: %u, got: %u\n", expected, got);
     }
   }
