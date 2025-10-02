@@ -173,7 +173,7 @@ static bool make_token(char *e) {
         if (nr_token >= token_buf_size) {
           token_buf_size *= 2;
           Token* new_tokens = realloc(tokens, token_buf_size * sizeof(Token));
-          Assert(new_tokens != NULL, "realloc failed");
+          Assert(new_tokens != NULL, "realloc failed, new size: %lu", token_buf_size);
           tokens = new_tokens;
         }
 
@@ -212,7 +212,7 @@ static void free_token() {
   free(tokens);
   tokens = NULL;
   nr_token = 0;
-  token_buf_size = 0;
+  token_buf_size = 128;
 }
 
 static bool expecting_a_expr(int i) {
