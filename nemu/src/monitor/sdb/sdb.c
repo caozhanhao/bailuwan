@@ -114,8 +114,8 @@ static int cmd_x(char *args) {
     return 0;
   }
 
-  for (uint64_t i = 0; i < n; i++) {
-    printf("%lu: %08x\n", res + i * 4, vaddr_read(res + i * 4, 4));
+  for (word_t i = 0; i < n; i++) {
+    printf("0x%x: %08x\n", res + i * 4, vaddr_read(res + i * 4, 4));
   }
 
   return 0;
