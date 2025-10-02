@@ -42,7 +42,7 @@ static char *rl_gets() {
 
   // default to use the last command
   if (line_read[0] == '\0') {
-    HIST_ENTRY* prev = previous_history();
+    HIST_ENTRY *prev = previous_history();
     if (prev)
       return prev->line;
   }
@@ -95,7 +95,7 @@ static int cmd_x(char *args) {
     return 0;
   }
 
-  char* endptr;
+  char *endptr;
   uint64_t n = strtol(args, &endptr, 10);
   printf("Got Number: %lu\n", n);
 

@@ -18,12 +18,17 @@
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
+#include "memory/vaddr.h"
+
+#include <limits.h>
 #include <regex.h>
 
 enum {
   TK_NOTYPE = 0,
   TK_NUM,
   TK_REG,
+
+  TK_BINARY_OP_BEGIN,
   TK_EQ,
   TK_NE,
   TK_LE,
@@ -34,42 +39,46 @@ enum {
   TK_SUB,
   TK_MUL,
   TK_DIV,
-  TK_NOT,
+  TK_REM,
   TK_AND,
   TK_OR,
   TK_XOR,
   TK_SHL,
   TK_LSHR,
   TK_ASHR,
-  TK_LNOT,
   TK_LAND,
   TK_LOR,
-  TK_LPAR,
-  TK_RPAR,
+  TK_BINARY_OP_END,
 
+  TK_UNARY_BEGIN,
+  TK_UNARY_NOT,
+  TK_UNARY_LNOT,
   TK_UNARY_MINUS,
   TK_UNARY_DEREF,
+  TK_UNARY_END,
+
+  TK_LPAR,
+  TK_RPAR,
 };
+bool is_binary_token(int i) {
+  return i > TK_BINARY_OP_BEGIN && i < TK_BINARY_OP_END;
+}
+bool is_unary_token(int i) { return i > TK_UNARY_BEGIN && i < TK_UNARY_END; }
 
 static struct rule {
   const char *regex;
   int token_type;
 } rules[] = {
 
-    /* TODO: Add more rules.
+    /*
      * Pay attention to the precedence level of different rules.
      */
 
     {"[ \\t\\n]+", TK_NOTYPE},
 
-    {"!", TK_LNOT},
     {"&&", TK_LAND},
     {"\\|\\|", TK_LOR},
 
-    {"~", TK_NOT},
-    {"&", TK_AND},
-    {"\\|", TK_OR},
-    {"\\^", TK_XOR},
     {"<<", TK_SHL},
     {">>", TK_LSHR},
     {">>>", TK_ASHR},
@@ -81,14 +90,23 @@ static struct rule {
     {"<", TK_LT},
     {">", TK_GT},
 
+    {"!", TK_UNARY_LNOT},
+    {"~", TK_UNARY_NOT},
+    {"&", TK_AND},
+    {"\\|", TK_OR},
+    {"\\^", TK_XOR},
+
     {"\\+", TK_ADD},
     {"-", TK_SUB},
     {"\\*", TK_MUL},
     {"/", TK_DIV},
+    {"%", TK_REM},
     {"\\(", TK_LPAR},
     {"\\)", TK_RPAR},
-    {"[0-9]+", TK_NUM},
+
     {"0[xX][0-9a-fA-F]+", TK_NUM},
+    {"[0-9]+", TK_NUM},
+
     {"\\$[A-Za-z_][A-Za-z0-9_]*", TK_REG},
 };
 
@@ -177,38 +195,10 @@ static bool make_token(char *e) {
 }
 
 static bool expecting_a_expr(int i) {
-  switch (i) {
-  case TK_EQ:
-  case TK_NE:
-  case TK_LE:
-  case TK_LT:
-  case TK_GE:
-  case TK_GT:
-  case TK_ADD:
-  case TK_SUB:
-  case TK_MUL:
-  case TK_DIV:
-  case TK_NOT:
-  case TK_AND:
-  case TK_OR:
-  case TK_XOR:
-  case TK_SHL:
-  case TK_LSHR:
-  case TK_ASHR:
-  case TK_LNOT:
-  case TK_LAND:
-  case TK_LOR:
-  case TK_LPAR:
-  case TK_UNARY_MINUS:
-  case TK_UNARY_DEREF:
-      return true;
-  }
-  return false;
+  return is_binary_token(i) || is_unary_token(i) || i == TK_LPAR;
 }
 
-static bool has_unary(int i) {
-  return i == TK_MUL || i == TK_SUB;
-}
+static bool has_unary(int i) { return i == TK_MUL || i == TK_SUB; }
 static int to_unary(int i) {
   return i == TK_MUL ? TK_UNARY_DEREF : TK_UNARY_MINUS;
 }
@@ -221,6 +211,226 @@ static void match_unary_tokens() {
   }
 }
 
+static bool check_parentheses(int p, int q, bool *invalid_expr) {
+  if (tokens[p].type != TK_LPAR || tokens[q].type != TK_RPAR)
+    return false;
+
+  int cnt = 0;
+  for (int i = p; i <= q; i++) {
+    if (tokens[i].type == TK_LPAR)
+      cnt++;
+    else if (tokens[i].type == TK_RPAR) {
+      if (--cnt < 0) {
+        *invalid_expr = true;
+        return false;
+      }
+    }
+  }
+  return cnt == 0;
+}
+
+int get_precedence(int i) {
+  switch (i) {
+  case TK_UNARY_NOT:
+  case TK_UNARY_LNOT:
+  case TK_UNARY_MINUS:
+  case TK_UNARY_DEREF:
+    return 100;
+  case TK_MUL:
+  case TK_DIV:
+  case TK_REM:
+    return 90;
+  case TK_ADD:
+  case TK_SUB:
+    return 80;
+  case TK_SHL:
+  case TK_LSHR:
+  case TK_ASHR:
+    return 70;
+  case TK_LE:
+  case TK_GE:
+  case TK_LT:
+  case TK_GT:
+    return 60;
+  case TK_EQ:
+  case TK_NE:
+    return 50;
+  case TK_AND:
+    return 40;
+  case TK_XOR:
+    return 30;
+  case TK_OR:
+    return 20;
+  case TK_LAND:
+    return 10;
+  case TK_LOR:
+    return 0;
+  default:
+    panic("unexpected token");
+  }
+  return -1;
+}
+
+int find_dominant_operator(int p, int q, bool *success) {
+  int min_prec = INT_MAX;
+  int idx = -1;
+  int paren = 0;
+  for (int i = p; i <= q; i++) {
+    int t = tokens[i].type;
+    if (t == TK_LPAR) {
+      ++paren;
+      continue;
+    }
+    if (t == TK_RPAR) {
+      if (--paren < 0) {
+        Log("find_dominant_operator: mismatched parentheses");
+        *success = false;
+        return -1;
+      }
+      continue;
+    }
+
+    if (paren != 0)
+      continue;
+
+    if (is_binary_token(t) || is_unary_token(t)) {
+      int prec = get_precedence(t);
+      if (prec < min_prec) {
+        min_prec = prec;
+        idx = i;
+      }
+    }
+  }
+
+  if (idx == -1) {
+    Log("find_dominant_operator: no operator found in range %d..%d", p, q);
+    *success = false;
+    return -1;
+  }
+
+  return idx;
+}
+
+static word_t eval(int p, int q, bool *success) {
+  if (!success)
+    return 0;
+
+  if (p > q) {
+    *success = false;
+    return 0;
+  }
+
+  if (p == q) {
+    if (tokens[p].type == TK_NUM) {
+      bool base16 = tokens[p].str[0] == '0' && tokens[p].str[1] == 'x';
+      char *endptr;
+      word_t ret = strtol(tokens[p].str, &endptr, base16 ? 16 : 10);
+      if (tokens[p].str == endptr) {
+        Log("eval: Bad number: %s", tokens[p].str);
+        *success = false;
+        return 0;
+      }
+      return ret;
+    }
+
+    if (tokens[p].type == TK_REG)
+      return isa_reg_str2val(tokens[p].str, success);
+
+    *success = false;
+    Log("eval: unexpected token.");
+    return 0;
+  }
+
+  bool invalid_expr = false;
+  if (check_parentheses(p, q, &invalid_expr)) {
+    /* The expression is surrounded by a matched pair of parentheses.
+     * If that is the case, just throw away the parentheses.
+     */
+    return eval(p + 1, q - 1, success);
+  }
+
+  if (invalid_expr) {
+    *success = false;
+    Log("eval: parentheses mismatch.");
+    return 0;
+  }
+
+  int op = find_dominant_operator(p, q, success);
+  if (!*success)
+    return 0;
+
+  if (is_unary_token(tokens[op].type)) {
+    word_t val = eval(op + 1, q, success);
+    if (!*success)
+      return 0;
+    switch (tokens[op].type) {
+    case TK_UNARY_NOT:
+      return ~val;
+    case TK_UNARY_LNOT:
+      return (word_t)(!val);
+    case TK_UNARY_MINUS:
+      return (word_t)(-(int64_t)val);
+    case TK_UNARY_DEREF: {
+      return vaddr_read(val, 4);
+    }
+    default:
+      panic("unexpected unary operator");
+    }
+  }
+
+  Assert(is_binary_token(tokens[op].type), "Bad find_dominant_operator");
+
+  word_t val1 = eval(p, op - 1, success);
+
+  if (!*success)
+    return 0;
+
+  word_t val2 = eval(op + 1, q, success);
+
+  if (!*success)
+    return 0;
+
+  switch (tokens[op].type) {
+#define MAKE_OP(TOK, OP)                                                       \
+  case TOK:                                                                    \
+    return val1 OP val2;
+    MAKE_OP(TK_EQ, ==)
+    MAKE_OP(TK_NE, !=)
+    MAKE_OP(TK_LE, <=)
+    MAKE_OP(TK_LT, <)
+    MAKE_OP(TK_GE, >=)
+    MAKE_OP(TK_GT, >)
+    MAKE_OP(TK_ADD, +)
+    MAKE_OP(TK_SUB, -)
+    MAKE_OP(TK_MUL, *)
+    MAKE_OP(TK_AND, &)
+    MAKE_OP(TK_OR, |)
+    MAKE_OP(TK_XOR, ^)
+    MAKE_OP(TK_SHL, <<)
+    MAKE_OP(TK_LSHR, >>)
+    MAKE_OP(TK_LAND, &&)
+    MAKE_OP(TK_LOR, ||)
+#undef MAKE_OP
+  case TK_ASHR:
+    return (uint32_t)((int32_t)val1 >> val2);
+  case TK_DIV:
+    if (val2 == 0) {
+      *success = false;
+      return 0;
+    }
+    return val1 / val2;
+  case TK_REM:
+    if (val2 == 0) {
+      *success = false;
+      return 0;
+    }
+    return val1 % val2;
+  default:
+    panic("unexpected binary operator");
+  }
+  return 0;
+}
+
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
@@ -229,10 +439,7 @@ word_t expr(char *e, bool *success) {
 
   match_unary_tokens();
 
-  for (int i = 0; i < nr_token; i++) {
-    Log("token[%d] type=%d str=%s", i, tokens[i].type, tokens[i].str);
-  }
-  // TODO: Eval
+  eval(0, nr_token - 1, success);
 
   return 0;
 }
