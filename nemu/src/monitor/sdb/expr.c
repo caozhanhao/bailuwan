@@ -333,8 +333,12 @@ static word_t eval(int p, int q, bool *success) {
       return ret;
     }
 
-    if (tokens[p].type == TK_REG)
-      return isa_reg_str2val(tokens[p].str, success);
+    if (tokens[p].type == TK_REG) {
+      word_t res = isa_reg_str2val(tokens[p].str, success);
+      if (!*success)
+        Log("eval: Bad register: %s", tokens[p].str);
+      return res;
+    }
 
     *success = false;
     Log("eval: unexpected token.");
