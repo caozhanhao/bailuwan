@@ -90,17 +90,16 @@ static int cmd_info(char *args) {
 
 // x [n] [EXPR]
 static int cmd_x(char *args) {
-  char* number = strtok(args, " ");
-  if (!number) {
-    printf("x: Expected a number.\n");
+  if (!args) {
+    printf("x: Expected two arguments.\n");
     return 0;
   }
 
   char* endptr;
-  uint64_t n = strtol(number, &endptr, 10);
+  uint64_t n = strtol(args, &endptr, 10);
   printf("Got Number: %lu\n", n);
 
-  if (number == endptr) {
+  if (args == endptr) {
     printf("x: Expected a number.\n");
     return 0;
   }
