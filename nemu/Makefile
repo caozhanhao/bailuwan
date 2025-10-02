@@ -61,3 +61,7 @@ else
 # Include rules to build NEMU
 include $(NEMU_HOME)/scripts/native.mk
 endif
+
+# Make CLion happy
+all:
+	$(MAKE) -C $(NEMU_HOME)
