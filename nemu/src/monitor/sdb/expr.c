@@ -79,9 +79,9 @@ static struct rule {
     {"&&", TK_LAND},
     {"\\|\\|", TK_LOR},
 
-    {"<<", TK_SHL},
-    {">>", TK_LSHR},
     {">>>", TK_ASHR},
+    {">>", TK_LSHR},
+    {"<<", TK_SHL},
 
     {"==", TK_EQ},
     {"!=", TK_NE},
@@ -107,7 +107,7 @@ static struct rule {
     {"0[xX][0-9a-fA-F]+", TK_NUM},
     {"[0-9]+", TK_NUM},
 
-    {"\\$[A-Za-z0-9_]*", TK_REG},
+    {"\\$[A-Za-z0-9_]+", TK_REG},
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -318,7 +318,8 @@ static word_t eval(int p, int q, bool *success) {
 
   if (p == q) {
     if (tokens[p].type == TK_NUM) {
-      bool base16 = tokens[p].str[0] == '0' && tokens[p].str[1] == 'x';
+      bool base16 = tokens[p].str[0] == '0' &&
+                    (tokens[p].str[1] == 'x' || tokens[p].str[1] == 'X');
       char *endptr;
       word_t ret = strtol(tokens[p].str, &endptr, base16 ? 16 : 10);
       if (tokens[p].str == endptr) {
