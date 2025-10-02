@@ -24,5 +24,4 @@ word_t isa_raise_intr(word_t NO, vaddr_t ret_addr) {
   return 0;
 }
 
-void query_intr() {
-}
+void query_intr() {}

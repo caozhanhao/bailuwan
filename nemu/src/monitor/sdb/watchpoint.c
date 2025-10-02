@@ -92,8 +92,7 @@ void wp_update_one(WP *p) {
   }
 
   if (p->last_val != curr_val) {
-    Log("Watchpoint %d: %s changed from %x to %x", p->NO, p->expr, p->last_val,
-        curr_val);
+    Log("Watchpoint %d: %s changed from %x to %x", p->NO, p->expr, p->last_val, curr_val);
     p->last_val = curr_val;
     nemu_state.state = NEMU_STOP;
   }
@@ -105,7 +104,7 @@ void wp_update() {
 }
 
 void wp_display() {
-  WP* buffer[NR_WP] = {};
+  WP *buffer[NR_WP] = {};
   int buffer_pos = 0;
   for (WP *p = head; p != NULL; p = p->next)
     buffer[buffer_pos++] = p;

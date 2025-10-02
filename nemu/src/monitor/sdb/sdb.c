@@ -182,21 +182,18 @@ static struct {
   const char *name;
   const char *description;
   int (*handler)(char *);
-} cmd_table[] = {
-    {"help", "Display information about all supported commands", cmd_help},
-    {"c", "Continue the execution of the program", cmd_c},
-    {"q", "Exit NEMU", cmd_q},
-    {"si",
-     "Execute N instructions one by one and then pause. If N is omitted, the "
-     "default is 1.",
-     cmd_si},
-    {"info", "Print register status(r) or watchpoint information(w).",
-     cmd_info},
-    {"x", "Display N consecutive 4-byte words in hexadecimal at given address.",
-     cmd_x},
-    {"p", "Evaluate the expression.", cmd_p},
-    {"w", "Pause execution when the value of the expression changes.", cmd_w},
-    {"d", "Delete the watchpoint with index N.", cmd_d}};
+} cmd_table[] = {{"help", "Display information about all supported commands", cmd_help},
+                 {"c", "Continue the execution of the program", cmd_c},
+                 {"q", "Exit NEMU", cmd_q},
+                 {"si",
+                  "Execute N instructions one by one and then pause. If N is omitted, the "
+                  "default is 1.",
+                  cmd_si},
+                 {"info", "Print register status(r) or watchpoint information(w).", cmd_info},
+                 {"x", "Display N consecutive 4-byte words in hexadecimal at given address.", cmd_x},
+                 {"p", "Evaluate the expression.", cmd_p},
+                 {"w", "Pause execution when the value of the expression changes.", cmd_w},
+                 {"d", "Delete the watchpoint with index N.", cmd_d}};
 
 #define NR_CMD ARRLEN(cmd_table)
 

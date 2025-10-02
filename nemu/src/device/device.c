@@ -14,8 +14,8 @@
 ***************************************************************************************/
 
 #include <common.h>
-#include <utils.h>
 #include <device/alarm.h>
+#include <utils.h>
 #ifndef CONFIG_TARGET_AM
 #include <SDL2/SDL.h>
 #endif
@@ -47,20 +47,21 @@ void device_update() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
-      case SDL_QUIT:
-        nemu_state.state = NEMU_QUIT;
-        break;
+    case SDL_QUIT:
+      nemu_state.state = NEMU_QUIT;
+      break;
 #ifdef CONFIG_HAS_KEYBOARD
-      // If a key was pressed
-      case SDL_KEYDOWN:
-      case SDL_KEYUP: {
-        uint8_t k = event.key.keysym.scancode;
-        bool is_keydown = (event.key.type == SDL_KEYDOWN);
-        send_key(k, is_keydown);
-        break;
-      }
+    // If a key was pressed
+    case SDL_KEYDOWN:
+    case SDL_KEYUP: {
+      uint8_t k = event.key.keysym.scancode;
+      bool is_keydown = (event.key.type == SDL_KEYDOWN);
+      send_key(k, is_keydown);
+      break;
+    }
 #endif
-      default: break;
+    default:
+      break;
     }
   }
 #endif
@@ -69,7 +70,8 @@ void device_update() {
 void sdl_clear_event_queue() {
 #ifndef CONFIG_TARGET_AM
   SDL_Event event;
-  while (SDL_PollEvent(&event));
+  while (SDL_PollEvent(&event))
+    ;
 #endif
 }
 

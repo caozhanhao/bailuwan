@@ -15,8 +15,8 @@
 
 #include <common.h>
 #include <device/alarm.h>
-#include <sys/time.h>
 #include <signal.h>
+#include <sys/time.h>
 
 #define MAX_HANDLER 8
 
@@ -25,12 +25,12 @@ static int idx = 0;
 
 void add_alarm_handle(alarm_handler_t h) {
   assert(idx < MAX_HANDLER);
-  handler[idx ++] = h;
+  handler[idx++] = h;
 }
 
 static void alarm_sig_handler(int signum) {
   int i;
-  for (i = 0; i < idx; i ++) {
+  for (i = 0; i < idx; i++) {
     handler[i]();
   }
 }
