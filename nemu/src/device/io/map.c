@@ -13,17 +13,17 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
-#include <device/map.h>
 #include <isa.h>
 #include <memory/host.h>
 #include <memory/vaddr.h>
+#include <device/map.h>
 
 #define IO_SPACE_MAX (32 * 1024 * 1024)
 
 static uint8_t *io_space = NULL;
 static uint8_t *p_space = NULL;
 
-uint8_t *new_space(int size) {
+uint8_t* new_space(int size) {
   uint8_t *p = p_space;
   // page aligned;
   size = (size + (PAGE_SIZE - 1)) & ~PAGE_MASK;
@@ -37,15 +37,13 @@ static void check_bound(IOMap *map, paddr_t addr) {
     Assert(map != NULL, "address (" FMT_PADDR ") is out of bound at pc = " FMT_WORD, addr, cpu.pc);
   } else {
     Assert(addr <= map->high && addr >= map->low,
-           "address (" FMT_PADDR ") is out of bound {%s} [" FMT_PADDR ", " FMT_PADDR "] at pc = " FMT_WORD, addr,
-           map->name, map->low, map->high, cpu.pc);
+        "address (" FMT_PADDR ") is out of bound {%s} [" FMT_PADDR ", " FMT_PADDR "] at pc = " FMT_WORD,
+        addr, map->name, map->low, map->high, cpu.pc);
   }
 }
 
 static void invoke_callback(io_callback_t c, paddr_t offset, int len, bool is_write) {
-  if (c != NULL) {
-    c(offset, len, is_write);
-  }
+  if (c != NULL) { c(offset, len, is_write); }
 }
 
 void init_map() {

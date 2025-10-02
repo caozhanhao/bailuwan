@@ -15,4 +15,5 @@
 
 #include <device/map.h>
 
-void init_disk() {}
+void init_disk() {
+}

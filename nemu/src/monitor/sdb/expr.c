@@ -60,7 +60,9 @@ enum {
   TK_LPAR,
   TK_RPAR,
 };
-bool is_binary_token(int i) { return i > TK_BINARY_OP_BEGIN && i < TK_BINARY_OP_END; }
+bool is_binary_token(int i) {
+  return i > TK_BINARY_OP_BEGIN && i < TK_BINARY_OP_END;
+}
 bool is_unary_token(int i) { return i > TK_UNARY_BEGIN && i < TK_UNARY_END; }
 
 static struct rule {
@@ -150,7 +152,8 @@ static bool make_token(char *e) {
   while (e[position] != '\0') {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i++) {
-      if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
+      if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 &&
+          pmatch.rm_so == 0) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
@@ -170,7 +173,8 @@ static bool make_token(char *e) {
         if (nr_token >= token_buf_size) {
           token_buf_size *= 2;
           Token *new_tokens = realloc(tokens, token_buf_size * sizeof(Token));
-          Assert(new_tokens != NULL, "realloc failed, new size: %lu", token_buf_size);
+          Assert(new_tokens != NULL, "realloc failed, new size: %lu",
+                 token_buf_size);
           tokens = new_tokens;
         }
 
@@ -214,10 +218,14 @@ static void free_token() {
   token_buf_size = 128;
 }
 
-static bool expecting_an_expr(int i) { return is_binary_token(i) || is_unary_token(i) || i == TK_LPAR; }
+static bool expecting_an_expr(int i) {
+  return is_binary_token(i) || is_unary_token(i) || i == TK_LPAR;
+}
 
 static bool has_unary(int i) { return i == TK_MUL || i == TK_SUB; }
-static int to_unary(int i) { return i == TK_MUL ? TK_UNARY_DEREF : TK_UNARY_MINUS; }
+static int to_unary(int i) {
+  return i == TK_MUL ? TK_UNARY_DEREF : TK_UNARY_MINUS;
+}
 static void match_unary_tokens() {
   for (int i = 0; i < nr_token; i++) {
     if (has_unary(tokens[i].type)) {
@@ -341,7 +349,8 @@ static word_t eval(int p, int q, bool *success) {
 
   if (p == q) {
     if (tokens[p].type == TK_NUM) {
-      bool base16 = tokens[p].str[0] == '0' && (tokens[p].str[1] == 'x' || tokens[p].str[1] == 'X');
+      bool base16 = tokens[p].str[0] == '0' &&
+                    (tokens[p].str[1] == 'x' || tokens[p].str[1] == 'X');
       char *endptr;
       word_t ret = strtol(tokens[p].str, &endptr, base16 ? 16 : 10);
       if (tokens[p].str == endptr) {
@@ -414,8 +423,8 @@ static word_t eval(int p, int q, bool *success) {
     return 0;
 
   switch (tokens[op].type) {
-#define MAKE_OP(TOK, OP)                                                                                               \
-  case TOK:                                                                                                            \
+#define MAKE_OP(TOK, OP)                                                       \
+  case TOK:                                                                    \
     return val1 OP val2;
     MAKE_OP(TK_EQ, ==)
     MAKE_OP(TK_NE, !=)
@@ -498,7 +507,7 @@ bool syntax_check_impl(int p, int q) {
   return syntax_check_impl(p, op - 1) && syntax_check_impl(op + 1, q);
 }
 
-bool syntax_check(char *e) {
+bool syntax_check(char* e) {
   Assert(e != NULL, "Bad arguments.");
 
   if (!make_token(e)) {

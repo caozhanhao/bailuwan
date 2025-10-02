@@ -20,6 +20,6 @@
 
 word_t expr(char *e, bool *success);
 
-bool syntax_check(char *e);
+bool syntax_check(char* e);
 
 #endif
