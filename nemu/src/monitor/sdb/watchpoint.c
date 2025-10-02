@@ -95,7 +95,11 @@ void wp_update_one(WP *p) {
     Log("Watchpoint %d: %s changed from %x to %x", p->NO, p->expr, p->last_val,
         curr_val);
     p->last_val = curr_val;
-    nemu_state.state = NEMU_STOP;
+
+    // The watch point mighted be triggered at `ebreak`.
+    // Don't change the state of NEMU if it is not running.
+    if (nemu_state.state == NEMU_RUNNING)
+      nemu_state.state = NEMU_STOP;
   }
 }
 
