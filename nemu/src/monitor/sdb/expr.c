@@ -481,3 +481,43 @@ word_t expr(char *e, bool *success) {
 
   return res;
 }
+
+bool syntax_check_impl(int p, int q) {
+  if (p > q)
+    return false;
+
+  if (p == q)
+    return true;
+
+  bool invalid_expr = false;
+  if (check_parentheses(p, q, &invalid_expr))
+    return syntax_check_impl(p + 1, q - 1);
+
+  if (invalid_expr)
+    return false;
+
+  bool success = true;
+  int op = find_dominant_operator(p, q, &success);
+  if (!success)
+    return false;
+
+  if (is_unary_token(tokens[op].type))
+    return syntax_check_impl(op + 1, q);
+
+  return syntax_check_impl(p, op - 1) && syntax_check_impl(op + 1, q);
+}
+
+bool syntax_check(char* e) {
+  Assert(e != NULL, "Bad arguments.");
+
+  if (!make_token(e)) {
+    free_token();
+    return false;
+  }
+
+  match_unary_tokens();
+  return syntax_check_impl(0, nr_token - 1);
+  free_token();
+
+  return true;
+}
