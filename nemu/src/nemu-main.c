@@ -52,6 +52,8 @@ int test_expr_eval(int argc, char *argv[]) {
 
     tok = strtok(NULL, " ");
 
+    printf("Testing: %s\n", tok);
+
     bool success = false;
     word_t got = expr(tok, &success);
 
