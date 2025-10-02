@@ -339,9 +339,6 @@ int find_dominant_operator(int p, int q, bool *success) {
 }
 
 static word_t eval(int p, int q, bool *success) {
-  if (!success)
-    return 0;
-
   if (p > q) {
     *success = false;
     return 0;
