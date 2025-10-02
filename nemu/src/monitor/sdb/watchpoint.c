@@ -19,6 +19,7 @@
 
 typedef struct watchpoint {
   int NO;
+  int pool_index;
   struct watchpoint *next;
 
   char *expr;
