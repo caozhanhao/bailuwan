@@ -18,10 +18,10 @@
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
-#include "memory/vaddr.h"
-
 #include <limits.h>
 #include <regex.h>
+
+#include <memory/vaddr.h>
 
 enum {
   TK_NOTYPE = 0,
@@ -217,7 +217,7 @@ static void free_token() {
   token_buf_size = 128;
 }
 
-static bool expecting_a_expr(int i) {
+static bool expecting_an_expr(int i) {
   return is_binary_token(i) || is_unary_token(i) || i == TK_LPAR;
 }
 
@@ -228,7 +228,7 @@ static int to_unary(int i) {
 static void match_unary_tokens() {
   for (int i = 0; i < nr_token; i++) {
     if (has_unary(tokens[i].type)) {
-      if (i == 0 || expecting_a_expr(tokens[i - 1].type))
+      if (i == 0 || expecting_an_expr(tokens[i - 1].type))
         tokens[i].type = to_unary(tokens[i].type);
     }
   }
@@ -443,7 +443,7 @@ static word_t eval(int p, int q, bool *success) {
     MAKE_OP(TK_LOR, ||)
 #undef MAKE_OP
   case TK_ASHR:
-    return (uint32_t)((int32_t)val1 >> val2);
+    return (word_t)((sword_t)val1 >> val2);
   case TK_DIV:
     if (val2 == 0) {
       *success = false;
