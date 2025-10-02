@@ -187,6 +187,7 @@ static bool make_token(char *e) {
           tokens[nr_token].str[substr_len] = '\0';
           break;
         default:
+          tokens[nr_token].str = NULL;
           break;
         }
 
@@ -206,7 +207,8 @@ static bool make_token(char *e) {
 
 static void free_token() {
   for (int i = 0; i < nr_token; i++) {
-    free(tokens[i].str);
+    if (tokens[i].str)
+      free(tokens[i].str);
   }
 
   free(tokens);
