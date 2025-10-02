@@ -101,6 +101,7 @@ void wp_create(char *expr) {
   p->expr = strdup(expr);
   p->last_val_valid = false;
   p->last_val = 0;
+  wp_update();
 }
 
 void wp_delete(int NO) {
