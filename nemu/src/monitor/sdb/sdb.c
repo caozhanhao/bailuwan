@@ -55,10 +55,15 @@ static int cmd_q(char *args) {
 
 // si [N]
 static int cmd_si(char *args) {
+  if (!args) {
+    cpu_exec(1);
+    return 0;
+  }
+
   char *endptr;
   uint64_t n = strtol(args, &endptr, 10);
   if (endptr == args) {
-    printf("No argument is given.");
+    printf("si: Expected a number.\n");
     return 0;
   }
   cpu_exec(n);
