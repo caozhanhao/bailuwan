@@ -63,4 +63,4 @@ include $(NEMU_HOME)/scripts/native.mk
 endif
 
 all:
-	$(MAKE)
+	$(MAKE) -C $(NEMU_HOME)
