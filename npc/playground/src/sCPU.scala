@@ -1,6 +1,7 @@
 package top
 
 import chisel3._
+import chisel3.util.{MuxCase, MuxLookup}
 import chisel3.util.experimental.BoringUtils
 
 import scala.collection.mutable
@@ -28,18 +29,13 @@ class sCPU(program: Seq[Byte]) extends Module {
   val rs2  = inst(1, 0)
 
   import sCPU._
-  when(op === ADD.U) {
-    regs(rd) := regs(rs1) + regs(rs2)
-  }
+  regs(rd) := MuxCase(regs(rd), Seq(
+    (op === LI.U) -> inst(3, 0),
+    (op === ADD.U) -> (regs(rs1) + regs(rs2))
+  ))
 
-  when(op === LI.U) {
-    regs(rd) := inst(3, 0)
-  }
-
-  when(op === OUT.U) {
-    output      := regs(rs1)
-    outputValid := true.B
-  }
+  output := Mux(op === OUT.U, regs(rs1), output)
+  outputValid := Mux(op === OUT.U, true.B, outputValid)
 
   val brTaken = op === BNER0.U && regs(0) =/= regs(rs2)
   pc := Mux(brTaken, inst(5, 2), pc + 1.U)

@@ -65,3 +65,7 @@ endif
 # Make CLion happy
 all:
 	$(MAKE) -C $(NEMU_HOME)
+
+
+count:
+	find $(NEMU_HOME) -type f \( -name '*.c' -o -name '*.h' \) -print0 | xargs -0 cat | awk 'NF' | wc -l
