@@ -23,8 +23,8 @@
 // this should be enough
 #define BUF_SIZE 65536
 
-#define MAX_DEPTH 40
-#define MAX_NUM 1000
+#define MAX_DEPTH 20
+#define MAX_NUM 100
 
 static char* buf;
 static size_t buf_size = BUF_SIZE;
