@@ -59,6 +59,47 @@ static void todo(const char *name) {
   // Log("RISCV32: Instruction %s is not implemented", name);
 }
 
+// Table 11. Semantics for division by zero and division overflow.
+static word_t riscv_div(word_t src1, word_t src2) {
+  // division by zero
+  if (src2 == 0)
+    return -1;
+
+  // overflow
+  if ((sword_t)src1 == SWORD_MIN && (sword_t)src2 == -1)
+    return src1;
+
+  return (sword_t)src1 / (sword_t)src2;
+}
+
+word_t riscv_divu(word_t src1, word_t src2) {
+  // division by zero
+  if (src2 == 0)
+    return -1;
+
+  return src1 / src2;
+}
+
+static word_t riscv_rem(word_t src1, word_t src2) {
+  // division by zero
+  if (src2 == 0)
+    return src1;
+
+  // overflow
+  if ((sword_t)src1 == SWORD_MIN && (sword_t)src2 == -1)
+    return 0;
+
+  return (sword_t)src1 % (sword_t)src2;
+}
+
+static word_t riscv_remu(word_t src1, word_t src2) {
+  // division by zero
+  if (src2 == 0)
+    return src1;
+
+  return src1 % src2;
+}
+
 static int decode_exec(Decode *s) {
   s->dnpc = s->snpc;
 
@@ -126,10 +167,10 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000001 ????? ????? 001 ????? 01100 11", mulh   , R, R(rd) = ((int64_t)(sword_t)src1 * (int64_t)(sword_t)src2) >> 32);
   INSTPAT("0000001 ????? ????? 010 ????? 01100 11", mulhsu , R, R(rd) = ((int64_t)(sword_t)src1 * (uint64_t)src2) >> 32);
   INSTPAT("0000001 ????? ????? 011 ????? 01100 11", mulhu  , R, R(rd) = ((uint64_t)src1 * (uint64_t)src2) >> 32);
-  INSTPAT("0000001 ????? ????? 100 ????? 01100 11", div    , R, R(rd) = (sword_t)src1 / (sword_t)src2);
-  INSTPAT("0000001 ????? ????? 101 ????? 01100 11", divu   , R, R(rd) = src1 / src2);
-  INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem    , R, R(rd) = (sword_t)src1 % (sword_t)src2);
-  INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu   , R, R(rd) = src1 % src2);
+  INSTPAT("0000001 ????? ????? 100 ????? 01100 11", div    , R, R(rd) = riscv_div(src1, src2));
+  INSTPAT("0000001 ????? ????? 101 ????? 01100 11", divu   , R, R(rd) = riscv_divu(src1, src2));
+  INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem    , R, R(rd) = riscv_rem(src1, src2));
+  INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu   , R, R(rd) = riscv_remu(src1, src2));
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();
