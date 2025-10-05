@@ -168,10 +168,3 @@ clean-all: $(CLEAN_ALL) clean
 $(CLEAN_ALL):
 	-@$(MAKE) -s -C $@ clean
 .PHONY: clean-all $(CLEAN_ALL)
-
-# Make CLion happy
-all:
-	/bin/echo "int main() { return 0; }" > ysyx_tmp_am_clion_entry.c
-	/bin/echo -e "NAME=dummy\nSRCS=ysyx_tmp_am_clion_entry.c\ninclude $${AM_HOME}/Makefile" > Makefile.ysyx_tmp_am_clion_entry
-	make -f Makefile.ysyx_tmp_am_clion_entry ARCH=riscv32-nemu run
-	rm ysyx_tmp_am_clion_entry.c Makefile.ysyx_tmp_am_clion_entry
