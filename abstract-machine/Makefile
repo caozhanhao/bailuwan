@@ -172,5 +172,5 @@ $(CLEAN_ALL):
 # Make CLion happy
 all:
 	echo "int main() { return 0; }" > /tmp/ysyx_tmp_am_clion_entry.c
-	$(MAKE) -C $(AM_HOME) ARCH=riscv32-nemu SRCS=/tmp/ysyx_tmp_am_clion_entry.c run
+	$(MAKE) -C $(AM_HOME) ARCH=riscv32-nemu NAME=dummy SRCS=/tmp/ysyx_tmp_am_clion_entry.c run
 	rm /tmp/ysyx_tmp_am_clion_entry.c
