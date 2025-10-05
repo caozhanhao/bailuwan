@@ -53,7 +53,10 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
 }
 
 static void not_implemented(const char *name) {
-  panic("RISCV32: Instruction %s is not implemented", name);
+  // panic("RISCV32: Instruction %s is not implemented", name);
+
+  // ONLY FOR DEBUG: let it run a few more cycles to find out more instructions to implement.
+  Log("RISCV32: Instruction %s is not implemented", name);
 }
 
 static int decode_exec(Decode *s) {
