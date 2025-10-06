@@ -57,10 +57,11 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   IFDEF(CONFIG_WATCHPOINT, wp_update());
 }
 
-static void disasm_and_dump(word_t pc, word_t snpc, int ilen, uint8_t *inst, char* dest, size_t bufsz) {
+static void disasm_and_dump(word_t pc, word_t snpc, uint8_t *inst, char* dest, size_t bufsz) {
   char *p = dest;
   p += snprintf(p, bufsz, FMT_WORD ":", pc);
   int i;
+  int ilen = snpc - pc;
 #ifdef CONFIG_ISA_x86
   for (i = 0; i < ilen; i ++) {
 #else
@@ -81,7 +82,7 @@ static void disasm_and_dump(word_t pc, word_t snpc, int ilen, uint8_t *inst, cha
 
 static void iringbuf_write_one(word_t pc, uint8_t * inst) {
 #ifdef CONFIG_ISA_riscv
-  disasm_and_dump(pc, pc + 4, 4, inst, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
+  disasm_and_dump(pc, pc + 4, inst, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
   g_iringbuf.wptr = (g_iringbuf.wptr + 1) % IRINGBUF_SZ;
   if (g_iringbuf.wptr == g_iringbuf.rptr)
     g_iringbuf.rptr = (g_iringbuf.rptr + 1) % IRINGBUF_SZ;
@@ -110,7 +111,7 @@ static void exec_once(Decode *s, vaddr_t pc) {
   
   cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
-  disasm_and_dump(s->pc, s->snpc, s->snpc - s->pc, inst, s->logbuf, sizeof(s->logbuf));
+  disasm_and_dump(s->pc, s->snpc, inst, s->logbuf, sizeof(s->logbuf));
 #endif
 }
 
