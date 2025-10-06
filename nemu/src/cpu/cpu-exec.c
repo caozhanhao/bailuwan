@@ -171,8 +171,12 @@ static void iringbuf_update(word_t pc) {
 }
 
 static void iringbuf_display() {
-  for (int i = g_iringbuf.rptr; i != g_iringbuf.wptr; i = (i + 1) % IRINGBUF_SZ)
-    puts((char *)g_iringbuf.buf[i]);
+  for (int i = g_iringbuf.rptr; i != g_iringbuf.wptr; i = (i + 1) % IRINGBUF_SZ) {
+    if (i == g_iringbuf.wptr)
+      printf("%s <<<<<<<<<<<<<<<<<<<\n", (char *)g_iringbuf.buf[i]);
+    else
+      printf("%s\n", (char *)g_iringbuf.buf[i]);
+  }
 }
 #endif
 
