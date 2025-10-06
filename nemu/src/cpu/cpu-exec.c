@@ -38,7 +38,11 @@ struct ringbuf_t {
   char *buf[IRINGBUF_SZ][IRINGBUF_ENTRY_SZ];
   int rptr;
   int wptr;
-} g_iringbuf = {};
+} g_iringbuf = {
+  .buf = {},
+  .rptr = 0,
+  .wptr = 0
+};
 #endif
 
 void device_update();
