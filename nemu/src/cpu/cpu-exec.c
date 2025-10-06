@@ -111,8 +111,8 @@ static void execute(uint64_t n) {
 }
 
 static void dump_iringbuf() {
-  // for (int i = g_iringbuf.rptr; i != g_iringbuf.wptr; i = (i + 1) % IRINGBUF_SZ)
-  //   puts((char *)g_iringbuf.buf[i]);
+  for (int i = g_iringbuf.rptr; i != g_iringbuf.wptr; i = (i + 1) % IRINGBUF_SZ)
+    puts((char *)g_iringbuf.buf[i]);
 }
 
 static void statistic() {
