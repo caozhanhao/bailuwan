@@ -13,6 +13,8 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "memory/vaddr.h"
+
 #include <cpu/cpu.h>
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
@@ -80,9 +82,10 @@ static void disasm_and_dump(word_t pc, word_t snpc, uint8_t *inst, char* dest, s
   disassemble(p, dest + bufsz - p, MUXDEF(CONFIG_ISA_x86, snpc, pc), inst, ilen);
 }
 
-static void iringbuf_write_one(word_t pc, uint8_t * inst) {
+static void iringbuf_write_one(word_t pc) {
 #ifdef CONFIG_ISA_riscv
-  disasm_and_dump(pc, pc + 4, inst, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
+  word_t inst = vaddr_ifetch(pc, 4);
+  disasm_and_dump(pc, pc + 4, (uint8_t*)&inst, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
   g_iringbuf.wptr = (g_iringbuf.wptr + 1) % IRINGBUF_SZ;
   if (g_iringbuf.wptr == g_iringbuf.rptr)
     g_iringbuf.rptr = (g_iringbuf.rptr + 1) % IRINGBUF_SZ;
@@ -103,7 +106,7 @@ static void exec_once(Decode *s, vaddr_t pc) {
   // However, before isa_exec_once, we don't know the `snpc` for x86, so `iringbuf_write_one`
   // only works on riscv.
   // FIXME: support x86.
-  iringbuf_write_one(pc, inst);
+  iringbuf_write_one(pc);
 
   s->pc = pc;
   s->snpc = pc;
