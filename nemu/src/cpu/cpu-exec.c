@@ -157,25 +157,17 @@ valid = true; \
   return valid;
 }
 
-static void iringbuf_write_one(word_t pc, word_t inst) {
+static void iringbuf_push(word_t pc, word_t inst) {
   disasm_and_dump(pc, pc + 4, (uint8_t*)&inst, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
   g_iringbuf.wptr = (g_iringbuf.wptr + 1) % IRINGBUF_SZ;
   if (g_iringbuf.wptr == g_iringbuf.rptr)
     g_iringbuf.rptr = (g_iringbuf.rptr + 1) % IRINGBUF_SZ;
 }
 
-// try to make `pc` is in the middle of the ring buffer.
+// TODO: try to move `pc` to the middle of the ring buffer.
 static void iringbuf_update(word_t pc) {
-  static bool inited = false;
   word_t inst = vaddr_ifetch(pc, 4);
-  iringbuf_write_one(pc, inst);
-  if (!inited) {
-    if (in_pmem(pc + 4)) {
-      inst = vaddr_ifetch(pc + 4, 4);
-      if (is_valid_riscv_inst(inst))
-        iringbuf_write_one(pc + 4, inst);
-    }
-  }
+  iringbuf_push(pc, inst);
 }
 
 static void iringbuf_display() {
