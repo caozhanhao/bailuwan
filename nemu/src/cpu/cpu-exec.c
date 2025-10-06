@@ -57,12 +57,10 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   IFDEF(CONFIG_WATCHPOINT, wp_update());
 }
 
-static void disasm_and_dump_inst(Decode *s, char* dest, size_t len) {
+static void disasm_and_dump(word_t pc, word_t snpc, int ilen, uint8_t *inst, char* dest, size_t bufsz) {
   char *p = dest;
-  p += snprintf(p, len, FMT_WORD ":", s->pc);
-  int ilen = s->snpc - s->pc;
+  p += snprintf(p, bufsz, FMT_WORD ":", pc);
   int i;
-  uint8_t *inst = (uint8_t *)&s->isa.inst;
 #ifdef CONFIG_ISA_x86
   for (i = 0; i < ilen; i ++) {
 #else
@@ -78,23 +76,32 @@ static void disasm_and_dump_inst(Decode *s, char* dest, size_t len) {
   p += space_len;
 
   void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
-  disassemble(p, dest + len - p,
-      MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst, ilen);
+  disassemble(p, dest + bufsz - p, MUXDEF(CONFIG_ISA_x86, snpc, pc), inst, ilen);
+}
+
+static void iringbuf_write_one(word_t pc, uint8_t * inst) {
+  disasm_and_dump(pc, pc + 4, 4, inst, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
+  g_iringbuf.wptr = (g_iringbuf.wptr + 1) % IRINGBUF_SZ;
+  if (g_iringbuf.wptr == g_iringbuf.rptr)
+    g_iringbuf.rptr = (g_iringbuf.rptr + 1) % IRINGBUF_SZ;
+}
+
+static void iringbuf_display() {
+  for (int i = g_iringbuf.rptr; i != g_iringbuf.wptr; i = (i + 1) % IRINGBUF_SZ)
+    puts((char *)g_iringbuf.buf[i]);
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {
+  uint8_t* inst = (uint8_t *)&s->isa.inst;
+  iringbuf_write_one(pc, inst);
+
   s->pc = pc;
   s->snpc = pc;
 
   isa_exec_once(s);
   cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
-  disasm_and_dump_inst(s, s->logbuf, sizeof(s->logbuf));
-
-  disasm_and_dump_inst(s, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
-  g_iringbuf.wptr = (g_iringbuf.wptr + 1) % IRINGBUF_SZ;
-  if (g_iringbuf.wptr == g_iringbuf.rptr)
-    g_iringbuf.rptr = (g_iringbuf.rptr + 1) % IRINGBUF_SZ;
+  disasm_and_dump(s->pc, s->snpc, s->snpc - s->pc, inst, s->logbuf, sizeof(s->logbuf));
 #endif
 }
 
@@ -107,11 +114,6 @@ static void execute(uint64_t n) {
     if (nemu_state.state != NEMU_RUNNING) break;
     IFDEF(CONFIG_DEVICE, device_update());
   }
-}
-
-static void iringbuf_display() {
-  for (int i = g_iringbuf.rptr; i != g_iringbuf.wptr; i = (i + 1) % IRINGBUF_SZ)
-    puts((char *)g_iringbuf.buf[i]);
 }
 
 static void statistic() {
