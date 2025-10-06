@@ -57,13 +57,17 @@ word_t paddr_read(paddr_t addr, int len) {
   if (likely(in_pmem(addr))) {
     ret = pmem_read(addr, len);
     IFDEF(CONFIG_MTRACE, Log("paddr_read: in_pmem -> got: " FMT_WORD, ret));
+    return ret;
   }
 
-  IFDEF(CONFIG_DEVICE, ret = mmio_read(addr, len));
-  IFDEF(CONFIG_DEVICE && CONFIG_MTRACE, Log("paddr_read: mmio_read -> got: " FMT_WORD, ret));
+#ifdef CONFIG_DEVICE
+  ret = mmio_read(addr, len);
+  IFDEF(CONFIG_MTRACE, Log("paddr_read: mmio_read -> got: " FMT_WORD, ret));
+  return ret;
+#endif
 
   out_of_bound(addr);
-  return ret;
+  return 0;
 }
 
 void paddr_write(paddr_t addr, int len, word_t data) {
