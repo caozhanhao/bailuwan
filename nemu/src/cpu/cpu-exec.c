@@ -80,10 +80,14 @@ static void disasm_and_dump(word_t pc, word_t snpc, int ilen, uint8_t *inst, cha
 }
 
 static void iringbuf_write_one(word_t pc, uint8_t * inst) {
+#ifdef CONFIG_ISA_riscv
   disasm_and_dump(pc, pc + 4, 4, inst, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
   g_iringbuf.wptr = (g_iringbuf.wptr + 1) % IRINGBUF_SZ;
   if (g_iringbuf.wptr == g_iringbuf.rptr)
     g_iringbuf.rptr = (g_iringbuf.rptr + 1) % IRINGBUF_SZ;
+#else
+#pragma message("Inst Ring Buffer on this ISA is not supported yet.")
+#endif
 }
 
 static void iringbuf_display() {
@@ -93,12 +97,17 @@ static void iringbuf_display() {
 
 static void exec_once(Decode *s, vaddr_t pc) {
   uint8_t* inst = (uint8_t *)&s->isa.inst;
+
+  // Attention: Update Inst Ring Buffer before exec to catch the inst causing the failure.
+  // However, before isa_exec_once, we don't know the `snpc` for x86, so `iringbuf_write_one`
+  // only works on riscv.
+  // FIXME: support x86.
   iringbuf_write_one(pc, inst);
 
   s->pc = pc;
   s->snpc = pc;
-
   isa_exec_once(s);
+  
   cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
   disasm_and_dump(s->pc, s->snpc, s->snpc - s->pc, inst, s->logbuf, sizeof(s->logbuf));
