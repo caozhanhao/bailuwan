@@ -81,7 +81,7 @@ static void disasm_and_dump(word_t pc, word_t snpc, int ilen, uint8_t *inst, cha
 
 static void iringbuf_write_one(word_t pc, uint8_t * inst) {
 #ifdef CONFIG_ISA_riscv
-  // disasm_and_dump(pc, pc + 4, 4, inst, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
+  disasm_and_dump(pc, pc + 4, 4, inst, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
   g_iringbuf.wptr = (g_iringbuf.wptr + 1) % IRINGBUF_SZ;
   if (g_iringbuf.wptr == g_iringbuf.rptr)
     g_iringbuf.rptr = (g_iringbuf.rptr + 1) % IRINGBUF_SZ;
