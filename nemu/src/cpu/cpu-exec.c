@@ -25,10 +25,21 @@
  */
 #define MAX_INST_TO_PRINT 10
 
+
 CPU_state cpu = {};
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
+
+#ifdef CONFIG_ITRACE
+#define IRINGBUF_SZ 16
+#define IRINGBUF_ENTRY_SZ sizeof(((Decode*)0)->logbuf)
+struct ringbuf_t {
+  char *buf[IRINGBUF_SZ][IRINGBUF_ENTRY_SZ];
+  int rptr;
+  int wptr;
+} g_iringbuf = {};
+#endif
 
 void device_update();
 void wp_update();
@@ -70,6 +81,11 @@ static void exec_once(Decode *s, vaddr_t pc) {
   void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
   disassemble(p, s->logbuf + sizeof(s->logbuf) - p,
       MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst, ilen);
+
+  memcpy(g_iringbuf.buf[g_iringbuf.wptr], s->logbuf, IRINGBUF_ENTRY_SZ);
+  g_iringbuf.wptr = (g_iringbuf.wptr + 1) % IRINGBUF_SZ;
+  if (g_iringbuf.wptr == g_iringbuf.rptr)
+    g_iringbuf.rptr = (g_iringbuf.rptr + 1) % IRINGBUF_SZ;
 #endif
 }
 
@@ -84,6 +100,11 @@ static void execute(uint64_t n) {
   }
 }
 
+static void dump_iringbuf() {
+  for (int i = g_iringbuf.rptr; i != g_iringbuf.wptr; i = (i + 1) % IRINGBUF_SZ)
+    puts((char *)g_iringbuf.buf[i]);
+}
+
 static void statistic() {
   IFNDEF(CONFIG_TARGET_AM, setlocale(LC_NUMERIC, ""));
 #define NUMBERIC_FMT MUXDEF(CONFIG_TARGET_AM, "%", "%'") PRIu64
@@ -94,6 +115,7 @@ static void statistic() {
 }
 
 void assert_fail_msg() {
+  dump_iringbuf();
   isa_reg_display();
   statistic();
 }
