@@ -57,7 +57,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   IFDEF(CONFIG_WATCHPOINT, wp_update());
 }
 
-static void dump_inst(Decode *s, char* dest, size_t len) {
+static void disasm_and_dump_inst(Decode *s, char* dest, size_t len) {
   char *p = dest;
   p += snprintf(p, len, FMT_WORD ":", s->pc);
   int ilen = s->snpc - s->pc;
@@ -86,16 +86,15 @@ static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
   s->snpc = pc;
 
-  dump_inst(s, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
+  isa_exec_once(s);
+  cpu.pc = s->dnpc;
+#ifdef CONFIG_ITRACE
+  disasm_and_dump_inst(s, s->logbuf, sizeof(s->logbuf));
+
+  disasm_and_dump_inst(s, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
   g_iringbuf.wptr = (g_iringbuf.wptr + 1) % IRINGBUF_SZ;
   if (g_iringbuf.wptr == g_iringbuf.rptr)
     g_iringbuf.rptr = (g_iringbuf.rptr + 1) % IRINGBUF_SZ;
-
-  isa_exec_once(s);
-
-  cpu.pc = s->dnpc;
-#ifdef CONFIG_ITRACE
-  dump_inst(s, s->logbuf, sizeof(s->logbuf));
 #endif
 }
 
@@ -110,7 +109,7 @@ static void execute(uint64_t n) {
   }
 }
 
-static void dump_iringbuf() {
+static void iringbuf_display() {
   for (int i = g_iringbuf.rptr; i != g_iringbuf.wptr; i = (i + 1) % IRINGBUF_SZ)
     puts((char *)g_iringbuf.buf[i]);
 }
@@ -125,7 +124,7 @@ static void statistic() {
 }
 
 void assert_fail_msg() {
-  dump_iringbuf();
+  iringbuf_display();
   isa_reg_display();
   statistic();
 }
