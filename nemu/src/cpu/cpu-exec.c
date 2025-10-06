@@ -85,7 +85,7 @@ static void disasm_and_dump(word_t pc, word_t snpc, uint8_t *inst, char* dest, s
   disassemble(p, dest + bufsz - p, MUXDEF(CONFIG_ISA_x86, snpc, pc), inst, ilen);
 }
 
-#ifdef CONFIG_ISA_riscv
+/*
 bool is_valid_riscv_inst(word_t inst) {
   Decode dummy;
   dummy.isa.inst = inst;
@@ -156,6 +156,7 @@ valid = true; \
 
   return valid;
 }
+*/
 
 static void iringbuf_push(word_t pc, word_t inst) {
   disasm_and_dump(pc, pc + 4, (uint8_t*)&inst, (char*)g_iringbuf.buf[g_iringbuf.wptr], IRINGBUF_ENTRY_SZ);
@@ -178,7 +179,6 @@ static void iringbuf_display() {
       printf("%s\n", (char *)g_iringbuf.buf[i]);
   }
 }
-#endif
 
 static void exec_once(Decode *s, vaddr_t pc) {
   uint8_t* inst = (uint8_t *)&s->isa.inst;
