@@ -24,7 +24,7 @@ typedef struct ftrace_sym_t {
   char name[128];
 } ftrace_sym_t;
 
-#define FTRACE_TABLE_MAXSIZE 1024
+#define FTRACE_TABLE_MAXSIZE 8192
 ftrace_sym_t ftrace_table[FTRACE_TABLE_MAXSIZE];
 size_t ftrace_size = 0;
 

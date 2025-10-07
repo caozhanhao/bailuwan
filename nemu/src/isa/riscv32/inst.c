@@ -236,7 +236,7 @@ int isa_exec_once(Decode *s) {
 
 #ifdef CONFIG_FTRACE
 const char *ftrace_search(uint32_t pc);
-static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
+static int ftrace_dump(Decode *s, int rd, int rs1, word_t imm, char* buf, size_t buf_size) {
   // call:
   //   jal  ra, imm        ->  s->dnpc = s->pc + imm;
   //   jalr ra, rs1, imm   ->  s->dnpc = (src1 + imm) & ~1
@@ -250,11 +250,11 @@ static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
 
   if (!is_call && !is_ret) {
     Log("Unrecognized jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
-    return;
+    return -1;
   }
   if (is_call && is_ret) {
     Log("Ambiguous jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
-    return;
+    return -1;
   }
 
   static int depth = 0;
@@ -262,24 +262,30 @@ static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
 
   if (is_call) {
     const char *callee = ftrace_search(s->dnpc);
-    log_write(FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d\n", s->pc, depth * 2, "", rd == 1 ? "call" : "tail",
-              callee, s->dnpc, depth);
+    snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d",
+      s->pc, depth * 2, "", rd == 1 ? "call" : "tail", callee, s->dnpc, depth);
   } else if (is_ret) {
     const char *callee = ftrace_search(s->pc);
-    log_write(FMT_WORD ": %*sret [%s], depth=%d\n", s->pc, (depth + 1) * 2, "", callee, depth + 1);
+    snprintf(buf, buf_size,  FMT_WORD ": %*sret [%s], depth=%d",
+      s->pc, (depth + 1) * 2, "", callee, depth + 1);
   } else {
     panic("Unreachable");
   }
+
+  return 0;
 }
 
-void isa_ftrace_display(Decode *s) {
+int isa_ftrace_dump(Decode *s, char* buf, size_t buf_size) {
+  int ret = -2;
   INSTPAT_START();
 
-  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal, J, ftrace_display(s, rd, rs1, imm););
-  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr, I, ftrace_display(s, rd, rs1, imm););
+  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal, J, ret = ftrace_dump(s, rd, rs1, imm, buf, buf_size););
+  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr, I, ret = ftrace_dump(s, rd, rs1, imm, buf, buf_size););
 
   // pass
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv, N, ;);
   INSTPAT_END();
+
+  return ret;
 }
 #endif

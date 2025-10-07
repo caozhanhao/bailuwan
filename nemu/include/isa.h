@@ -57,7 +57,7 @@ void isa_difftest_attach();
 
 // function trace
 #ifdef CONFIG_FTRACE
-void isa_ftrace_display(struct Decode *s);
+int isa_ftrace_dump(struct Decode *s, char* buf, size_t buf_size);
 #endif
 
 #endif
