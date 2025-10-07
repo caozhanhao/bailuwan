@@ -241,7 +241,7 @@ static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
   //   jalr ra, rs1, imm   ->  s->dnpc = (src1 + imm) & ~1
   // tail:
   //   jalr x0, x6, imm
-  bool is_call = rd == 1 || (rd == 0 && rs1 == 6);
+  bool is_call = rd == 1 || (rd == 0 && rs1 != 1);
 
   // ret:
   //   jalr x0, ra, 0
