@@ -88,6 +88,27 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
             continue;
         }
 
+        // optional leading '0' flag, then width digits
+        int zero_pad = 0;
+        int width = 0;
+
+        // flag: '0' only meaningful when directly before width
+        if (*f == '0')
+        {
+            zero_pad = 1;
+            f++;
+        }
+
+        // parse width (digits)
+        while (*f >= '0' && *f <= '9')
+        {
+            width = width * 10 + (*f - '0');
+            f++;
+        }
+
+        if (*f == '\0')
+            break;
+
         if (*f == 's')
         {
             const char* s = va_arg(ap, const char *);
@@ -101,10 +122,12 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
         {
             int v = va_arg(ap, int);
             long long val = (long long)v;
+            int negative = 0;
             unsigned long long u;
+
             if (val < 0)
             {
-                WRITE_CHAR('-');
+                negative = 1;
                 u = (unsigned long long)(-val);
             }
             else
@@ -112,7 +135,8 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
                 u = (unsigned long long)val;
             }
 
-            char buf[32];
+            // produce digits into buf in reverse
+            char buf[128];
             int bi = 0;
             if (u == 0)
             {
@@ -126,13 +150,49 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
                     u /= 10;
                 }
             }
-            while (bi > 0)
-                WRITE_CHAR(buf[--bi]);
+            int digits_len = bi; // number of digit characters
+
+            if (negative)
+            {
+                if (zero_pad && width > 0)
+                {
+                    // sign first
+                    WRITE_CHAR('-');
+                    // zeros padding AFTER sign
+                    int pad = width - 1 - digits_len;
+                    while (pad-- > 0)
+                        WRITE_CHAR('0');
+                    // write digits
+                    while (bi > 0)
+                        WRITE_CHAR(buf[--bi]);
+                }
+                else
+                {
+                    // space padding BEFORE sign
+                    int pad = width - 1 - digits_len;
+                    while (pad-- > 0)
+                        WRITE_CHAR(' ');
+                    // sign
+                    WRITE_CHAR('-');
+                    // digits
+                    while (bi > 0)
+                        WRITE_CHAR(buf[--bi]);
+                }
+            }
+            else // positive
+            {
+                int pad = width - digits_len;
+                while (pad-- > 0)
+                    WRITE_CHAR(zero_pad ? '0' : ' ');
+                while (bi > 0)
+                    WRITE_CHAR(buf[--bi]);
+            }
 
             f++;
         }
         else
         {
+            // unsupported specifier: literally %<char>
             WRITE_CHAR('%');
             WRITE_CHAR(*f ? *f : '\0');
             if (*f) f++;
