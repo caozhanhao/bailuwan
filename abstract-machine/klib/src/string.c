@@ -11,8 +11,6 @@ size_t strlen(const char *s) {
 }
 
 char *strcpy(char *dst, const char *src) {
-  panic("t");
-
   char *ret = dst;
   while ((*dst++ = *src++) != '\0')
     ;
