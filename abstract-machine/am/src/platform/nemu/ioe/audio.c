@@ -6,8 +6,8 @@
 #define AUDIO_SAMPLES_ADDR   (AUDIO_ADDR + 0x08)
 #define AUDIO_SBUF_SIZE_ADDR (AUDIO_ADDR + 0x0c)
 #define AUDIO_INIT_ADDR      (AUDIO_ADDR + 0x10)
-#define AUDIO_COUNT_ADDR     (AUDIO_ADDR + 0x14)
-#define AUDIO_POS_ADDR     (AUDIO_ADDR + 0x18)
+#define AUDIO_WPTR_ADDR     (AUDIO_ADDR + 0x14)
+#define AUDIO_RPTR_ADDR     (AUDIO_ADDR + 0x18)
 
 void __am_audio_init() {
 }
@@ -25,7 +25,7 @@ void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl) {
 }
 
 void __am_audio_status(AM_AUDIO_STATUS_T *stat) {
-  stat->count = inl(AUDIO_COUNT_ADDR);
+  stat->count = inl(AUDIO_RPTR_ADDR);
 }
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
@@ -33,11 +33,11 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
   int sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
 
   // wait the buffer to be bigger enough
-  while (inl(AUDIO_POS_ADDR) + len > sbuf_size)
+  while (inl(AUDIO_WPTR_ADDR) + len > sbuf_size)
     ;
 
-  for (int i = inl(AUDIO_POS_ADDR); i < len; i++)
+  for (int i = inl(AUDIO_WPTR_ADDR); i < len; i++)
     outb(AUDIO_SBUF_ADDR + i, ((uint8_t *)ctl->buf.start)[i]);
 
-  outl(AUDIO_COUNT_ADDR, inl(AUDIO_COUNT_ADDR) + len);
+  outl(AUDIO_WPTR_ADDR, inl(AUDIO_WPTR_ADDR) + len);
 }

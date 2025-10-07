@@ -23,8 +23,8 @@ enum {
   reg_samples,
   reg_sbuf_size,
   reg_init,
-  reg_count,
-  reg_pos,
+  reg_wptr,
+  reg_rptr,
   nr_reg
 };
 
@@ -32,23 +32,17 @@ static uint8_t *sbuf = NULL;
 static uint32_t *audio_base = NULL;
 
 static void sdl_audio_callback(void *userdata, uint8_t *stream, int len) {
-  // We have `audio_base[reg_count]` bytes of data to play. But SDL allows
+  int to_consume = audio_base[reg_wptr] - audio_base[reg_rptr];
+  // We have `to_write` bytes of data to play. But SDL allows
   // us to write at most `len` bytes.
-  int written = (len < audio_base[reg_count]) ? len : audio_base[reg_count];
+  int consumption = (len < to_consume) ? len : to_consume;
 
   // Resume from the previous position to play
-  memcpy(stream, sbuf + audio_base[reg_pos], written);
-  memset(stream + written, 0, len - written);
+  memcpy(stream, sbuf + audio_base[reg_rptr], consumption);
+  memset(stream + consumption, 0, len - consumption);
 
-  // Advance pos for next play
-  audio_base[reg_pos] += written;
-  audio_base[reg_count] -= written;
-
-  // Reset pos if we have played all data in sbuf
-  if (audio_base[reg_pos] >= CONFIG_SB_SIZE) {
-    audio_base[reg_pos] = 0;
-    audio_base[reg_count] = 0;
-  }
+  // Advance rptr for next play
+  audio_base[reg_rptr] = (audio_base[reg_rptr] + consumption) % CONFIG_SB_SIZE;
 }
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
@@ -56,12 +50,12 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
   case reg_freq << 2:
   case reg_channels << 2:
   case reg_samples << 2:
-  case reg_count << 2:
+  case reg_wptr << 2:
     // pass
     break;
 
   case reg_sbuf_size << 2:
-  case reg_pos << 2:
+  case reg_rptr << 2:
     Assert(!is_write, "write to read-only register.");
     break;
 
