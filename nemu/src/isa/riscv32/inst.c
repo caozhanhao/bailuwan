@@ -234,6 +234,7 @@ int isa_exec_once(Decode *s) {
   return decode_exec(s);
 }
 
+#ifdef CONFIG_FTRACE
 const char *ftrace_search(uint32_t pc);
 static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
   // call:
@@ -281,3 +282,4 @@ void isa_ftrace_display(Decode *s) {
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv, N, ;);
   INSTPAT_END();
 }
+#endif
