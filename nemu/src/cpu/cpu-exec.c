@@ -57,10 +57,20 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
 #endif
+
+#ifdef CONFIG_FTRACE
+  char buf[256];
+  int ret = isa_ftrace_dump(_this, buf, sizeof(buf));
+  if (ret == 0) {
+    log_write("%s\n", buf);
+    if (g_print_step)
+      puts(buf);
+  }
+#endif
+
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
   IFDEF(CONFIG_WATCHPOINT, wp_update());
-  IFDEF(CONFIG_FTRACE, isa_ftrace_display(_this));
 }
 
 static void disasm_and_dump(word_t pc, word_t snpc, uint8_t *inst, char* dest, size_t bufsz) {
