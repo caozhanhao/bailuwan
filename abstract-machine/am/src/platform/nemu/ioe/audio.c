@@ -25,7 +25,11 @@ void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl) {
 }
 
 void __am_audio_status(AM_AUDIO_STATUS_T *stat) {
-  stat->count = inl(AUDIO_WPTR_ADDR) - inl(AUDIO_RPTR_ADDR);
+  uint32_t wptr = inl(AUDIO_WPTR_ADDR);
+  uint32_t rptr = inl(AUDIO_RPTR_ADDR);
+  uint32_t sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
+  uint32_t cnt = (wptr + sbuf_size - rptr) % sbuf_size;
+  stat->count = cnt;
 }
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
@@ -36,9 +40,23 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
   while (inl(AUDIO_WPTR_ADDR) + len > sbuf_size)
     ;
 
-  int wptr = inl(AUDIO_WPTR_ADDR);
-  for (int i = 0; i < len; i++)
-    outb(AUDIO_SBUF_ADDR + wptr + i, ((uint8_t *)ctl->buf.start)[i]);
+  uint32_t wptr = inl(AUDIO_WPTR_ADDR);
+  uint32_t first_chunk = sbuf_size - wptr;
+  uint8_t *src = (uint8_t *)ctl->buf.start;
 
-  outl(AUDIO_WPTR_ADDR, wptr + len);
+  if ((uint32_t)len <= first_chunk) {
+    for (int i = 0; i < len; i++)
+      outb(AUDIO_SBUF_ADDR + wptr + i, src[i]);
+  } else {
+    uint32_t n1 = first_chunk;
+    uint32_t n2 = len - n1;
+    for (uint32_t i = 0; i < n1; i++)
+      outb(AUDIO_SBUF_ADDR + wptr + i, src[i]);
+
+    for (uint32_t i = 0; i < n2; i++) {
+      outb(AUDIO_SBUF_ADDR + i, src[n1 + i]);
+    }
+  }
+
+  outl(AUDIO_WPTR_ADDR, (wptr + len) % sbuf_size);
 }

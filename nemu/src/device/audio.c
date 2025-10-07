@@ -32,17 +32,26 @@ static uint8_t *sbuf = NULL;
 static uint32_t *audio_base = NULL;
 
 static void sdl_audio_callback(void *userdata, uint8_t *stream, int len) {
-  int to_consume = audio_base[reg_wptr] - audio_base[reg_rptr];
-  // We have `to_write` bytes of data to play. But SDL allows
-  // us to write at most `len` bytes.
-  int consumption = (len < to_consume) ? len : to_consume;
+  uint32_t wptr = audio_base[reg_wptr];
+  uint32_t rptr = audio_base[reg_rptr];
+  uint32_t sbuf_size = audio_base[reg_sbuf_size];
 
-  // Resume from the previous position to play
-  memcpy(stream, sbuf + audio_base[reg_rptr], consumption);
-  memset(stream + consumption, 0, len - consumption);
+  // available = (wptr - rptr + sbuf_size) % sbuf_size
+  uint32_t available = (wptr + sbuf_size - rptr) % sbuf_size;
+  uint32_t to_copy = (uint32_t)len <= available ? (uint32_t)len : available;
 
-  // Advance rptr for next play
-  audio_base[reg_rptr] = (audio_base[reg_rptr] + consumption) % CONFIG_SB_SIZE;
+  uint32_t first_chunk = sbuf_size - rptr;
+  if (to_copy <= first_chunk)
+    memcpy(stream, sbuf + rptr, to_copy);
+  else {
+    memcpy(stream, sbuf + rptr, first_chunk);
+    memcpy(stream + first_chunk, sbuf, to_copy - first_chunk);
+  }
+
+  if ((uint32_t)len > to_copy)
+    memset(stream + to_copy, 0, len - to_copy);
+
+  audio_base[reg_rptr] = (rptr + to_copy) % sbuf_size;
 }
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
