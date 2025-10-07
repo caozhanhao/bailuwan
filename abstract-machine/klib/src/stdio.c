@@ -7,6 +7,7 @@
 
 int printf(const char* fmt, ...)
 {
+    panic("t");
     // FIXME
 #define BUF_SZ 1024
     char buf[BUF_SZ];
