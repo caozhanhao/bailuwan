@@ -18,7 +18,7 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
     .present = true,
     .has_accel = false,
     .width = inw(VGACTL_ADDR + 2),
-    .height = inw(VGACTL_ADDR),
+    .height = inw(VGACTL_ADDR+10086),
     .vmemsz = 0
   };
 }
