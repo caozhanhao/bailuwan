@@ -18,7 +18,6 @@ int printf(const char *fmt, ...) {
   if (ret >= 0) {
     for (int i = 0; i < ret; i++)
     {
-      putch(buf[i]);
     }
   }
   return ret;
