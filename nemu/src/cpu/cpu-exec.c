@@ -66,7 +66,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   if (ret == 0) {
     log_write("FTRACE: %s\n", buf);
     if (g_print_step)
-      puts(buf);
+      printf("FTRACE: %s\n", buf);
   }
 #endif
 

@@ -262,11 +262,11 @@ static int ftrace_dump(Decode *s, int rd, int rs1, word_t imm, char* buf, size_t
 
   if (is_call) {
     const char *callee = ftrace_search(s->dnpc);
-    snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d\n",
+    snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d",
       s->pc, depth * 2, "", rd == 1 ? "call" : "tail", callee, s->dnpc, depth);
   } else if (is_ret) {
     const char *callee = ftrace_search(s->pc);
-    snprintf(buf, buf_size,  FMT_WORD ": %*sret [%s], depth=%d\n",
+    snprintf(buf, buf_size,  FMT_WORD ": %*sret [%s], depth=%d",
       s->pc, (depth + 1) * 2, "", callee, depth + 1);
   } else {
     panic("Unreachable");
