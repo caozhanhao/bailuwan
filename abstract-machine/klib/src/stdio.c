@@ -6,9 +6,6 @@
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
 int printf(const char *fmt, ...) {
-  int a = *(int*)0;
-  (void)a;
-  
   // FIXME
   char buf[1024];
   va_list ap;
