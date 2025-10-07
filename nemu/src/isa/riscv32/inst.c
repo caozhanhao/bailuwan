@@ -211,10 +211,10 @@ static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
 
   if (is_call) {
     const char* callee = ftrace_search(s->dnpc);
-    Log(FMT_WORD ": %*scall [%s@" FMT_WORD "]\n", s->pc, depth * 2, "", callee, s->dnpc);
+    log_write(FMT_WORD ": %*scall [%s@" FMT_WORD "]\n", s->pc, depth * 2, "", callee, s->dnpc);
   } else if (is_ret) {
     const char* callee = ftrace_search(s->pc);
-    Log(FMT_WORD ": %*sret [%s]\n", s->pc, depth * 2, "", callee);
+    log_write(FMT_WORD ": %*sret [%s]\n", s->pc, depth * 2, "", callee);
   } else {
     panic("Unreachable");
   }
