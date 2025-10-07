@@ -276,7 +276,7 @@ static int ftrace_dump(Decode *s, int rd, int rs1, word_t imm, char* buf, size_t
 }
 
 int isa_ftrace_dump(Decode *s, char* buf, size_t buf_size) {
-  int ret = 0;
+  int ret = -2;
   INSTPAT_START();
 
   INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal, J, ret = ftrace_dump(s, rd, rs1, imm, buf, buf_size););
