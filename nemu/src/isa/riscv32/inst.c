@@ -186,7 +186,7 @@ int isa_exec_once(Decode *s) {
 }
 
 const char* ftrace_search(uint32_t pc);
-static void ftrace_display(Decode *s, word_t rd, word_t rs1, word_t imm) {
+static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
   // call:
   //   jal  ra, imm        ->  s->dnpc = s->pc + imm;
   //   jalr ra, rs1, imm   ->  s->dnpc = (src1 + imm) & ~1
@@ -198,11 +198,11 @@ static void ftrace_display(Decode *s, word_t rd, word_t rs1, word_t imm) {
   bool is_ret = rd == 0 && rs1 == 1 && imm == 0;
 
   if (!is_call || !is_ret) {
-    Log("Unrecognized jal/jalr: rd=" FMT_WORD ", rs1=" FMT_WORD ", imm=" FMT_WORD, rd, rs1, imm);
+    Log("Unrecognized jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
     return;
   }
   if (is_call && is_ret) {
-    Log("Ambiguous jal/jalr: rd=" FMT_WORD ", rs1=" FMT_WORD ", imm=" FMT_WORD, rd, rs1, imm);
+    Log("Ambiguous jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
     return;
   }
 
