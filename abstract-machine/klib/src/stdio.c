@@ -6,7 +6,6 @@
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
 int printf(const char *fmt, ...) {
-  panic("Not implemented");
   // FIXME
   char buf[1024];
   va_list ap;
