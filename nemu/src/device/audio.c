@@ -39,18 +39,18 @@ static void sdl_audio_callback(void *userdata, uint8_t *stream, int len) {
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
   switch (offset) {
-  case reg_freq << 4:
-  case reg_channels << 4:
-  case reg_samples << 4:
-  case reg_count << 4:
+  case reg_freq << 2:
+  case reg_channels << 2:
+  case reg_samples << 2:
+  case reg_count << 2:
     // pass
     break;
 
-  case reg_sbuf_size << 4:
+  case reg_sbuf_size << 2:
     Assert(!is_write, "write to read-only register 'sbuf_size'");
     break;
 
-  case reg_init << 4: {
+  case reg_init << 2: {
     SDL_AudioSpec s = {};
 
     s.format = AUDIO_S16SYS;  // 假设系统中音频数据的格式总是使用16位有符号数来表示
