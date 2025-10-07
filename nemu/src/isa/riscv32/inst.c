@@ -197,7 +197,7 @@ static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
   //   jalr x0, ra, 0
   bool is_ret = rd == 0 && rs1 == 1 && imm == 0;
 
-  if (!is_call || !is_ret) {
+  if (!is_call && !is_ret) {
     Log("Unrecognized jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
     return;
   }
