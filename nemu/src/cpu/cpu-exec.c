@@ -60,6 +60,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
   IFDEF(CONFIG_WATCHPOINT, wp_update());
+  IFDEF(CONFIG_FTRACE, isa_ftrace_display(_this));
 }
 
 static void disasm_and_dump(word_t pc, word_t snpc, uint8_t *inst, char* dest, size_t bufsz) {

@@ -56,6 +56,14 @@ void ftrace_table_push(uint32_t addr, uint32_t size, const char *name) {
   Log("ftrace: %s @ 0x%x", name, addr);
 }
 
+const char* ftrace_search(uint32_t pc) {
+  for (size_t i = 0; i < ftrace_size; i++) {
+    if (pc >= ftrace_table[i].addr && pc < ftrace_table[i].addr + ftrace_table[i].size)
+      return ftrace_table[i].name;
+  }
+  return NULL;
+}
+
 void init_ftrace(const char *file) {
   if (file == NULL) {
     Log("ftrace: no file specified");

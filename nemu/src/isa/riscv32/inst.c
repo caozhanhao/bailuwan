@@ -27,18 +27,18 @@ enum {
   TYPE_N, // none
 };
 
-#define src1R() do { *src1 = R(rs1); } while (0)
-#define src2R() do { *src2 = R(rs2); } while (0)
+#define src1R() do { *src1 = R(*rs1); } while (0)
+#define src2R() do { *src2 = R(*rs2); } while (0)
 #define immI() do { *imm = SEXT(BITS(i, 31, 20), 12); } while(0)
 #define immU() do { *imm = SEXT(BITS(i, 31, 12), 20) << 12; } while(0)
 #define immS() do { *imm = (SEXT(BITS(i, 31, 25), 7) << 5) | BITS(i, 11, 7); } while(0)
 #define immB() do { *imm = (SEXT(BITS(i, 31, 31), 1) << 12) | (BITS(i, 7, 7) << 11) | (BITS(i, 30, 25) << 5) | (BITS(i, 11, 8) << 1); } while(0)
 #define immJ() do { *imm = (SEXT(BITS(i, 31, 31), 1) << 20) | (BITS(i, 19, 12) << 12) | (BITS(i, 20, 20) << 11) | (BITS(i, 30, 21) << 1); } while(0)
 
-static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_t *imm, int type) {
+static void decode_operand(Decode *s, int *rd, int* rs1, int* rs2, word_t *src1, word_t *src2, word_t *imm, int type) {
   uint32_t i = s->isa.inst;
-  int rs1 = BITS(i, 19, 15);
-  int rs2 = BITS(i, 24, 20);
+  *rs1 = BITS(i, 19, 15);
+  *rs2 = BITS(i, 24, 20);
   *rd     = BITS(i, 11, 7);
   switch (type) {
     case TYPE_R: src1R(); src2R(); break;
@@ -105,9 +105,9 @@ static int decode_exec(Decode *s) {
 
 #define INSTPAT_INST(s) ((s)->isa.inst)
 #define INSTPAT_MATCH(s, name, type, ... /* execute body */ ) { \
-  int rd = 0; \
+  int rd = 0, rs1 = 0, rs2 = 0; \
   word_t src1 = 0, src2 = 0, imm = 0; \
-  decode_operand(s, &rd, &src1, &src2, &imm, concat(TYPE_, type)); \
+  decode_operand(s, &rd, &rs1, &rs2, &src1, &src2, &imm, concat(TYPE_, type)); \
   __VA_ARGS__ ; \
 }
 
@@ -183,4 +183,50 @@ static int decode_exec(Decode *s) {
 int isa_exec_once(Decode *s) {
   s->isa.inst = inst_fetch(&s->snpc, 4);
   return decode_exec(s);
+}
+
+const char* ftrace_search(uint32_t pc);
+static void ftrace_display(Decode *s, word_t rd, word_t rs1, word_t imm) {
+  // call:
+  //   jal  ra, imm        ->  s->dnpc = s->pc + imm;
+  //   jalr ra, rs1, imm   ->  s->dnpc = (src1 + imm) & ~1
+  //   jalr x0, not-ra, imm
+  bool is_call = rd == 1 || (rd == 0 && rs1 != 1);
+
+  // ret:
+  //   jalr x0, ra, 0
+  bool is_ret = rd == 0 && rs1 == 1 && imm == 0;
+
+  if (!is_call || !is_ret) {
+    Log("Unrecognized jal/jalr: rd=" FMT_WORD ", rs1=" FMT_WORD ", imm=" FMT_WORD, rd, rs1, imm);
+    return;
+  }
+  if (is_call && is_ret) {
+    Log("Ambiguous jal/jalr: rd=" FMT_WORD ", rs1=" FMT_WORD ", imm=" FMT_WORD, rd, rs1, imm);
+    return;
+  }
+
+  static int depth = 0;
+  depth = is_call ? depth + 1 : depth - 1;
+
+  if (is_call) {
+    const char* callee = ftrace_search(s->dnpc);
+    log_write(FMT_WORD ": %*scall [%s@" FMT_WORD "]\n", s->pc, depth * 2, "", callee, s->dnpc);
+  } else if (is_ret) {
+    const char* callee = ftrace_search(s->pc);
+    log_write(FMT_WORD ": %*sret [%s]\n", s->pc, depth * 2, "", callee);
+  } else {
+    panic("Unreachable");
+  }
+}
+
+void isa_ftrace_display(Decode *s) {
+  INSTPAT_START();
+
+  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, ftrace_display(s, rd, rs1, imm); );
+  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, ftrace_display(s, rd, rs1, imm););
+
+  // pass
+  INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, ;);
+  INSTPAT_END();
 }
