@@ -32,10 +32,23 @@ static uint8_t *sbuf = NULL;
 static uint32_t *audio_base = NULL;
 
 static void sdl_audio_callback(void *userdata, uint8_t *stream, int len) {
-  int write_len = (len > audio_base[reg_count]) ? audio_base[reg_count] : len;
-  memcpy(stream, sbuf, write_len);
-  memset(stream + write_len, 0, len - write_len);
-  audio_base[reg_count] -= write_len;
+  // We have `audio_base[reg_count]` bytes of data to play. But SDL allows
+  // us to write at most `len` bytes.
+  int written = (len < audio_base[reg_count]) ? len : audio_base[reg_count];
+
+  // Resume from the previous position to play
+  memcpy(stream, sbuf + audio_base[reg_pos], written);
+  memset(stream + written, 0, len - written);
+
+  // Advance pos for next play
+  audio_base[reg_pos] += written;
+  audio_base[reg_count] -= written;
+
+  // Reset pos if we have played all data in sbuf
+  if (audio_base[reg_pos] >= CONFIG_SB_SIZE) {
+    audio_base[reg_pos] = 0;
+    audio_base[reg_count] = 0;
+  }
 }
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
@@ -48,7 +61,8 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
     break;
 
   case reg_sbuf_size << 2:
-    Assert(!is_write, "write to read-only register 'sbuf_size'");
+  case reg_pos << 2:
+    Assert(!is_write, "write to read-only register.");
     break;
 
   case reg_init << 2: {
@@ -74,10 +88,8 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
 void init_audio() {
   uint32_t space_size = sizeof(uint32_t) * nr_reg;
   audio_base = (uint32_t *)new_space(space_size);
-
+  memset(audio_base, 0, space_size);
   audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
-  audio_base[reg_pos] = 0;
-  audio_base[reg_count] = 0;
 
 #ifdef CONFIG_HAS_PORT_IO
   add_pio_map ("audio", CONFIG_AUDIO_CTL_PORT, audio_base, space_size, audio_io_handler);
