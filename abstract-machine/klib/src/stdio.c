@@ -22,7 +22,7 @@ int printf(const char *fmt, ...) {
       putch(buf[i]);
     }
   }
-  return -1;
+  return ret;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
