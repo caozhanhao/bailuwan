@@ -192,6 +192,7 @@ static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
   //   jalr ra, rs1, imm   ->  s->dnpc = (src1 + imm) & ~1
   //   jalr x0, not-ra, imm
   bool is_call = rd == 1 || (rd == 0 && rs1 != 1);
+  bool is_tailcall = is_call && rd == 0;
 
   // ret:
   //   jalr x0, ra, 0
@@ -211,7 +212,8 @@ static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
 
   if (is_call) {
     const char* callee = ftrace_search(s->dnpc);
-    log_write(FMT_WORD ": %*scall [%s@" FMT_WORD "], depth=%d\n", s->pc, depth * 2, "", callee, s->dnpc, depth);
+    log_write(FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d\n", s->pc, depth * 2, "",
+      is_tailcall ? "tailcall" : "call", callee, s->dnpc, depth);
   } else if (is_ret) {
     const char* callee = ftrace_search(s->pc);
     log_write(FMT_WORD ": %*sret [%s], depth=%d\n", s->pc, (depth + 1) * 2, "", callee, depth + 1);
