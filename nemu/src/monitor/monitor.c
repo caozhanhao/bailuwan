@@ -149,7 +149,7 @@ void init_monitor(int argc, char *argv[]) {
   init_sdb();
 
   /* Initialize the function trace */
-  init_ftrace(elf_file);
+  init_ftrace(elf_file == NULL ? img_file : elf_file);
 
   IFDEF(CONFIG_ITRACE, init_disasm());
 
