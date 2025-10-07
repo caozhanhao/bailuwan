@@ -1,6 +1,7 @@
 #include <am.h>
 #include <klib.h>
 #include <klib-macros.h>
+#include <stdint.h>
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 static unsigned long int next = 1;
@@ -38,16 +39,16 @@ void *malloc(size_t size) {
 // #endif
 //   return NULL;
 
-  static uint32_t alloc_base = -1;
+  static uintptr_t alloc_base = -1;
   if (alloc_base == -1)
     alloc_base = ROUNDUP(heap.start, 8);
 
   size  = (size_t)ROUNDUP(size, 8);
 
-  uint32_t old_base = alloc_base;
+  uintptr_t old_base = alloc_base;
   alloc_base += size;
 
-  assert((uintptr_t)heap.start <= (uintptr_t)alloc_base && (uintptr_t)alloc_base < (uintptr_t)heap.end);
+  assert((uintptr_t)heap.start <= alloc_base && alloc_base < (uintptr_t)heap.end);
   return (void*)old_base;
 }
 
