@@ -24,6 +24,7 @@ enum {
   reg_sbuf_size,
   reg_init,
   reg_count,
+  reg_pos,
   nr_reg
 };
 
@@ -75,6 +76,8 @@ void init_audio() {
   audio_base = (uint32_t *)new_space(space_size);
 
   audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
+  audio_base[reg_pos] = 0;
+  audio_base[reg_count] = 0;
 
 #ifdef CONFIG_HAS_PORT_IO
   add_pio_map ("audio", CONFIG_AUDIO_CTL_PORT, audio_base, space_size, audio_io_handler);
