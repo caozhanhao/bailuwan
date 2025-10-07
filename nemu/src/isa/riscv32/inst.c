@@ -214,7 +214,7 @@ static void ftrace_display(Decode *s, int rd, int rs1, word_t imm) {
     log_write(FMT_WORD ": %*scall [%s@" FMT_WORD "], depth=%d\n", s->pc, depth * 2, "", callee, s->dnpc, depth);
   } else if (is_ret) {
     const char* callee = ftrace_search(s->pc);
-    log_write(FMT_WORD ": %*sret [%s], depth=%d\n", s->pc, depth * 2, "", callee, depth);
+    log_write(FMT_WORD ": %*sret [%s], depth=%d\n", s->pc, (depth - 1) * 2, "", callee, depth - 1);
   } else {
     panic("Unreachable");
   }
