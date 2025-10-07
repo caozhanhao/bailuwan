@@ -79,6 +79,7 @@ void *memmove(void *dst, const void *src, size_t n) {
 }
 
 void *memcpy(void *out, const void *in, size_t n) {
+  panic("t");
   char *d = (char *)out;
   const char *s = (const char *)in;
   for (size_t i = 0; i < n; i++) d[i] = s[i];
