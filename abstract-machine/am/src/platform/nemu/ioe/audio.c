@@ -36,8 +36,9 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
   while (inl(AUDIO_WPTR_ADDR) + len > sbuf_size)
     ;
 
-  for (int i = inl(AUDIO_WPTR_ADDR); i < len; i++)
-    outb(AUDIO_SBUF_ADDR + i, ((uint8_t *)ctl->buf.start)[i]);
+  int wptr = inl(AUDIO_WPTR_ADDR);
+  for (int i = 0; i < len; i++)
+    outb(AUDIO_SBUF_ADDR + wptr + i, ((uint8_t *)ctl->buf.start)[i]);
 
   outl(AUDIO_WPTR_ADDR, inl(AUDIO_WPTR_ADDR) + len);
 }
