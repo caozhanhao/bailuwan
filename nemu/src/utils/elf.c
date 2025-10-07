@@ -57,7 +57,11 @@ void ftrace_table_push(uint32_t addr, uint32_t size, const char *name) {
 }
 
 void init_ftrace(const char *file) {
-  Assert(file != nullptr, "file name is null");
+  if (file == NULL) {
+    Log("ftrace: no file specified");
+    return;
+  }
+
   FILE *fp = fopen(file, "rb");
   Assert(fp != NULL, "Can not open %s", file);
   Log("Reading ELF: %s", file);
