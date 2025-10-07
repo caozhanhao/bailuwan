@@ -56,6 +56,8 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);
 void isa_difftest_attach();
 
 // function trace
+#ifdef CONFIG_FTRACE
 void isa_ftrace_display(struct Decode *s);
+#endif
 
 #endif
