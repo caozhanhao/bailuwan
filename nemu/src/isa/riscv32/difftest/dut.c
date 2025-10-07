@@ -19,7 +19,7 @@
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
   for (int i = 0; i < 32; i ++) {
-    if (ref_r->gpr[32 - i] != cpu.gpr[i]) {
+    if (ref_r->gpr[i] != cpu.gpr[i]) {
       Log("reg: x%d, expected " FMT_WORD ", but got " FMT_WORD "\n", i, ref_r->gpr[i], cpu.gpr[i]);
       return false;
     }
