@@ -116,7 +116,11 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
+// AM has no watchpoint support.
+#ifndef CONFIG_TARGET_AM
   IFDEF(CONFIG_WATCHPOINT, wp_update());
+#endif
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {
