@@ -73,6 +73,7 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
     Assert(!is_write, "write to read-only register.");
     audio_base[reg_count] = (audio_base[reg_wptr] + CONFIG_SB_SIZE - audio_base[reg_rptr]) % CONFIG_SB_SIZE;
   }
+    break;
 
   case reg_init << 2: {
     SDL_AudioSpec s = {};

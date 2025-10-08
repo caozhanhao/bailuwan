@@ -30,11 +30,7 @@ void __am_audio_ctrl(AM_AUDIO_CTRL_T* ctrl)
 
 void __am_audio_status(AM_AUDIO_STATUS_T* stat)
 {
-    uint32_t wptr = inl(AUDIO_WPTR_ADDR);
-    uint32_t rptr = inl(AUDIO_RPTR_ADDR);
-    uint32_t sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
-    uint32_t cnt = (wptr + sbuf_size - rptr) % sbuf_size;
-    stat->count = cnt;
+    stat->count = inl(AUDIO_COUNT_ADDR);
 }
 
 void __am_audio_play(AM_AUDIO_PLAY_T* ctl)
