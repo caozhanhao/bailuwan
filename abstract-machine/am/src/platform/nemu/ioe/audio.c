@@ -35,6 +35,7 @@ void __am_audio_status(AM_AUDIO_STATUS_T* stat)
     uint32_t sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
     uint32_t cnt = (wptr + sbuf_size - rptr) % sbuf_size;
     stat->count = cnt;
+    // stat->count = inl(AUDIO_COUNT_ADDR);
 }
 
 void __am_audio_play(AM_AUDIO_PLAY_T* ctl)
@@ -42,13 +43,13 @@ void __am_audio_play(AM_AUDIO_PLAY_T* ctl)
     int len = ctl->buf.end - ctl->buf.start;
     int sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
 
-    // wait the buffer to be bigger enough
-    while (1)
-    {
-        uint32_t freespace = sbuf_size - inl(AUDIO_COUNT_ADDR);
-        if (freespace >= (uint32_t)len)
-            break;
-    }
+    // // wait the buffer to be bigger enough
+    // while (1)
+    // {
+    //     uint32_t freespace = sbuf_size - inl(AUDIO_COUNT_ADDR);
+    //     if (freespace >= (uint32_t)len)
+    //         break;
+    // }
 
     uint32_t wptr = inl(AUDIO_WPTR_ADDR);
     uint32_t first_chunk = sbuf_size - wptr;
