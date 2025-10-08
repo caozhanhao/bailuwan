@@ -23,6 +23,7 @@ enum {
   reg_samples,
   reg_sbuf_size,
   reg_init,
+  reg_count,
   reg_wptr,
   reg_rptr,
   nr_reg
@@ -66,6 +67,12 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
   case reg_sbuf_size << 2:
   case reg_rptr << 2:
     Assert(!is_write, "write to read-only register.");
+    break;
+
+  case reg_count << 2: {
+    Assert(!is_write, "write to read-only register.");
+    audio_base[reg_count] = (audio_base[reg_wptr] + CONFIG_SB_SIZE - audio_base[reg_rptr]) % CONFIG_SB_SIZE;
+  }
     break;
 
   case reg_init << 2: {
