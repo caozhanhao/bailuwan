@@ -45,9 +45,14 @@ void __am_audio_play(AM_AUDIO_PLAY_T* ctl)
     // wait the buffer to be bigger enough
     while (1)
     {
-        uint32_t freespace = sbuf_size - inl(AUDIO_COUNT_ADDR);
+        uint32_t wptr = inl(AUDIO_WPTR_ADDR);
+        uint32_t rptr = inl(AUDIO_RPTR_ADDR);
+        uint32_t count = (wptr + sbuf_size - rptr) % sbuf_size;
+        uint32_t freespace = sbuf_size - count;
         if (freespace >= (uint32_t)len)
+        {
             break;
+        }
     }
 
     uint32_t wptr = inl(AUDIO_WPTR_ADDR);
