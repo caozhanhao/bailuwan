@@ -70,6 +70,7 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
     break;
 
   case reg_count << 2: {
+    printf("audio: count = %d\n", audio_base[reg_count]);
     Assert(!is_write, "write to read-only register.");
     uint32_t wptr = audio_base[reg_wptr];
     uint32_t rptr = audio_base[reg_rptr];
