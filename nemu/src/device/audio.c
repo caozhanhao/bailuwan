@@ -72,10 +72,7 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
   case reg_count << 2: {
     printf("audio: count = %d\n", audio_base[reg_count]);
     Assert(!is_write, "write to read-only register.");
-    uint32_t wptr = audio_base[reg_wptr];
-    uint32_t rptr = audio_base[reg_rptr];
-    uint32_t sbuf_size = audio_base[reg_sbuf_size];
-    audio_base[reg_count] = (wptr - rptr + sbuf_size) % sbuf_size;
+    audio_base[reg_count] = (audio_base[reg_wptr] - audio_base[reg_rptr] + CONFIG_SB_SIZE) % CONFIG_SB_SIZE;
   }
 
   case reg_init << 2: {
