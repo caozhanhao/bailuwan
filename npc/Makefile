@@ -12,6 +12,7 @@ OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
 LINKAGE ?=
+-include ./scripts/nvboard.mk
 
 $(shell mkdir -p $(BUILD_DIR))
 
@@ -62,5 +63,4 @@ sim:
 	$(MAKE) $(BIN)
 	$(BIN)
 
--include ./scripts/nvboard.mk
 -include ../Makefile
