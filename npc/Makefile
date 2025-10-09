@@ -11,8 +11,8 @@ html:
 PRJ = npc
 TOPNAME = Top
 
-### Override checks when `make clean/clean-all/html`
-ifeq ($(findstring $(MAKECMDGOALS),clean|html),)
+### Run checks only when `sim`
+ifneq ($(findstring $(MAKECMDGOALS),sim),)
 
 ### Print build info message
 $(info # Building NPC [$(HW)])
