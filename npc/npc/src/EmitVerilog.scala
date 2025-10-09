@@ -1,4 +1,4 @@
-object GenVerilog extends App {
+object EmitVerilog extends App {
   val firtoolOptions = Array(
     "--lowering-options=" + List(
       // make yosys happy
