@@ -1,3 +1,6 @@
+$(info BUILD_DIR = $(BUILD_DIR))
+$(info SRC_AUTO_BIND = $(SRC_AUTO_BIND))
+
 # constraint file
 SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
 $(SRC_AUTO_BIND): $(NXDC_FILES)

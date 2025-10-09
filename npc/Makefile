@@ -63,5 +63,4 @@ sim:
 	$(BIN)
 
 -include scripts/nvboard.mk
-
 -include ../Makefile
