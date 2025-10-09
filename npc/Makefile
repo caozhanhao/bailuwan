@@ -1,4 +1,5 @@
 BUILD_DIR = ./build
+$(shell mkdir -p $(BUILD_DIR))
 
 PRJ = npc
 
@@ -11,13 +12,10 @@ OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
 LINKAGE ?=
+CSRCS ?=
 
-$(shell mkdir -p $(BUILD_DIR))
-
-# project source
+# npc source
 SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
-
-CSRCS = $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 
 # rules for verilator
 INCFLAGS = $(addprefix -I, $(INC_PATH))
