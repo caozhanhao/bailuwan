@@ -8,8 +8,3 @@ LINKAGE += $(NVBOARD_ARCHIVE)
 
 # rules for NVBoard
 include $(NVBOARD_HOME)/scripts/nvboard.mk
-
-
-
-$(info BUILD_DIR = $(BUILD_DIR))
-$(info SRC_AUTO_BIND = $(SRC_AUTO_BIND))
