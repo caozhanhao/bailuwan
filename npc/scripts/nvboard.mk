@@ -1,6 +1,3 @@
-$(info BUILD_DIR = $(BUILD_DIR))
-$(info SRC_AUTO_BIND = $(SRC_AUTO_BIND))
-
 # constraint file
 SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
 $(SRC_AUTO_BIND): $(NXDC_FILES)
@@ -12,3 +9,7 @@ LINKAGE += $(NVBOARD_ARCHIVE)
 # rules for NVBoard
 include $(NVBOARD_HOME)/scripts/nvboard.mk
 
+
+
+$(info BUILD_DIR = $(BUILD_DIR))
+$(info SRC_AUTO_BIND = $(SRC_AUTO_BIND))
