@@ -2,7 +2,6 @@ BUILD_DIR = ./build
 $(shell mkdir -p $(BUILD_DIR))
 
 PRJ = npc
-
 TOPNAME = Top
 INC_PATH ?=
 VERILATOR = verilator
@@ -21,8 +20,8 @@ SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
-# rules for nvboard
--include ./scripts/nvboard.mk
+# rules for hardware
+-include ./scripts/$(HW).mk
 
 $(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
 	@rm -rf $(OBJ_DIR)
