@@ -1,73 +1,119 @@
-BUILD_DIR = ./build
+# Makefile for NPC (New Processor Core) by caozhanhao
 
-PRJ = playground
+### *Get a more readable version of this Makefile* by `make html` (requires python-markdown)
+html:
+	cat Makefile | sed 's/^\([^#]\)/    \1/g' | markdown_py > Makefile.html
+.PHONY: html
 
-# NVBoard
+## 1. Basic Setup and Checks
+
+### Project Info
+PRJ = npc
 TOPNAME = Top
-NXDC_FILES = constr/top.nxdc
-INC_PATH ?=
-VERILATOR = verilator
-VERILATOR_CFLAGS += -MMD --build -cc  \
-				-O3 --x-assign fast --x-initial fast --noassert
-OBJ_DIR = $(BUILD_DIR)/obj_dir
-BIN = $(BUILD_DIR)/$(TOPNAME)
 
+### Run checks only when `sim`
+ifneq ($(findstring $(MAKECMDGOALS),sim),)
+
+### Print build info message
+$(info # Building NPC [$(HW)])
+
+### Check: environment variable `HW` must be in the supported list
+HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))
+ifeq ($(filter $(HWS), $(HW)), )
+  $(error Expected $$HW in {$(HWS)}, Got "$(HW)")
+endif
+
+### Checks end here
+endif
+
+
+
+## 2. General Compilation Targets
+
+### Create the destination directory (`build`)
+BUILD_DIR = ./build
+OBJ_DIR = $(BUILD_DIR)/obj_dir
 $(shell mkdir -p $(BUILD_DIR))
 
-# constraint file
-SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
-$(SRC_AUTO_BIND): $(NXDC_FILES)
-	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
+### Compilation targets
+BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)
 
-# project source
+### Collect the files to be built and linked
+LINKAGE ?=
+CSRCS ?=
 SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 
-CSRCS = $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-CSRCS += $(SRC_AUTO_BIND)
 
-# rules for NVBoard
-include $(NVBOARD_HOME)/scripts/nvboard.mk
 
-# rules for verilator
+## 3. General Compilation Flags
+
+### Verilator
+VERILATOR = verilator
+
+### Compilation flags
+INC_PATH ?=
+VERILATOR_CFLAGS += -MMD --build -cc  \
+				-O3 --x-assign fast --x-initial fast --noassert
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
-$(BIN): $(SCALASRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
+
+
+## 4. Hardware-Specific Configurations
+-include ./scripts/$(HW).mk
+
+
+
+## 5. Compilation Rules
+
+### Rule (compile)
+$(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
 	@rm -rf $(OBJ_DIR)
 	@rm -rf $(BUILD_DIR)/*.sv
-	./mill -i $(PRJ).runMain GenVerilog --target-dir $(BUILD_DIR)/
+	./mill -i $(PRJ).runMain EmitVerilog --target-dir $(BUILD_DIR)/
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
-		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(NVBOARD_ARCHIVE) \
+		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
-test:
-	./mill -i $(PRJ).test
 
-verilog:
-	$(call git_commit, "generate verilog")
-	./mill -i $(PRJ).runMain GenVerilog --target-dir $(BUILD_DIR)
 
-reformat:
-	./mill -i __.reformat
+## 6. Miscellaneous
 
-checkformat:
-	./mill -i __.checkFormat
-
-bsp:
-	./mill -i mill.bsp.BSP/install
-
-idea:
-	./mill -i mill.idea.GenIdea/idea
-
-clean:
-	-rm -rf $(BUILD_DIR)
-
-.PHONY: test verilog reformat checkformat clean
-
+### Simulation
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(MAKE) $(BIN)
 	$(BIN)
 
+### Chisel Test
+test:
+	./mill -i $(PRJ).test
+
+### Generate Verilog
+verilog:
+	$(call git_commit, "generate verilog")
+	./mill -i $(PRJ).runMain EmitVerilog --target-dir $(BUILD_DIR)
+
+### Reformat
+reformat:
+	./mill -i __.reformat
+
+### Check Format
+checkformat:
+	./mill -i __.checkFormat
+
+### BSP
+bsp:
+	./mill -i mill.bsp.BSP/install
+
+### IntelliJ IDEA
+idea:
+	./mill -i mill.idea.GenIdea/idea
+
+### Clean
+clean:
+	-rm -rf $(BUILD_DIR)
+
+.PHONY: test verilog reformat checkformat clean
 -include ../Makefile
