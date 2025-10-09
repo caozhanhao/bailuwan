@@ -3,7 +3,6 @@ BUILD_DIR = ./build
 PRJ = npc
 
 TOPNAME = Top
-NXDC_FILES = constr/top.nxdc
 INC_PATH ?=
 VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -cc  \
@@ -12,7 +11,6 @@ OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
 LINKAGE ?=
--include ./scripts/nvboard.mk
 
 $(shell mkdir -p $(BUILD_DIR))
 
@@ -24,6 +22,9 @@ CSRCS = $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*
 # rules for verilator
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
+
+# rules for nvboard
+-include ./scripts/nvboard.mk
 
 $(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
 	@rm -rf $(OBJ_DIR)
