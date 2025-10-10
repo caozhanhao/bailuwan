@@ -40,7 +40,15 @@ int main() {
 
   reset(10);
 
+  uint64_t time = 0;
   while(1) {
     single_cycle();
+    trace_handle->dump(time++);
   }
+
+#ifdef TRACE
+  trace_handle->close();
+  delete trace_handle;
+#endif
+  return 0;
 }
