@@ -39,19 +39,19 @@ uint32_t inst_mem[1024] = {
 static uint32_t pmem_read(uint32_t addr) {
   return inst_mem[addr / 4];
 }
-static uint64_t time = 0;
+static uint64_t sim_time = 0;
 
 static void single_cycle() {
-  tfp->dump(time++);
+  tfp->dump(sim_time++);
   dut.clock = 0; dut.eval();
 
   dut.io_mem_inst = pmem_read(dut.io_mem_pc);
 
-  tfp->dump(time++);
+  tfp->dump(sim_time++);
 
   dut.clock = 1; dut.eval();
 
-  tfp->dump(time++);
+  tfp->dump(sim_time++);
 }
 
 static void reset(int n) {
