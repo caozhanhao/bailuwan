@@ -39,6 +39,7 @@ uint32_t inst_mem[1024] = {
 static uint32_t pmem_read(uint32_t addr) {
   return inst_mem[addr / 4];
 }
+static uint64_t time = 0;
 
 static void single_cycle() {
   tfp->dump(time++);
@@ -72,7 +73,6 @@ int main() {
 
   reset(10);
 
-  uint64_t time = 0;
   while(1) {
     single_cycle();
   }
