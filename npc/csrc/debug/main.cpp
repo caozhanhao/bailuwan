@@ -32,7 +32,7 @@ int main() {
 #ifdef TRACE
   trace_handle = new TRACE_HANDLE_TYPE;
   Verilated::traceEverOn(true);
-  dut->trace(trace_handle, 0);
+  dut.trace(trace_handle, 0);
   trace_handle->open(TRACE_FILENAME);
 #endif
 
