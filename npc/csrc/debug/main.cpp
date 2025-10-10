@@ -28,12 +28,15 @@ static void reset(int n) {
   dut.reset = 0;
 }
 
+#define STRINGIFY(s)        #s
+#define TOSTRING(s)         STRINGIFY(s)
+
 int main() {
 #ifdef TRACE
   trace_handle = new TRACE_HANDLE_TYPE;
   Verilated::traceEverOn(true);
   dut.trace(trace_handle, 0);
-  trace_handle->open(TRACE_FILENAME);
+  trace_handle->open(TOSTRING(TRACE_FILENAME));
 #endif
 
   reset(10);
