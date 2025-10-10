@@ -43,6 +43,7 @@ OBJ_DIR = $(BUILD_DIR)/obj_dir
 $(shell mkdir -p $(BUILD_DIR))
 
 ### Compilation targets
+TRACE ?= notrace
 BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
 
 ### Collect the files to be built and linked
@@ -64,7 +65,7 @@ VERILATOR_CFLAGS += -MMD --build -cc  \
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
-ifneq ($(TRACE), )
+ifneq ($(TRACE), notrace)
 TRACE_FILENAME ?= $(TOPNAME)-$(HW).$(TRACE)
 CXXFLAGS += -DTRACE -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
 endif
