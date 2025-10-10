@@ -17,16 +17,14 @@ class Top extends Module {
   val pc = RegInit(0.U(32.W))
   val inst = RegInit(0.U(32.W))
 
-  val ALU = Module(new ALU)
   val EXU = Module(new EXU)
   val IDU = Module(new IDU)
-  val IFU = Module(new IFU)
-  val LSU = Module(new LSU)
-  val WBU = Module(new WBU)
+
+  IDU.io.inst := io.mem.inst
+  EXU.io.decoded := IDU.io.decoded
+  EXU.io.pc := pc
+
+  pc := EXU.io.dnpc
 
   io.mem.pc := pc
-  inst := IFU.io.inst
-
-  IDU.io.inst := inst
-  EXU.io.decoded := IDU.io.decoded
 }

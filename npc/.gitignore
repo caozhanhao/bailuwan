@@ -8,12 +8,15 @@
 !*.v
 !*.cpp
 !*.cc
+!*.nxdc
+!*.mk
 !.gitignore
 !.scalafmt.conf
 !README.md
 build/
 
 # mill
+!mill
 !*.mill
 !.mill-version
 out/

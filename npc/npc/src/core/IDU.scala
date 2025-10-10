@@ -2,8 +2,8 @@ package core
 
 import chisel3._
 import chisel3.util._
-import bundles.DecodedBundle
-import constants.ALUOp
+import bundles._
+import constants._
 
 object IPat {
   // Chapter 34. RV32/64G Instruction Set Listings
@@ -50,14 +50,14 @@ object IPat {
   val EBREAK = BitPat("b0000000 00001 00000 000 00000 11100 11")
 
   // RV32M Standard Extension
-  val MUL    = BitPat("0000001 ????? ????? 000 ????? 01100 11")
-  val MULH   = BitPat("0000001 ????? ????? 001 ????? 01100 11")
-  val MULHSU = BitPat("0000001 ????? ????? 010 ????? 01100 11")
-  val MULHU  = BitPat("0000001 ????? ????? 011 ????? 01100 11")
-  val DIV    = BitPat("0000001 ????? ????? 100 ????? 01100 11")
-  val DIVU   = BitPat("0000001 ????? ????? 101 ????? 01100 11")
-  val REM    = BitPat("0000001 ????? ????? 110 ????? 01100 11")
-  val REMU   = BitPat("0000001 ????? ????? 111 ????? 01100 11")
+  val MUL    = BitPat("b0000001 ????? ????? 000 ????? 01100 11")
+  val MULH   = BitPat("b0000001 ????? ????? 001 ????? 01100 11")
+  val MULHSU = BitPat("b0000001 ????? ????? 010 ????? 01100 11")
+  val MULHU  = BitPat("b0000001 ????? ????? 011 ????? 01100 11")
+  val DIV    = BitPat("b0000001 ????? ????? 100 ????? 01100 11")
+  val DIVU   = BitPat("b0000001 ????? ????? 101 ????? 01100 11")
+  val REM    = BitPat("b0000001 ????? ????? 110 ????? 01100 11")
+  val REMU   = BitPat("b0000001 ????? ????? 111 ????? 01100 11")
 }
 
 object IFmt {
@@ -73,26 +73,23 @@ object IFmt {
 
 object ITable {
   import IPat._
+  import OperType._
+  import ExecType._
 
   val T = true.B
   val F = false.B
 
-  val REG = 0.U
-  val IMM = 1.U
-  val ZERO = 2.U
-  val PC = 3.U
-  
-  // format, oper1, oper2, WE, ALU_OP
-  val default = List(F, F, F, ALUOp.Add)
+  // format, oper1, oper2, WE, ALUOp, BrOp, LSUOp, ExecType
+  val default = List(IFmt.R, Zero, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU)
   val table   = Array(
-    ADD  -> List(IFmt.R, REG, REG, T, ALUOp.Add),
-    ADDI -> List(IFmt.I, REG, IMM, T, ALUOp.Add),
-    LUI  -> List(IFmt.U, IMM, ZERO, T, ALUOp.Add),
-    LW   -> List(IFmt.I, REG, IMM, T, ALUOp.Add),
-    LBU  -> List(IFmt.I, REG, IMM, T, ALUOp.Add),
-    SW   -> List(IFmt.S, REG, IMM, F, ALUOp.Add),
-    SB   -> List(IFmt.S, REG, IMM, F, ALUOp.Add),
-    JALR -> List(IFmt.I, REG, IMM, T, ALUOp.Add)
+    ADD  -> List(IFmt.R, Rs1, Rs2, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    ADDI -> List(IFmt.I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    LUI  -> List(IFmt.U, Imm, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    LW   -> List(IFmt.I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LW, LSU),
+    LBU  -> List(IFmt.I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LBU, LSU),
+    SW   -> List(IFmt.S, Rs1, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SW, LSU),
+    SB   -> List(IFmt.S, Rs1, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SB, LSU),
+    JALR -> List(IFmt.I, PC, Four, T, ALUOp.Add, BrOp.JALR, LSUOp.None, ALU)
   )
 }
 
@@ -103,9 +100,9 @@ class IDU extends Module {
   })
 
   // Registers
-  val rd     = io.inst(11, 7)
-  val rs1    = io.inst(19, 15)
-  val rs2    = io.inst(24, 20)
+  val rd  = io.inst(11, 7)
+  val rs1 = io.inst(19, 15)
+  val rs2 = io.inst(24, 20)
 
   // Immediates
   val immI = Fill(20, io.inst(31)) ## io.inst(31, 20)
@@ -115,35 +112,30 @@ class IDU extends Module {
   val immJ = Fill(12, io.inst(31)) ## io.inst(31) ## io.inst(20) ## io.inst(30, 21)
 
   // Decode
-  val fmt :: oper1_type :: oper2_type :: (we : Bool) :: alu_op :: Nil =
+  val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: exec_type :: Nil =
     ListLookup(io.inst, ITable.default, ITable.table)
 
   // Choose immediate
-  val imm = MuxLookup(fmt, immI)(Seq(
-    IFmt.I -> immI,
-    IFmt.S -> immS,
-    IFmt.B -> immB,
-    IFmt.U -> immU,
-    IFmt.J -> immJ
-  ))
-
-  // ALU Operands
-  val oper1 = MuxLookup(oper1_type, rs1)(Seq(
-    ITable.REG -> rs1,
-    ITable.IMM -> imm,
-    ITable.ZERO -> 0.U
-  ))
-
-  val oper2 = MuxLookup(oper2_type, rs2)(Seq(
-    ITable.REG -> rs2,
-    ITable.IMM -> imm,
-    ITable.ZERO -> 0.U
-  ))
+  val imm = MuxLookup(fmt, immI)(
+    Seq(
+      IFmt.I -> immI,
+      IFmt.S -> immS,
+      IFmt.B -> immB,
+      IFmt.U -> immU,
+      IFmt.J -> immJ
+    )
+  )
 
   // IO
-  io.decoded.oper1 := oper1
-  io.decoded.oper2 := oper2
-  io.decoded.alu_op := alu_op
-  io.decoded.dest := Mux(we, rd, 0.U)
-  io.decoded.imm := imm
+  io.decoded.alu_oper1_type := oper1_type
+  io.decoded.alu_oper2_type := oper2_type
+  io.decoded.rs1            := rs1
+  io.decoded.rs2            := rs2
+  io.decoded.imm            := imm
+  io.decoded.rd             := rd
+  io.decoded.rd_we          := we
+  io.decoded.alu_op         := alu_op
+  io.decoded.lsu_op         := lsu_op
+  io.decoded.br_op          := br_op
+  io.decoded.exec_type      := exec_type
 }

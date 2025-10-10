@@ -10,17 +10,24 @@ html:
 ### Project Info
 PRJ = npc
 TOPNAME = Top
+TRACE ?= notrace
+CYCLES ?= 100
 
 ### Run checks only when `sim`
 ifneq ($(findstring $(MAKECMDGOALS),sim),)
 
 ### Print build info message
-$(info # Building NPC [$(HW)])
+$(info # Building NPC [$(HW)] [Trace: $(TRACE)] [sim $(CYCLES) cycles])
 
 ### Check: environment variable `HW` must be in the supported list
 HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))
 ifeq ($(filter $(HWS), $(HW)), )
-  $(error Expected $$HW in {$(HWS)}, Got "$(HW)")
+$(error Expected $$HW in {$(HWS)}, Got "$(HW)")
+endif
+
+### Check: valid trace
+ifeq ($(filter $(TRACE), notrace fst vcd), )
+$(error Expected $$TRACE in {notrace, fst, vcd}, Got "$(TRACE)")
 endif
 
 ### Checks end here
@@ -36,7 +43,7 @@ OBJ_DIR = $(BUILD_DIR)/obj_dir
 $(shell mkdir -p $(BUILD_DIR))
 
 ### Compilation targets
-BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)
+BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
 
 ### Collect the files to be built and linked
 LINKAGE ?=
@@ -57,7 +64,11 @@ VERILATOR_CFLAGS += -MMD --build -cc  \
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
-
+ifneq ($(TRACE), notrace)
+TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
+CXXFLAGS += -DTRACE -DTRACE_$(TRACE) -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
+VERILATOR_CFLAGS += --trace-$(TRACE)
+endif
 
 ## 4. Hardware-Specific Configurations
 -include ./scripts/$(HW).mk
@@ -70,7 +81,7 @@ CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 $(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
 	@rm -rf $(OBJ_DIR)
 	@rm -rf $(BUILD_DIR)/*.sv
-	./mill -i $(PRJ).runMain EmitVerilog --target-dir $(BUILD_DIR)/
+	./mill -i $(PRJ).runMain utils.EmitVerilog --target-dir $(BUILD_DIR)/
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
@@ -84,7 +95,7 @@ $(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(MAKE) $(BIN)
-	$(BIN)
+	$(BIN) $(CYCLES)
 
 ### Chisel Test
 test:
@@ -93,7 +104,7 @@ test:
 ### Generate Verilog
 verilog:
 	$(call git_commit, "generate verilog")
-	./mill -i $(PRJ).runMain EmitVerilog --target-dir $(BUILD_DIR)
+	./mill -i $(PRJ).runMain utils.EmitVerilog --target-dir $(BUILD_DIR)
 
 ### Reformat
 reformat:
