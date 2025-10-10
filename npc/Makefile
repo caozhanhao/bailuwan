@@ -29,8 +29,6 @@ ifeq ($(filter $(TRACE), none fst vcd), )
 	$(error Expected $$TRACE in {none, fst, vcd}, Got "$(TRACE)")
 endif
 
-$(info Trace : $(TRACE))
-
 ### Checks end here
 endif
 
@@ -66,6 +64,7 @@ INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
 ifneq ($(TRACE), none)
+    $(info Trace: $(TRACE))
 	TRACE_FILENAME ?= $(TOPNAME)-$(HW).$(TRACE)
 	CXXFLAGS += -DTRACE -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
 endif
