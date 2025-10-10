@@ -41,11 +41,16 @@ static uint32_t pmem_read(uint32_t addr) {
 }
 
 static void single_cycle() {
+  tfp->dump(time++);
   dut.clock = 0; dut.eval();
 
   dut.io_mem_inst = pmem_read(dut.io_mem_pc);
 
+  tfp->dump(time++);
+
   dut.clock = 1; dut.eval();
+
+  tfp->dump(time++);
 }
 
 static void reset(int n) {
@@ -68,10 +73,8 @@ int main() {
   reset(10);
 
   uint64_t time = 0;
-  tfp->dump(time++);
   while(1) {
     single_cycle();
-    tfp->dump(time++);
   }
 
 #ifdef TRACE
