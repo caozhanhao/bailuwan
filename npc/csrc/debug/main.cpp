@@ -68,6 +68,7 @@ int main() {
   reset(10);
 
   uint64_t time = 0;
+  tfp->dump(time++);
   while(1) {
     single_cycle();
     tfp->dump(time++);
