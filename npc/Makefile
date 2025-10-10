@@ -15,7 +15,7 @@ TOPNAME = Top
 ifneq ($(findstring $(MAKECMDGOALS),sim),)
 
 ### Print build info message
-$(info # Building NPC [$(HW)])
+$(info # Building NPC [$(HW)] [Trace: $(TRACE)])
 
 ### Check: environment variable `HW` must be in the supported list
 HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))
@@ -65,7 +65,6 @@ INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
 ifneq ($(TRACE), none)
-	echo "Building with trace $(TRACE)"
 	TRACE_FILENAME ?= $(TOPNAME)-$(HW).$(TRACE)
 	CXXFLAGS += -DTRACE -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
 endif
