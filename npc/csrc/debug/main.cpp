@@ -11,8 +11,11 @@
 #define TRACE_HANDLE_TYPE VerilatedVcdC
 #endif
 
-static TOP_NAME dut;
+#ifdef TRACE
 static TRACE_HANDLE *trace_handle;
+#endif
+
+static TOP_NAME dut;
 
 static void single_cycle() {
   dut.clock = 0; dut.eval();
@@ -26,10 +29,12 @@ static void reset(int n) {
 }
 
 int main() {
+#ifdef TRACE
   trace_handle = new TRACE_HANDLE_TYPE;
   Verilated::traceEverOn(true);
   dut->trace(trace_handle, 0);
   trace_handle->open(TRACE_FILENAME);
+#endif
 
   reset(10);
 
