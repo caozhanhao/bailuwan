@@ -33,7 +33,7 @@ uint32_t inst_mem[1024] = {
     0x01400513, // addi a0, zero, 20
     0x010000e7, // jalr ra, 16(zero)
     0x00c000e7, // jalr ra, 12(zero)
-    0x00c000e7, // jalr	zero,12(zero) # c <halt>
+    0x00c00067, // jalr	zero,12(zero) # c <halt>
     0x00a50513, // addi a0, a0, 10
     0x00008067, // jalr zero,0(ra)
 };

@@ -79,7 +79,7 @@ object ITable {
   val T = true.B
   val F = false.B
 
-  // format, oper1, oper2, WE, ALUOp, BrOp, LSUOp
+  // format, oper1, oper2, WE, ALUOp, BrOp, LSUOp, ExecType
   val default = List(IFmt.R, Zero, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU)
   val table   = Array(
     ADD  -> List(IFmt.R, Reg, Reg, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
