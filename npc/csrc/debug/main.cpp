@@ -2,16 +2,16 @@
 
 #ifdef TRACE_FST
 #include "verilated_fst_c.h"
-#define TRACE_HANDLE_TYPE VerilatedFstC
+#define TFP_TYPE VerilatedFstC
 #endif
 
 #ifdef TRACE_VCD
 #include "verilated_vcd_c.h"
-#define TRACE_HANDLE_TYPE VerilatedVcdC
+#define TFP_TYPE VerilatedVcdC
 #endif
 
 #ifdef TRACE
-static TRACE_HANDLE_TYPE *trace_handle;
+static TFP_TYPE *tfp;
 #endif
 
 static TOP_NAME dut;
@@ -60,10 +60,10 @@ static void reset(int n) {
 
 int main() {
 #ifdef TRACE
-  trace_handle = new TRACE_HANDLE_TYPE;
+  tfp = new TFP_TYPE;
   Verilated::traceEverOn(true);
-  dut.trace(trace_handle, 0);
-  trace_handle->open(TOSTRING(TRACE_FILENAME));
+  dut.trace(tfp, 0);
+  tfp->open(TOSTRING(TRACE_FILENAME));
 #endif
 
   reset(10);
@@ -71,12 +71,12 @@ int main() {
   uint64_t time = 0;
   while(1) {
     single_cycle();
-    trace_handle->dump(time++);
+    tfp->dump(time++);
   }
 
 #ifdef TRACE
-  trace_handle->close();
-  delete trace_handle;
+  tfp->close();
+  delete tfp;
 #endif
   return 0;
 }
