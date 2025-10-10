@@ -43,7 +43,7 @@ OBJ_DIR = $(BUILD_DIR)/obj_dir
 $(shell mkdir -p $(BUILD_DIR))
 
 ### Compilation targets
-BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)
+BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
 
 ### Collect the files to be built and linked
 LINKAGE ?=
