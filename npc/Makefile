@@ -24,9 +24,9 @@ ifeq ($(filter $(HWS), $(HW)), )
 endif
 
 ### Check: valid trace
-TRACE ?= none
-ifeq ($(filter $(TRACE), none fst vcd), )
-	$(error Expected $$TRACE in {none, fst, vcd}, Got "$(TRACE)")
+TRACE ?= notrace
+ifeq ($(filter $(TRACE), notrace fst vcd), )
+	$(error Expected $$TRACE in {notrace, fst, vcd}, Got "$(TRACE)")
 endif
 
 ### Checks end here
@@ -63,7 +63,7 @@ VERILATOR_CFLAGS += -MMD --build -cc  \
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
-ifneq ($(TRACE), none)
+ifneq ($(TRACE), notrace)
     $(info Trace: $(TRACE))
 	TRACE_FILENAME ?= $(TOPNAME)-$(HW).$(TRACE)
 	CXXFLAGS += -DTRACE -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
