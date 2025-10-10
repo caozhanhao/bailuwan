@@ -71,7 +71,8 @@ int main() {
 
   reset(10);
 
-  while(1) {
+  int cycles = 100;
+  while(cycles-- > 0) {
     single_cycle();
   }
 
