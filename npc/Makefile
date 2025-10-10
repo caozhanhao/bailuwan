@@ -10,6 +10,7 @@ html:
 ### Project Info
 PRJ = npc
 TOPNAME = Top
+TRACE ?= notrace
 
 ### Run checks only when `sim`
 ifneq ($(findstring $(MAKECMDGOALS),sim),)
@@ -24,10 +25,8 @@ $(error Expected $$HW in {$(HWS)}, Got "$(HW)")
 endif
 
 ### Check: valid trace
-ifneq ($(TRACE), )
-ifeq ($(filter $(TRACE), fst vcd), )
-$(error Expected $$TRACE in {fst, vcd}, Got "$(TRACE)")
-endif
+ifeq ($(filter $(TRACE), notrace fst vcd), )
+$(error Expected $$TRACE in {notrace, fst, vcd}, Got "$(TRACE)")
 endif
 
 ### Checks end here
@@ -43,7 +42,6 @@ OBJ_DIR = $(BUILD_DIR)/obj_dir
 $(shell mkdir -p $(BUILD_DIR))
 
 ### Compilation targets
-TRACE ?= notrace
 BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
 
 ### Collect the files to be built and linked
