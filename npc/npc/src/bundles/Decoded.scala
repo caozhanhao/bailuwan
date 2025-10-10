@@ -2,7 +2,7 @@ package bundles
 
 import chisel3._
 import chisel3.util._
-import constants.ALUOp
+import constants._
 
 object OperType {
   val WIDTH = log2Ceil(4).W
@@ -13,25 +13,16 @@ object OperType {
   val PC   = 3.U(OperType.WIDTH)
 }
 
-object BrType {
-  val WIDTH = log2Ceil(9).W
+object ExecType {
+  val WIDTH = log2Ceil(2).W
 
-  val None = 0.U(BrType.WIDTH)
-  val JAL  = 1.U(BrType.WIDTH)
-  val JALR = 2.U(BrType.WIDTH)
-  val BEQ  = 3.U(BrType.WIDTH)
-  val BNE  = 4.U(BrType.WIDTH)
-  val BLT  = 5.U(BrType.WIDTH)
-  val BGE  = 6.U(BrType.WIDTH)
-  val BLTU = 7.U(BrType.WIDTH)
-  val BGEU = 8.U(BrType.WIDTH)
+  val ALU = 0.U(ExecType.WIDTH)
+  val LSU = 1.U(ExecType.WIDTH)
 }
 
 class DecodedBundle extends Bundle {
   val alu_oper1_type = UInt(OperType.WIDTH)
   val alu_oper2_type = UInt(OperType.WIDTH)
-
-  val br_type = UInt(BrType.WIDTH)
 
   val rs1 = UInt(5.W)
   val rs2 = UInt(5.W)
@@ -39,5 +30,8 @@ class DecodedBundle extends Bundle {
   val rd_we  = Bool()
   val imm = UInt(32.W)
 
+  val exec_type = UInt(ExecType.WIDTH)
   val alu_op = UInt(ALUOp.WIDTH)
+  val lsu_op = UInt(LSUOp.WIDTH)
+  val br_op = UInt(BrOp.WIDTH)
 }

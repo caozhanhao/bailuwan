@@ -3,7 +3,7 @@ package core
 import chisel3._
 import chisel3.util._
 import bundles._
-import constants.ALUOp
+import constants._
 
 object IPat {
   // Chapter 34. RV32/64G Instruction Set Listings
@@ -74,21 +74,22 @@ object IFmt {
 object ITable {
   import IPat._
   import OperType._
+  import ExecType._
 
   val T = true.B
   val F = false.B
 
-  // format, oper1, oper2, WE, ALU_OP, Branch Type
-  val default = List(F, F, F, ALUOp.Add)
+  // format, oper1, oper2, WE, ALUOp, BrOp, LSUOp
+  val default = List(IFmt.R, Zero, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU)
   val table   = Array(
-    ADD  -> List(IFmt.R, Reg, Reg, T, ALUOp.Add, BrType.None),
-    ADDI -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrType.None),
-    LUI  -> List(IFmt.U, Imm, Zero, T, ALUOp.Add, BrType.None),
-    LW   -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrType.None),
-    LBU  -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrType.None),
-    SW   -> List(IFmt.S, Reg, Imm, F, ALUOp.Add, BrType.None),
-    SB   -> List(IFmt.S, Reg, Imm, F, ALUOp.Add, BrType.None),
-    JALR -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrType.JALR)
+    ADD  -> List(IFmt.R, Reg, Reg, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    ADDI -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    LUI  -> List(IFmt.U, Imm, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    LW   -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LW, LSU),
+    LBU  -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LBU, LSU),
+    SW   -> List(IFmt.S, Reg, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SW, LSU),
+    SB   -> List(IFmt.S, Reg, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SB, LSU),
+    JALR -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrOp.JALR, LSUOp.None, ALU)
   )
 }
 
@@ -111,7 +112,7 @@ class IDU extends Module {
   val immJ = Fill(12, io.inst(31)) ## io.inst(31) ## io.inst(20) ## io.inst(30, 21)
 
   // Decode
-  val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: Nil =
+  val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: exec_type :: Nil =
     ListLookup(io.inst, ITable.default, ITable.table)
 
   // Choose immediate
@@ -128,10 +129,13 @@ class IDU extends Module {
   // IO
   io.decoded.alu_oper1_type := oper1_type
   io.decoded.alu_oper2_type := oper2_type
-  io.decoded.rs1        := rs1
-  io.decoded.rs2        := rs2
-  io.decoded.imm        := imm
-  io.decoded.rd         := rd
-  io.decoded.rd_we         := we
-  io.decoded.alu_op     := alu_op
+  io.decoded.rs1            := rs1
+  io.decoded.rs2            := rs2
+  io.decoded.imm            := imm
+  io.decoded.rd             := rd
+  io.decoded.rd_we          := we
+  io.decoded.alu_op         := alu_op
+  io.decoded.lsu_op         := lsu_op
+  io.decoded.br_op          := br_op
+  io.decoded.exec_type      := exec_type
 }

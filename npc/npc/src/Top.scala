@@ -25,4 +25,6 @@ class Top extends Module {
   EXU.io.pc := pc
 
   pc := EXU.io.dnpc
+
+  io.mem.pc := pc
 }

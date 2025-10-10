@@ -3,6 +3,7 @@ package core
 import chisel3._
 import chisel3.util.MuxLookup
 import bundles._
+import constants._
 
 class EXU extends Module {
   val io = IO(new Bundle {
@@ -47,32 +48,35 @@ class EXU extends Module {
 
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
-  val br_target = MuxLookup(io.decoded.br_type, (io.pc + io.decoded.imm).asUInt)(
+  val br_target = MuxLookup(io.decoded.br_op, (io.pc + io.decoded.imm).asUInt)(
     Seq(
-      BrType.None -> 0.U,
-      BrType.JALR -> (reg_file.io.rs1_data + io.decoded.imm)(31, 1) ## 0.U
+      BrOp.None -> 0.U,
+      BrOp.JALR -> (reg_file.io.rs1_data + io.decoded.imm)(31, 1) ## 0.U
     )
   )
 
-  val br_taken = MuxLookup(io.decoded.br_type, false.B)(
+  val br_taken = MuxLookup(io.decoded.br_op, false.B)(
     Seq(
-      BrType.None -> false.B,
-      BrType.JAL  -> true.B,
-      BrType.JALR -> true.B,
-      BrType.BEQ  -> (rs1_data === rs2_data),
-      BrType.BNE  -> (rs1_data =/= rs2_data),
-      BrType.BLT  -> (rs1_data.asSInt < rs2_data.asSInt),
-      BrType.BGE  -> (rs1_data.asSInt >= rs2_data.asSInt),
-      BrType.BLTU -> (rs1_data < rs2_data),
-      BrType.BGEU -> (rs1_data >= rs2_data)
+      BrOp.None -> false.B,
+      BrOp.JAL  -> true.B,
+      BrOp.JALR -> true.B,
+      BrOp.BEQ  -> (rs1_data === rs2_data),
+      BrOp.BNE  -> (rs1_data =/= rs2_data),
+      BrOp.BLT  -> (rs1_data.asSInt < rs2_data.asSInt),
+      BrOp.BGE  -> (rs1_data.asSInt >= rs2_data.asSInt),
+      BrOp.BLTU -> (rs1_data < rs2_data),
+      BrOp.BGEU -> (rs1_data >= rs2_data)
     )
   )
 
   // Write Back
   val wbu = Module(new WBU)
 
-  wbu.io.in.snpc      := io.pc + 4.U
+  wbu.io.in.src_type := io.decoded.exec_type
   wbu.io.in.alu_out   := alu.io.result
+  wbu.io.in.lsu_out   := DontCare // TODO
+
+  wbu.io.in.snpc      := io.pc + 4.U
   wbu.io.in.br_taken  := br_taken
   wbu.io.in.br_target := br_target
 

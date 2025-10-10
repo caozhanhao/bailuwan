@@ -3,16 +3,9 @@ package bundles
 import chisel3._
 import chisel3.util._
 
-object WriteBackSource {
-  val WIDTH = log2Ceil(2).W
-
-  val ALU = 0.U(WIDTH)
-  val LSU = 1.U(WIDTH)
-}
-
 class WriteBackIn extends Bundle {
   // Register File
-  val src_type = UInt(WriteBackSource.WIDTH)
+  val src_type = UInt(ExecType.WIDTH)
   val alu_out  = UInt(32.W)
   val lsu_out  = UInt(32.W)
 

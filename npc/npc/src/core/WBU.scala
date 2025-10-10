@@ -12,7 +12,7 @@ class WBU extends Module {
 
   val dnpc = Mux(io.in.br_taken, io.in.br_target, io.in.snpc)
 
-  import WriteBackSource._
+  import ExecType._
   val rd_data = MuxLookup(io.in.src_type, 0.U)(Seq(
     ALU -> io.in.alu_out,
     LSU -> io.in.lsu_out,
