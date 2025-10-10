@@ -11,12 +11,13 @@ html:
 PRJ = npc
 TOPNAME = Top
 TRACE ?= notrace
+CYCLES ?= 100
 
 ### Run checks only when `sim`
 ifneq ($(findstring $(MAKECMDGOALS),sim),)
 
 ### Print build info message
-$(info # Building NPC [$(HW)] [Trace: $(TRACE)])
+$(info # Building NPC [$(HW)] [Trace: $(TRACE)] [sim $(CYCLES) cycles])
 
 ### Check: environment variable `HW` must be in the supported list
 HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))
@@ -94,7 +95,7 @@ $(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(MAKE) $(BIN)
-	$(BIN)
+	$(BIN) $(CYCLES)
 
 ### Chisel Test
 test:
