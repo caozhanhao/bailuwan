@@ -50,8 +50,6 @@ static void single_cycle() {
   tfp->dump(sim_time++);
 
   dut.clock = 1; dut.eval();
-
-  tfp->dump(sim_time++);
 }
 
 static void reset(int n) {
