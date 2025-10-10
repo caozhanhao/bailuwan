@@ -21,23 +21,16 @@ class EXU extends Module {
   val rs1_data = reg_file.io.rs1_data
   val rs2_data = reg_file.io.rs2_data
 
-  val oper1 = MuxLookup(io.decoded.alu_oper1_type, 0.U)(
-    Seq(
-      OperType.Reg  -> rs1_data,
-      OperType.Imm  -> io.decoded.imm,
-      OperType.PC   -> io.pc,
-      OperType.Zero -> 0.U
-    )
+  val oper_table = Seq(
+    OperType.Rs1  -> rs1_data,
+    OperType.Rs2  -> rs2_data,
+    OperType.Imm  -> io.decoded.imm,
+    OperType.Zero -> 0.U,
+    OperType.Four -> 4.U,
+    OperType.PC   -> io.pc,
   )
-
-  val oper2 = MuxLookup(io.decoded.alu_oper2_type, 0.U)(
-    Seq(
-      OperType.Reg  -> rs2_data,
-      OperType.Imm  -> io.decoded.imm,
-      OperType.PC   -> io.pc,
-      OperType.Zero -> 0.U
-    )
-  )
+  val oper1 = MuxLookup(io.decoded.alu_oper1_type, 0.U)(oper_table)
+  val oper2 = MuxLookup(io.decoded.alu_oper2_type, 0.U)(oper_table)
 
   // ALU
   val alu = Module(new ALU)

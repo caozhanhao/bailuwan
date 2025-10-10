@@ -82,14 +82,14 @@ object ITable {
   // format, oper1, oper2, WE, ALUOp, BrOp, LSUOp, ExecType
   val default = List(IFmt.R, Zero, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU)
   val table   = Array(
-    ADD  -> List(IFmt.R, Reg, Reg, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
-    ADDI -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    ADD  -> List(IFmt.R, Rs1, Rs2, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    ADDI -> List(IFmt.I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
     LUI  -> List(IFmt.U, Imm, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
-    LW   -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LW, LSU),
-    LBU  -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LBU, LSU),
-    SW   -> List(IFmt.S, Reg, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SW, LSU),
-    SB   -> List(IFmt.S, Reg, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SB, LSU),
-    JALR -> List(IFmt.I, Reg, Imm, T, ALUOp.Add, BrOp.JALR, LSUOp.None, ALU)
+    LW   -> List(IFmt.I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LW, LSU),
+    LBU  -> List(IFmt.I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LBU, LSU),
+    SW   -> List(IFmt.S, Rs1, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SW, LSU),
+    SB   -> List(IFmt.S, Rs1, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SB, LSU),
+    JALR -> List(IFmt.I, PC, Four, T, ALUOp.Add, BrOp.JALR, LSUOp.None, ALU)
   )
 }
 
