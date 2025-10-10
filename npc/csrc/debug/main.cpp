@@ -61,7 +61,14 @@ static void reset(int n) {
 #define STRINGIFY(s)        #s
 #define TOSTRING(s)         STRINGIFY(s)
 
-int main() {
+int main(int argc, char* argv[]) {
+  if (argc != 2) {
+    printf("Usage: %s [number of cycles]\n", argv[0]);
+    return -1;
+  }
+
+  int cycles = atoi(argv[1]);
+
 #ifdef TRACE
   tfp = new TFP_TYPE;
   Verilated::traceEverOn(true);
@@ -71,7 +78,6 @@ int main() {
 
   reset(10);
 
-  int cycles = 100;
   while(cycles-- > 0) {
     single_cycle();
   }
