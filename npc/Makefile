@@ -19,6 +19,9 @@ $(info # Building NPC [$(HW)] [Trace: $(TRACE)])
 
 ### Check: environment variable `HW` must be in the supported list
 HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))
+ifeq ($(HW), )
+	$(error Expected a valid HW )
+endif
 ifeq ($(filter $(HWS), $(HW)), )
 	$(error Expected $$HW in {$(HWS)}, Got "$(HW)")
 endif
