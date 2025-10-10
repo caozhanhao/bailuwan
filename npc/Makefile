@@ -66,18 +66,10 @@ CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 ifneq ($(TRACE), notrace)
 TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
 CXXFLAGS += -DTRACE -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
+else
+CXXFLAGS += -DTRACE_$(TRACE)
+VERILATOR_CFLAGS += --trace-$(TRACE)
 endif
-
-ifeq ($(TRACE), fst)
-VERILATOR_CFLAGS += --trace-fst
-CXXFLAGS += -DTRACE_FST
-endif
-ifeq ($(TRACE), vcd)
-VERILATOR_CFLAGS += --trace
-CXXFLAGS += -DTRACE_VCD
-endif
-
-
 
 ## 4. Hardware-Specific Configurations
 -include ./scripts/$(HW).mk

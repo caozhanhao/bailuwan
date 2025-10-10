@@ -1,11 +1,11 @@
 #include <VTop.h>
 
-#ifdef TRACE_FST
+#ifdef TRACE_fst
 #include "verilated_fst_c.h"
 #define TFP_TYPE VerilatedFstC
 #endif
 
-#ifdef TRACE_VCD
+#ifdef TRACE_vcd
 #include "verilated_vcd_c.h"
 #define TFP_TYPE VerilatedVcdC
 #endif
@@ -15,7 +15,6 @@ static TFP_TYPE *tfp;
 #endif
 
 static TOP_NAME dut;
-
 
 
 // 00000000 <_start>:
