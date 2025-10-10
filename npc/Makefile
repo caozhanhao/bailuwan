@@ -19,17 +19,14 @@ $(info # Building NPC [$(HW)] [Trace: $(TRACE)])
 
 ### Check: environment variable `HW` must be in the supported list
 HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))
-ifeq ($(HW), )
-	$(error Expected a valid HW )
-endif
 ifeq ($(filter $(HWS), $(HW)), )
-	$(error Expected $$HW in {$(HWS)}, Got "$(HW)")
+$(error Expected $$HW in {$(HWS)}, Got "$(HW)")
 endif
 
 ### Check: valid trace
 ifneq ($(TRACE), )
 ifeq ($(filter $(TRACE), fst vcd), )
-	$(error Expected $$TRACE in {fst, vcd}, Got "$(TRACE)")
+$(error Expected $$TRACE in {fst, vcd}, Got "$(TRACE)")
 endif
 endif
 
@@ -68,17 +65,17 @@ INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
 ifneq ($(TRACE), )
-	TRACE_FILENAME ?= $(TOPNAME)-$(HW).$(TRACE)
-	CXXFLAGS += -DTRACE -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
+TRACE_FILENAME ?= $(TOPNAME)-$(HW).$(TRACE)
+CXXFLAGS += -DTRACE -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
 endif
 
 ifeq ($(TRACE), fst)
-	VERILATOR_CFLAGS += --trace-fst
-	CXXFLAGS += -DTRACE_FST
+VERILATOR_CFLAGS += --trace-fst
+CXXFLAGS += -DTRACE_FST
 endif
 ifeq ($(TRACE), vcd)
-	VERILATOR_CFLAGS += --trace
-	CXXFLAGS += -DTRACE_VCD
+VERILATOR_CFLAGS += --trace
+CXXFLAGS += -DTRACE_VCD
 endif
 
 
