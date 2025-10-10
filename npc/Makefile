@@ -63,6 +63,7 @@ VERILATOR_CFLAGS += -MMD --build -cc  \
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
+$(info T1race: $(TRACE))
 ifneq ($(TRACE), notrace)
     $(info Trace: $(TRACE))
 	TRACE_FILENAME ?= $(TOPNAME)-$(HW).$(TRACE)
