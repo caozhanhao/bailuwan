@@ -12,7 +12,7 @@
 #endif
 
 #ifdef TRACE
-static TRACE_HANDLE *trace_handle;
+static TRACE_HANDLE_TYPE *trace_handle;
 #endif
 
 static TOP_NAME dut;
