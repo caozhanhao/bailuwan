@@ -64,7 +64,7 @@ INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
 ifneq ($(TRACE), notrace)
-TRACE_FILENAME ?= trace-file-$(BIN).$(TRACE)
+TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
 CXXFLAGS += -DTRACE -DTRACE_FILENAME=$(TRACE_FILENAME)
 endif
 
