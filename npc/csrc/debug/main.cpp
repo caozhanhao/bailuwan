@@ -42,12 +42,17 @@ static uint32_t pmem_read(uint32_t addr) {
 static uint64_t sim_time = 0;
 
 static void single_cycle() {
+#ifdef TRACE
   tfp->dump(sim_time++);
-  dut.clock = 0; dut.eval();
+#endif
 
+  dut.clock = 0;
   dut.io_mem_inst = pmem_read(dut.io_mem_pc);
+  dut.eval();
 
+#ifdef TRACE
   tfp->dump(sim_time++);
+#endif
 
   dut.clock = 1; dut.eval();
 }
