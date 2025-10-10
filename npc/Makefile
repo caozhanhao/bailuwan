@@ -70,7 +70,7 @@ CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 $(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
 	@rm -rf $(OBJ_DIR)
 	@rm -rf $(BUILD_DIR)/*.sv
-	./mill -i $(PRJ).runMain EmitVerilog --target-dir $(BUILD_DIR)/
+	./mill -i $(PRJ).runMain utils.EmitVerilog --target-dir $(BUILD_DIR)/
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
@@ -93,7 +93,7 @@ test:
 ### Generate Verilog
 verilog:
 	$(call git_commit, "generate verilog")
-	./mill -i $(PRJ).runMain EmitVerilog --target-dir $(BUILD_DIR)
+	./mill -i $(PRJ).runMain utils.EmitVerilog --target-dir $(BUILD_DIR)
 
 ### Reformat
 reformat:
