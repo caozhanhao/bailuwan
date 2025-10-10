@@ -29,6 +29,7 @@ ifeq ($(filter $(TRACE), none fst vcd), )
 	$(error Expected $$TRACE in {none, fst, vcd}, Got "$(TRACE)")
 endif
 
+$(info Trace : $(TRACE))
 
 ### Checks end here
 endif
