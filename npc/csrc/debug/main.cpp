@@ -1,5 +1,4 @@
 #include <VTop.h>
-#include "macro.h"
 
 #ifdef TRACE_FST
 #include "verilated_fst_c.h"
