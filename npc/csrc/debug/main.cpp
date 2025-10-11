@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
     // Simulate
     printf("Simulation started...\n");
     MiniRVEmu emu;
-    emu.load(dut_memory, DUT_MEMORY_SIZE / sizeof(uint32_t));
+    emu.load(dut_memory, DUT_MEMORY_SIZE);
     while (cycles-- > 0)
     {
         auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
