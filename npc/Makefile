@@ -12,12 +12,13 @@ PRJ = npc
 TOPNAME = Top
 TRACE ?= notrace
 CYCLES ?= 100
+FILENAME ?=
 
 ### Run checks only when `sim`
 ifneq ($(findstring $(MAKECMDGOALS),sim),)
 
 ### Print build info message
-$(info # Building NPC [$(HW)] [Trace: $(TRACE)] [sim $(CYCLES) cycles])
+$(info # Building NPC [$(HW)] [Trace: $(TRACE)] [sim $(CYCLES) cycles] [file: $(FILENAME)])
 
 ### Check: environment variable `HW` must be in the supported list
 HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))
@@ -28,6 +29,11 @@ endif
 ### Check: valid trace
 ifeq ($(filter $(TRACE), notrace fst vcd), )
 $(error Expected $$TRACE in {notrace, fst, vcd}, Got "$(TRACE)")
+endif
+
+### Check: valid program
+ifeq ($(FILENAME), )
+$(error Expected $$FILENAME)
 endif
 
 ### Checks end here
@@ -98,7 +104,7 @@ $(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(MAKE) $(BIN)
-	$(BIN) $(CYCLES)
+	$(BIN) $(CYCLES) $(FILENAME)
 
 ### Chisel Test
 test:
