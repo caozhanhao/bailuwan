@@ -2,10 +2,8 @@ package core
 
 import chisel3._
 import chisel3.util._
-
 import constants._
 import utils.Utils._
-import bundles.MemIO
 
 class LSU extends Module {
   val io = IO(new Bundle {
@@ -13,8 +11,6 @@ class LSU extends Module {
     val addr = Input(UInt(32.W))
     val write_data = Input(UInt(32.W))
     val read_data = Output(UInt(32.W))
-
-    val mem_io = new MemIO
   })
 
   val write_enable = MuxLookup(io.lsu_op, false.B)(Seq(
@@ -31,15 +27,15 @@ class LSU extends Module {
 
   val read_enable = io.lsu_op =/= LSUOp.None && !write_enable
 
-  val mem = io.mem_io
+  val mem = Module(new DPICMem())
 
-  mem.addr := io.addr
-  mem.read_enable := read_enable
-  mem.write_enable := write_enable
-  mem.write_mask := write_mask
-  mem.write_data := io.write_data
+  mem.io.addr := io.addr
+  mem.io.read_enable := read_enable
+  mem.io.write_enable := write_enable
+  mem.io.write_mask := write_mask
+  mem.io.write_data := io.write_data
 
-  val data_out = mem.data_out
+  val data_out = mem.io.data_out
 
   val lb_sel = MuxLookup(io.addr(1, 0), 0.U(8.W))(Seq(
     0.U -> data_out(7, 0),
