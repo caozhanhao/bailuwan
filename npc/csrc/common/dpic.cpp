@@ -55,7 +55,6 @@ void pmem_write(int waddr, int wdata, char wmask)
         }
     }
 
-    printf("addr: %08x, wdata: %08x, mask: %08x, newv: %08x\n", waddr, wdata, wmask, newv);
     dut_memory[idx] = newv;
 }
 }
@@ -87,7 +86,7 @@ void init_memory(const char* filename)
         printf("%08x: %08x\n", i * 4, dut_memory[i]);
 
     // ebreak for sum
-    dut_memory[0x224/4] = 0b00000000000100000000000001110011;
+    dut_memory[0x224 / 4] = 0b00000000000100000000000001110011;
 
     fclose(fp);
 }
