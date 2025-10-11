@@ -58,7 +58,10 @@ int main(int argc, char* argv[])
         printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
 
         for (int i = 0; i < 16; i++)
-            eassert(emu.reg(i) == cpu.reg(i), "Register mismatch at x" + std::to_string(i));
+        {
+            eassert(emu.reg(i) == cpu.reg(i), "Register mismatch at x" + std::to_string(i) +
+                ", expected " + std::to_string(emu.reg(i)) + ", got " + std::to_string(cpu.reg(i)));
+        }
 
         emu.step();
         single_cycle();
