@@ -72,17 +72,7 @@ int main(int argc, char* argv[])
         if (!is_equal)
             eassert(false, "Register mismatch");
 
-        for (int i = 0; i < DUT_MEMORY_SIZE / sizeof(uint32_t); i++)
-        {
-            if (dut_memory[i] != emu.mem(i))
-            {
-                std::cerr << "Memory mismatch at " + std::to_string(i) +
-                    ", expected " + std::to_string(dut_memory[i]) + ", got " + std::to_string(emu.mem(i))
-                    << std::endl;
-                is_equal = false;
-            }
-        }
-        if (!is_equal)
+        if (memcmp(dut_memory, emu.memory.data(), DUT_MEMORY_SIZE) != 0)
             eassert(false, "Memory mismatch");
 
         emu.step();

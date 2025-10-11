@@ -24,7 +24,7 @@ void eassert(bool cond, const std::string& msg)
 
 class MiniRVEmu
 {
-private:
+public:
     std::vector<uint32_t> memory;
 
     uint32_t pc = 0; // word index
