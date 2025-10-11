@@ -45,6 +45,7 @@ extern "C" void pmem_write(int waddr, int wdata, char wmask)
 
 void init_memory(const char *filename)
 {
+    printf("Initializing memory from %s\n", filename);
     FILE *fp = fopen(filename, "rb");
     assert(fp);
 
