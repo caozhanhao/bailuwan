@@ -2,7 +2,6 @@ package core
 
 import chisel3._
 import chisel3.util._
-import bundles._
 import constants._
 
 object InstDecodeTable {
@@ -27,6 +26,22 @@ object InstDecodeTable {
     JALR   -> List(I, PC, Four, T, ALUOp.Add, BrOp.JALR, LSUOp.None, ALU),
     EBREAK -> List(I, Zero, Zero, F, ALUOp.Add, BrOp.None, LSUOp.None, EBreak)
   )
+}
+
+class DecodedBundle extends Bundle {
+  val alu_oper1_type = UInt(OperType.WIDTH)
+  val alu_oper2_type = UInt(OperType.WIDTH)
+
+  val rs1   = UInt(5.W)
+  val rs2   = UInt(5.W)
+  val rd    = UInt(5.W)
+  val rd_we = Bool()
+  val imm   = UInt(32.W)
+
+  val exec_type = UInt(ExecType.WIDTH)
+  val alu_op    = UInt(ALUOp.WIDTH)
+  val lsu_op    = UInt(LSUOp.WIDTH)
+  val br_op     = UInt(BrOp.WIDTH)
 }
 
 class IDU extends Module {

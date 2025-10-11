@@ -3,8 +3,6 @@ package core
 import chisel3._
 import chisel3.util.HasBlackBoxInline
 
-import bundles._
-
 class PMemReadDPICWrapper extends HasBlackBoxInline {
   val io = IO(new Bundle {
     val en   = Input(Bool())
@@ -52,7 +50,7 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
   )
 }
 
-class Mem extends {
+class DPICMem extends {
   val io = IO(new Bundle {
     val addr = Input(UInt(32.W))
     val read_enable = Input(Bool())

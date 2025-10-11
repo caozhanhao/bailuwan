@@ -81,9 +81,10 @@ object OperType {
 }
 
 object ExecType {
-  val WIDTH = log2Ceil(3).W
+  val WIDTH = log2Ceil(4).W
 
-  val ALU = 0.U(ExecType.WIDTH)
-  val LSU = 1.U(ExecType.WIDTH)
-  val EBreak = 2.U(ExecType.WIDTH)
+  val None = 0.U(ExecType.WIDTH)
+  val ALU = 1.U(ExecType.WIDTH)
+  val LSU = 2.U(ExecType.WIDTH)
+  val EBreak = 3.U(ExecType.WIDTH)
 }
