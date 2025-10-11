@@ -2,6 +2,7 @@ package bundles
 
 import chisel3._
 import chisel3.util._
+import constants._
 
 class WriteBackIn extends Bundle {
   // Register File

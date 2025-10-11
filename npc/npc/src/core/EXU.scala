@@ -1,7 +1,7 @@
 package core
 
 import chisel3._
-import chisel3.util.MuxLookup
+import chisel3.util._
 import bundles._
 import constants._
 
@@ -75,4 +75,8 @@ class EXU extends Module {
 
   reg_file.io.rd_data := wbu.io.out.rd_data
   io.dnpc             := wbu.io.out.dnpc
+
+  // EBreak
+  val ebreak = Module(new EBreak)
+  ebreak.io.en := io.decoded.exec_type === ExecType.EBreak
 }
