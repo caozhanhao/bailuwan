@@ -106,8 +106,13 @@ private:
     template <size_t bits>
     static int32_t sign_extend(uint32_t v)
     {
-#define SEXT(x, len) ({ struct { int64_t n : len; } __x = { .n = x }; (uint64_t)__x.n; })
-        return SEXT(v, bits);
+        static_assert(bits >= 1 && bits < 32, "extend what?");
+
+        struct small_int
+        {
+            int64_t val : bits;
+        } x = { .val = v };
+        return static_cast<int32_t>(x.val);
     }
 
     void ensure_mem_word(size_t idx)
