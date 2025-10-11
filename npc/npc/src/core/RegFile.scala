@@ -21,4 +21,6 @@ class RegFile extends Module {
 
   io.rs1_data := regs(io.rs1_addr)
   io.rs2_data := regs(io.rs2_addr)
+
+  io.debug_registers := regs
 }

@@ -1,23 +1,30 @@
 #include <cstdint>
 #include <cstdio>
+
+#include "common.h"
 #include "trace.h"
 
 extern "C" {
 uint32_t* memory;
 
+void dump_registers()
+{
+}
+
 void ebreak_handler()
 {
     printf("ebreak\n");
     trace_cleanup();
-    exit(0);
+    dump_registers();
+    exit(dut.io_registers_0);
 }
 
-extern "C" int pmem_read(int raddr)
+int pmem_read(int raddr)
 {
     return memory[((unsigned)raddr & ~0x3u) / 4];
 }
 
-extern "C" void pmem_write(int waddr, int wdata, char wmask)
+void pmem_write(int waddr, int wdata, char wmask)
 {
     unsigned idx = ((unsigned)waddr & ~0x3u) / 4u;
 
@@ -40,13 +47,10 @@ extern "C" void pmem_write(int waddr, int wdata, char wmask)
 }
 }
 
-// Byte * 1024 * 1024 * 512 Byte -> 512 MB
-#define MEMORY_SIZE (1024 * 1024 * 512)
-
-void init_memory(const char *filename)
+void init_memory(const char* filename)
 {
     printf("Initializing memory from %s\n", filename);
-    FILE *fp = fopen(filename, "rb");
+    FILE* fp = fopen(filename, "rb");
     assert(fp);
 
     memory = static_cast<uint32_t*>(malloc(MEMORY_SIZE));
@@ -55,7 +59,8 @@ void init_memory(const char *filename)
     size_t bytes_read = fread(memory, 1, MEMORY_SIZE, fp);
     if (bytes_read == 0)
     {
-        if (ferror(stdin)) {
+        if (ferror(stdin))
+        {
             perror("fread");
             free(memory);
             exit(-1);

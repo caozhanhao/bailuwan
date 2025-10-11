@@ -1,10 +1,14 @@
 package top
 
 import chisel3._
-
+import chisel3.util.experimental.BoringUtils
 import core._
 
 class Top extends Module {
+  val io = IO(new Bundle {
+    val registers = Output(Vec(32, UInt(32.W)))
+  })
+
   val IFU = Module(new IFU)
   val EXU = Module(new EXU)
   val IDU = Module(new IDU)
@@ -18,4 +22,5 @@ class Top extends Module {
   EXU.io.pc := pc
 
   pc := EXU.io.dnpc
+  io.registers := BoringUtils.bore(EXU.reg_file.regs)
 }
