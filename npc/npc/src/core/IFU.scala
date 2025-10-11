@@ -15,7 +15,7 @@ class IFU extends Module {
 
   Mem.io.addr := io.pc
   Mem.io.read_enable := true.B
-  
+
   Mem.io.write_enable := false.B
   Mem.io.write_mask := 0.U
   Mem.io.write_data := false.B
