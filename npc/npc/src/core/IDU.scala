@@ -72,8 +72,6 @@ class IDU extends Module {
   val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: exec_type :: Nil =
     ListLookup(inst, InstDecodeTable.default, InstDecodeTable.table)
 
-  println(s"Decoded: ${fmt} ${oper1_type} ${oper2_type} ${we} ${alu_op} ${br_op} ${lsu_op} ${exec_type}")
-
   assert(fmt =/= InstFmt.Err, cf"Invalid instruction format. (Inst: ${inst})")
 
   // Choose immediate
@@ -86,6 +84,8 @@ class IDU extends Module {
       InstFmt.J -> immJ
     )
   )
+
+  printf(cf"Decoded: (Inst: ${inst}, imm: ${imm}, rd: ${rd}, rs1: ${rs1}, rs2: ${rs2}, exec_type: ${exec_type}, alu_op: ${alu_op}, lsu_op: ${lsu_op}, br_op: ${br_op})")
 
   // IO
   io.decoded.alu_oper1_type := oper1_type
