@@ -68,6 +68,4 @@ class LSU extends Module {
   )
 
   io.read_data := selected_data
-
-  // printf("[LSU] addr: %x, read_enable: %x, data_out: %x\n", io.addr, read_enable, data_out)
 }
