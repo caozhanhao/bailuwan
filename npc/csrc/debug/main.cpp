@@ -17,12 +17,14 @@ static TFP_TYPE *tfp;
 static TOP_NAME dut;
 
 
+extern "C" {
+uint32_t memory[65536];
+
 void ebreak_handler() {
   printf("ebreak\n");
   exit(0);
 }
 
-uint32_t memory[65536];
 extern "C" int pmem_read(int raddr) {
   return memory[((unsigned)raddr & ~0x3u) / 4];
 }
@@ -43,6 +45,7 @@ extern "C" void pmem_write(int waddr, int wdata, char wmask) {
     }
 
     memory[idx] = newv;
+}
 }
 
 // 00000000 <_start>:
