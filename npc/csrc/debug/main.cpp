@@ -54,7 +54,7 @@ extern "C" void pmem_write(int waddr, int wdata, char wmask) {
 //      8:	00c000e7          	jalr	ra,12(zero) # c <halt>
 //
 //   0000000c <halt>:
-//      c:	00c00067          	jalr	zero,12(zero) # c <halt>
+//      c:  00100073            ebreak
 //
 //   00000010 <fun>:
 //     10:	00a50513          	addi	a0,a0,10
@@ -63,7 +63,7 @@ uint32_t inst_mem[1024] = {
     0x01400513, // addi a0, zero, 20
     0x010000e7, // jalr ra, 16(zero)
     0x00c000e7, // jalr ra, 12(zero)
-    0x00c00067, // jalr	zero,12(zero) # c <halt>
+    0x00100073, // ebreak
     0x00a50513, // addi a0, a0, 10
     0x00008067, // jalr zero,0(ra)
 };
