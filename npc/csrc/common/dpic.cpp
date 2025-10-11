@@ -55,6 +55,7 @@ void pmem_write(int waddr, int wdata, char wmask)
         }
     }
 
+    printf("wdata: %08x, mask: %08x, newv: %08x\n", wdata, wmask, newv);
     dut_memory[idx] = newv;
 }
 }
