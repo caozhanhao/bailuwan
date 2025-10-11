@@ -59,7 +59,7 @@ object InstPat {
 }
 
 object InstFmt {
-  val WIDTH = log2Ceil(6).W
+  val WIDTH = log2Ceil(7).W
 
   val R = 0.U(WIDTH)
   val I = 1.U(WIDTH)
@@ -67,6 +67,7 @@ object InstFmt {
   val B = 3.U(WIDTH)
   val U = 4.U(WIDTH)
   val J = 5.U(WIDTH)
+  val Err = 6.U(WIDTH)
 }
 
 object OperType {

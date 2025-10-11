@@ -14,7 +14,7 @@ object InstDecodeTable {
   val F = false.B
 
   // format, oper1, oper2, WE, ALUOp, BrOp, LSUOp, ExecType
-  val default = List(R, Zero, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU)
+  val default = List(Err, Zero, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU)
   val table   = Array(
     ADD    -> List(R, Rs1, Rs2, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
     ADDI   -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
@@ -65,6 +65,8 @@ class IDU extends Module {
   // Decode
   val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: exec_type :: Nil =
     ListLookup(io.inst, InstDecodeTable.default, InstDecodeTable.table)
+
+  assert(fmt != InstFmt.Err)
 
   // Choose immediate
   val imm = MuxLookup(fmt, 0.U)(
