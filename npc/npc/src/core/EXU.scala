@@ -46,7 +46,7 @@ class EXU extends Module {
   lsu.io.lsu_op := io.decoded.lsu_op
   lsu.io.addr := rs1_data + io.decoded.imm
   lsu.io.write_data := rs2_data
-  lsu.io.mem_io := io.mem_io
+  lsu.io.mem_io <> io.mem_io
 
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
