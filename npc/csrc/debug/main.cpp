@@ -39,6 +39,13 @@ static void single_cycle()
     dut.eval();
 }
 
+void reset(int n)
+{
+    dut.reset = 1;
+    while (n-- > 0)
+        single_cycle();
+    dut.reset = 0;
+}
 
 int main(int argc, char* argv[])
 {
