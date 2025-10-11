@@ -3,6 +3,7 @@
 #include "trace.h"
 #include "macro.h"
 #include "common.h"
+#include "dpic.h"
 
 static uint64_t sim_time = 0;
 
@@ -29,13 +30,15 @@ void reset(int n)
 
 int main(int argc, char* argv[])
 {
-    if (argc != 2)
+    if (argc != 3)
     {
-        printf("Usage: %s [number of cycles]\n", argv[0]);
+        printf("Usage: %s [number of cycles] [filename]\n", argv[0]);
         return -1;
     }
 
     int cycles = atoi(argv[1]);
+
+    init_memory(argv[2]);
 
     trace_init();
 

@@ -3,26 +3,7 @@
 #include "trace.h"
 
 extern "C" {
-// 00000000 <_start>:
-//      0:	01400513          	addi	a0,zero,20
-//      4:	010000e7          	jalr	ra,16(zero) # 10 <fun>
-//      8:	00c000e7          	jalr	ra,12(zero) # c <halt>
-//
-//   0000000c <halt>:
-//      c:  00100073            ebreak
-//
-//   00000010 <fun>:
-//     10:	00a50513          	addi	a0,a0,10
-//     14:	00008067          	jalr	zero,0(ra)
-uint32_t memory[65536] = {
-    0x01400513, // addi a0, zero, 20
-    0x010000e7, // jalr ra, 16(zero)
-    0x00c000e7, // jalr ra, 12(zero)
-    0x00100073, // ebreak
-    0x00a50513, // addi a0, a0, 10
-    0x00008067, // jalr zero,0(ra)
-};
-
+uint32_t* memory;
 
 void ebreak_handler()
 {
@@ -57,4 +38,27 @@ extern "C" void pmem_write(int waddr, int wdata, char wmask)
 
     memory[idx] = newv;
 }
+}
+
+// Byte * 1024 * 1024 * 512 Byte -> 512 MB
+#define MEMORY_SIZE (1024 * 1024 * 512)
+
+void init_memory(const char *filename)
+{
+    FILE *fp = fopen(filename, "rb");
+    assert(fp);
+
+    memory = static_cast<uint32_t*>(malloc(MEMORY_SIZE));
+    memset(memory, 0, MEMORY_SIZE);
+
+    size_t bytes_read = fread(memory, 1, MEMORY_SIZE, stdin);
+    if (bytes_read == 0)
+    {
+        if (ferror(stdin)) {
+            perror("fread");
+            free(memory);
+            exit(-1);
+        }
+    }
+    fclose(fp);
 }
