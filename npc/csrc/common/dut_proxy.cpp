@@ -48,9 +48,9 @@ uint32_t CPUProxy::reg(uint32_t idx)
 
 void CPUProxy::dump_registers(std::ostream& os)
 {
-    for (int i = 0; i < 32; i++)
+    for (int i = 0; i < 16; i++)
     {
-        os << "x" << std::setfill(' ') << std::setw(2) << i << ": 0x" <<
+        os << "x" << i << ": 0x" <<
             std::hex << std::setfill('0') << std::setw(8) << reg(i)
             << std::dec << std::endl;
     }
