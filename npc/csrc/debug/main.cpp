@@ -44,6 +44,7 @@ int main(int argc, char* argv[])
     init_disasm();
     trace_init();
     cpu.bind(&dut);
+    cycle_counter = 0;
 
     reset(10);
 
@@ -58,7 +59,7 @@ int main(int argc, char* argv[])
         cycle_counter++;
     }
 
-    printf("Simulation finished, %lu cycles\n", cycle_counter);
+    printf("Simulation terminated after %lu cycles\n", cycle_counter);
 
     // clean up
     trace_cleanup();
