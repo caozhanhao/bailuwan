@@ -14,6 +14,9 @@
 static TFP_TYPE *tfp;
 #endif
 
+#define STRINGIFY(s)        #s
+#define TOSTRING(s)         STRINGIFY(s)
+
 static TOP_NAME dut;
 
 void trace_init() {
@@ -111,9 +114,6 @@ static void reset(int n) {
   while (n -- > 0) single_cycle();
   dut.reset = 0;
 }
-
-#define STRINGIFY(s)        #s
-#define TOSTRING(s)         STRINGIFY(s)
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
