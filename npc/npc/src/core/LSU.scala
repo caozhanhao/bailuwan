@@ -22,35 +22,13 @@ class LSU extends Module {
       LSUOp.SW -> true.B
     )
   )
-  val read_enable = io.lsu_op =/= LSUOp.None && !write_enable
+  val read_enable  = io.lsu_op =/= LSUOp.None && !write_enable
 
   val write_mask = MuxLookup(io.lsu_op, 0.U(8.W))(
     Seq(
       LSUOp.SB -> 0x1.U(8.W),
       LSUOp.SH -> 0x3.U(8.W),
       LSUOp.SW -> 0xf.U(8.W)
-    )
-  )
-
-  val sb_sel = MuxLookup(io.addr(1, 0), 0.U(32.W))(Seq(
-    0.U -> io.write_data(7, 0),
-    1.U -> io.write_data(15, 8),
-    2.U -> io.write_data(23, 16),
-    3.U -> io.write_data(31, 24)
-  ))
-
-  val sh_sel = MuxLookup(io.addr(1, 0), 0.U(32.W))(
-    Seq(
-      0.U -> io.write_data(15, 0),
-      2.U -> io.write_data(31, 16)
-    )
-  )
-
-  val selected_store_data = MuxLookup(io.lsu_op, 0.U(32.W))(
-    Seq(
-      LSUOp.SB -> sb_sel,
-      LSUOp.SH -> sh_sel,
-      LSUOp.SW -> io.write_data
     )
   )
 
@@ -86,6 +64,6 @@ class LSU extends Module {
   mem.io.read_enable  := read_enable
   mem.io.write_enable := write_enable
   mem.io.write_mask   := write_mask
-  mem.io.write_data   := selected_store_data
-  io.read_data := selected_loaded_data
+  mem.io.write_data   := io.write_data
+  io.read_data        := selected_loaded_data
 }
