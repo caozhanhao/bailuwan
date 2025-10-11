@@ -5,6 +5,7 @@
 
 TOP_NAME dut;
 CPUProxy cpu;
+uint64_t cycle_counter;
 
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
