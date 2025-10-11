@@ -15,8 +15,10 @@ class RegFile extends Module {
     val rs2_data = Output(UInt(32.W))
   })
 
-  assert(io.rd_addr < 16.U && io.rs1_addr < 16.U && io.rs2_addr < 16.U, "Not RV32E Inst?")
-
+  assert(
+    io.rd_addr < 16.U && io.rs1_addr < 16.U && io.rs2_addr < 16.U,
+    s"Not RV32E Inst?(rs1: ${io.rs1_addr}, rs2: ${io.rs2_addr}, rd: ${io.rd_addr})"
+  )
 
   // RV32E
   val regs = RegInit(VecInit(Seq.fill(16)(0.U(32.W))))
