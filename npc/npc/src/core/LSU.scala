@@ -13,6 +13,8 @@ class LSU extends Module {
     val read_data  = Output(UInt(32.W))
   })
 
+  val mem = Module(new DPICMem())
+
   val write_enable = MuxLookup(io.lsu_op, false.B)(
     Seq(
       LSUOp.SB -> true.B,
@@ -20,6 +22,7 @@ class LSU extends Module {
       LSUOp.SW -> true.B
     )
   )
+  val read_enable = io.lsu_op =/= LSUOp.None && !write_enable
 
   val write_mask = MuxLookup(io.lsu_op, 0.U(8.W))(
     Seq(
@@ -51,16 +54,6 @@ class LSU extends Module {
     )
   )
 
-  val read_enable = io.lsu_op =/= LSUOp.None && !write_enable
-
-  val mem = Module(new DPICMem())
-
-  mem.io.addr         := io.addr
-  mem.io.read_enable  := read_enable
-  mem.io.write_enable := write_enable
-  mem.io.write_mask   := write_mask
-  mem.io.write_data   := selected_store_data
-
   val data_out = mem.io.data_out
 
   val lb_sel = MuxLookup(io.addr(1, 0), 0.U(8.W))(
@@ -89,5 +82,10 @@ class LSU extends Module {
     )
   )
 
+  mem.io.addr         := io.addr
+  mem.io.read_enable  := read_enable
+  mem.io.write_enable := write_enable
+  mem.io.write_mask   := write_mask
+  mem.io.write_data   := selected_store_data
   io.read_data := selected_loaded_data
 }
