@@ -13,14 +13,12 @@
 #include <list>
 #include <source_location>
 
-void eassert(bool cond, const std::string& msg, const std::source_location& loc = std::source_location::current())
+void eassert(bool cond, const std::string& msg)
 {
     if (!cond)
     {
         std::cerr << msg << "\n";
-        auto loc_str = std::string(loc.file_name()) + ":" + std::to_string(loc.line()) +
-            ":" + loc.function_name();
-        throw std::runtime_error("Assertion failed at " + loc_str + ": " + msg);
+        throw std::runtime_error("Assertion failed: " + msg);
     }
 }
 
@@ -108,13 +106,8 @@ private:
     template <size_t bits>
     static int32_t sign_extend(uint32_t v)
     {
-        static_assert(bits >= 1 && bits < 32, "extend what?");
-
-        struct small_int
-        {
-            int val : bits;
-        };
-        return static_cast<int32_t>(static_cast<small_int>(v).val);
+#define SEXT(x, len) ({ struct { int64_t n : len; } __x = { .n = x }; (uint64_t)__x.n; })
+        return SEXT(v, bits);
     }
 
     void ensure_mem_word(size_t idx)
@@ -168,12 +161,13 @@ private:
             {
             case Op::ADD:
                 ss << "add " << reg(rd) << ", " << reg(rs1) << ", " << reg(rs2);
-                regs_to_dump.append_range(std::vector{rs1, rs2});
+                regs_to_dump.emplace_back(rs1);
+                regs_to_dump.emplace_back(rs2);
                 break;
 
             case Op::ADDI:
                 ss << "addi " << reg(rd) << ", " << reg(rs1) << ", " << imm_str();
-                regs_to_dump.append_range(std::vector{rs1});
+                regs_to_dump.emplace_back(rs1);
                 break;
 
             case Op::LUI:
@@ -182,27 +176,29 @@ private:
 
             case Op::LW:
                 ss << "lw " << reg(rd) << ", " << imm_str() << "(" << reg(rs1) << ")";
-                regs_to_dump.append_range(std::vector{rs1});
+                regs_to_dump.emplace_back(rs1);
                 break;
 
             case Op::LBU:
                 ss << "lbu " << reg(rd) << ", " << imm_str() << "(" << reg(rs1) << ")";
-                regs_to_dump.append_range(std::vector{rs1});
+                regs_to_dump.emplace_back(rs1);
                 break;
 
             case Op::SW:
                 ss << "sw " << reg(rs2) << ", " << imm_str() << "(" << reg(rs1) << ")";
-                regs_to_dump.append_range(std::vector{rs1, rs2});
+                regs_to_dump.emplace_back(rs1);
+                regs_to_dump.emplace_back(rs2);
                 break;
 
             case Op::SB:
                 ss << "sb " << reg(rs2) << ", " << imm_str() << "(" << reg(rs1) << ")";
-                regs_to_dump.append_range(std::vector{rs1, rs2});
+                regs_to_dump.emplace_back(rs1);
+                regs_to_dump.emplace_back(rs2);
                 break;
 
             case Op::JALR:
                 ss << "jalr " << reg(rd) << ", " << imm_str() << "(" << reg(rs1) << ")";
-                regs_to_dump.append_range(std::vector{rs1});
+                regs_to_dump.emplace_back(rs1);
                 break;
 
             case Op::UNKNOWN:
