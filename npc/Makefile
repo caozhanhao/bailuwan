@@ -63,6 +63,7 @@ VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
+EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
 
 ifneq ($(TRACE), notrace)
 TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
@@ -81,7 +82,7 @@ endif
 $(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
 	@rm -rf $(OBJ_DIR)
 	@rm -rf $(BUILD_DIR)/*.sv
-	./mill -i $(PRJ).runMain utils.EmitVerilog --target-dir $(BUILD_DIR)/
+	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
@@ -104,7 +105,7 @@ test:
 ### Generate Verilog
 verilog:
 	$(call git_commit, "generate verilog")
-	./mill -i $(PRJ).runMain utils.EmitVerilog --target-dir $(BUILD_DIR)
+	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
 
 ### Reformat
 reformat:
