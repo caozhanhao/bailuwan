@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
 
   reset(10);
 
-  while(running && cycles-- > 0) {
+  while(cycles-- > 0) {
     single_cycle();
   }
 
