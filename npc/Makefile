@@ -50,6 +50,7 @@ $(shell mkdir -p $(BUILD_DIR))
 
 ### Compilation targets
 BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
+VERILOG_STAMP := $(BUILD_DIR)/verilog.timestamp
 
 ### Collect the files to be built and linked
 LINKAGE ?=
@@ -86,11 +87,13 @@ endif
 
 ## 5. Compilation Rules
 
-verilog_no_commit: $(SCALASRCS)
+$(VERILOG_STAMP): $(SCALASRCS)
 	@rm -rf $(BUILD_DIR)/*.sv
 	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
+	@touch $@
 
-$(BIN): $(CSRCS) $(LINKAGE) 
+
+$(BIN): $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(LINKAGE) \
