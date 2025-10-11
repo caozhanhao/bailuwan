@@ -86,10 +86,10 @@ void init_memory(const char* filename)
         printf("%08x: %08x\n", i * 4, dut_memory[i]);
 
     // ebreak for sum
-    dut_memory[0x224 / 4] = 0b00000000000100000000000001110011;
+    // dut_memory[0x224 / 4] = 0b00000000000100000000000001110011;
 
     // ebreak for mem
-    // dut_memory[0x1218 / 4] = 0b00000000000100000000000001110011;
+    dut_memory[0x1218 / 4] = 0b00000000000100000000000001110011;
 
     fclose(fp);
 }
