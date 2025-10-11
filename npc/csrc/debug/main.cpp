@@ -47,6 +47,8 @@ int main(int argc, char* argv[])
     while (cycles-- > 0)
     {
         single_cycle();
+
+        printf("0x%08x: 0x%08x\n", dut.io_pc, dut.io_inst);
     }
 
     trace_cleanup();
