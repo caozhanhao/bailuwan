@@ -59,7 +59,7 @@ SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 VERILATOR = verilator
 
 ### Compilation flags
-INC_PATH += ./csrc/common/
+INC_PATH += $(abspath ./csrc/common/)
 CSRCS += $(shell find $(abspath ./csrc/common) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
