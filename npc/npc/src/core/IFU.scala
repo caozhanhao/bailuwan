@@ -11,9 +11,8 @@ class IFU extends Module {
     val inst = Output(UInt(32.W))
   })
 
-  val mem = io.mem_io
-  mem.addr := io.pc
-  mem.read_enable := true.B
+  io.mem_io.addr := io.pc
+  io.mem_io.read_enable := true.B
 
-  io.inst := mem.data_out
+  io.inst := io.mem_io.data_out
 }
