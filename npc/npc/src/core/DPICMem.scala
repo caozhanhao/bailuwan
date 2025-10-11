@@ -67,7 +67,7 @@ class DPICMem extends Module {
   read.io.en   := io.read_enable
   io.data_out  := read.io.out
 
-  printf("[DPICMem] read addr: %x, data: %x\n", io.addr, io.data_out);
+  printf(cf"[DPICMem] read: ${io.read_enable}, addr: ${io.addr}, data: ${io.data_out}\n")
 
   val write = Module(new PMemWriteDPICWrapper)
   write.io.addr := io.addr
