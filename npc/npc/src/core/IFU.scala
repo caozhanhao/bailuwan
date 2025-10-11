@@ -11,21 +11,15 @@ class IFU extends Module {
     val valid = Output(Bool())
   })
 
-  val inst = RegInit(0.U(32.W))
-  val valid = RegInit(false.B)
-
-  // FIXME
   val Mem = Module(new DPICMem)
 
   Mem.io.addr := io.pc
   Mem.io.read_enable := true.B
-  valid := Mem.io.valid
 
   Mem.io.write_enable := false.B
   Mem.io.write_mask := 0.U
   Mem.io.write_data := false.B
 
-  inst := Mem.io.data_out
-  io.inst := inst
-  io.valid := valid
+  io.inst := Mem.io.data_out
+  io.valid := Mem.io.valid
 }
