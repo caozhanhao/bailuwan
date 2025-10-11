@@ -13,7 +13,7 @@ class EBreak extends HasBlackBoxInline {
       |module EBreak(
       |  input  en
       |);
-      |  import "DPI-C" function int ebreak_handler();
+      |  import "DPI-C" function void ebreak_handler();
       |  always @(*) begin
       |    if (en)
       |      ebreak_handler();
