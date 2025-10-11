@@ -5,6 +5,7 @@
 #include "disasm.hpp"
 #include "dut_proxy.hpp"
 #include "dpic.hpp"
+#include "minirvemu.hpp"
 
 static uint64_t sim_time = 0;
 
@@ -49,11 +50,17 @@ int main(int argc, char* argv[])
 
     // Simulate
     printf("Simulation started...\n");
+    MiniRVEmu emu;
+    emu.load(dut_memory, DUT_MEMORY_SIZE / sizeof(uint32_t));
     while (cycles-- > 0)
     {
         auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
         printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
 
+        for (int i = 0; i < 16; i++)
+            eassert(emu.reg(i) == cpu.reg(i), "Register mismatch at x" + std::to_string(i));
+
+        emu.step();
         single_cycle();
     }
 
