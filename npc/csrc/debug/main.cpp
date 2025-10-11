@@ -17,12 +17,14 @@ static TFP_TYPE *tfp;
 static TOP_NAME dut;
 
 
+bool running = true;
+
 extern "C" {
 uint32_t memory[65536];
 
 void ebreak_handler() {
   printf("ebreak\n");
-  exit(0);
+  running = false;
 }
 
 extern "C" int pmem_read(int raddr) {
@@ -115,7 +117,7 @@ int main(int argc, char* argv[]) {
 
   reset(10);
 
-  while(cycles-- > 0) {
+  while(running && cycles-- > 0) {
     single_cycle();
   }
 
