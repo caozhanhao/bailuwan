@@ -57,10 +57,19 @@ int main(int argc, char* argv[])
         auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
         printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
 
+        bool is_equal = true;
         for (int i = 0; i < 16; i++)
         {
-            eassert(emu.reg(i) == cpu.reg(i), "Register mismatch at x" + std::to_string(i) +
-                ", expected " + std::to_string(emu.reg(i)) + ", got " + std::to_string(cpu.reg(i)));
+            if (emu.reg(i) != cpu.reg(i))
+            {
+                is_equal = false;
+                std::cerr << "Register mismatch at x" + std::to_string(i) +
+                   ", expected " + std::to_string(emu.reg(i)) + ", got " + std::to_string(cpu.reg(i));
+            }
+        }
+        if (!is_equal)
+        {
+            eassert(false, "Register mismatch");
         }
 
         emu.step();
