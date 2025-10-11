@@ -4,6 +4,8 @@ import chisel3._
 import chisel3.util._
 import constants._
 
+import utils.Utils._
+
 object InstDecodeTable {
   import InstPat._
   import InstFmt._
@@ -60,11 +62,11 @@ class IDU extends Module {
   val rs2 = inst(24, 20)
 
   // Immediates
-  val immI = Fill(20, inst(31)) ## inst(31, 20)
-  val immS = Fill(20, inst(31)) ## inst(31, 25) ## inst(11, 7)
-  val immB = Fill(20, inst(31)) ## inst(31) ## inst(7) ## inst(30, 25)
+  val immI = sign_extend(inst(31, 20), 32)
+  val immS = sign_extend(inst(31, 25) ## inst(11, 7), 32)
+  val immB = sign_extend(inst(31) ## inst(7) ## inst(30, 25) ## inst(11, 8) ## 0.U(1.W), 32)
   val immU = inst(31, 12) ## Fill(12, 0.U)
-  val immJ = Fill(12, inst(31)) ## inst(31) ## inst(20) ## inst(30, 21)
+  val immJ = sign_extend(inst(31) ## inst(19, 12) ## inst(20) ## inst(30, 21) ## 0.U(1.W), 32)
 
   // Decode
   val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: exec_type :: Nil =
