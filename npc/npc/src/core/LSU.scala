@@ -29,16 +29,7 @@ class LSU extends Module {
     )
   )
 
-  // val read_enable = io.lsu_op =/= LSUOp.None && !write_enable
-  val read_enable = MuxLookup(io.lsu_op, false.B)(
-    Seq(
-      LSUOp.LB  -> true.B,
-      LSUOp.LH  -> true.B,
-      LSUOp.LW  -> true.B,
-      LSUOp.LBU -> true.B,
-      LSUOp.LHU -> true.B
-    )
-  )
+  val read_enable = io.lsu_op =/= LSUOp.None && !write_enable
 
   val mem = Module(new DPICMem())
 
@@ -77,4 +68,6 @@ class LSU extends Module {
   )
 
   io.read_data := selected_data
+
+  printf("[LSU] addr: %x, read_enable: %x, data_out: %x\n", io.addr, read_enable, data_out)
 }
