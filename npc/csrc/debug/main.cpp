@@ -279,7 +279,6 @@ int main(int argc, char* argv[])
     printf("Simulation started...\n");
     while (cycles-- > 0)
     {
-        printf("0x%08x: ", cpu.pc());
         Inst decoded = decode(cpu.curr_inst());
         dump(&decoded);
 
