@@ -86,16 +86,16 @@ endif
 
 ## 5. Compilation Rules
 
-### Rule (compile)
-$(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
-	@rm -rf $(OBJ_DIR)
+verilog_no_commit: $(SCALASRCS)
 	@rm -rf $(BUILD_DIR)/*.sv
 	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
+
+$(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE) verilog_no_commit
+	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
-
 
 
 ## 6. Miscellaneous
