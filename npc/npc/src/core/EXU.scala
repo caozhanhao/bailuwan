@@ -1,8 +1,8 @@
 package core
 
 import chisel3._
-import chisel3.util.MuxLookup
-import bundles._
+import chisel3.util._
+
 import constants._
 
 class EXU extends Module {
@@ -39,6 +39,12 @@ class EXU extends Module {
   alu.io.oper2  := oper2
   alu.io.alu_op := io.decoded.alu_op
 
+  // LSU
+  val lsu = Module(new LSU)
+  lsu.io.lsu_op := io.decoded.lsu_op
+  lsu.io.addr := alu.io.result
+  lsu.io.write_data := rs2_data
+
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
   val br_target = MuxLookup(io.decoded.br_op, (io.pc + io.decoded.imm).asUInt)(
@@ -67,7 +73,7 @@ class EXU extends Module {
 
   wbu.io.in.src_type := io.decoded.exec_type
   wbu.io.in.alu_out   := alu.io.result
-  wbu.io.in.lsu_out   := DontCare // TODO
+  wbu.io.in.lsu_out   := lsu.io.read_data
 
   wbu.io.in.snpc      := io.pc + 4.U
   wbu.io.in.br_taken  := br_taken
@@ -75,4 +81,8 @@ class EXU extends Module {
 
   reg_file.io.rd_data := wbu.io.out.rd_data
   io.dnpc             := wbu.io.out.dnpc
+
+  // EBreak
+  val ebreak = Module(new EBreak)
+  ebreak.io.en := io.decoded.exec_type === ExecType.EBreak
 }

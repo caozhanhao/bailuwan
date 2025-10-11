@@ -1,30 +1,20 @@
 package top
 
 import chisel3._
-
+import chisel3.util.experimental.BoringUtils
 import core._
-
-class Mem extends Bundle {
-  val pc = Output(UInt(32.W))
-  val inst = Input(UInt(32.W))
-}
 
 class Top extends Module {
   val io = IO(new Bundle {
-    val mem = new Mem
+    val registers = Output(Vec(16, UInt(32.W)))
+    val pc        = Output(UInt(32.W))
+    val inst      = Output(UInt(32.W))
   })
 
-  val pc = RegInit(0.U(32.W))
-  val inst = RegInit(0.U(32.W))
+  val core = Module(new Core)
 
-  val EXU = Module(new EXU)
-  val IDU = Module(new IDU)
-
-  IDU.io.inst := io.mem.inst
-  EXU.io.decoded := IDU.io.decoded
-  EXU.io.pc := pc
-
-  pc := EXU.io.dnpc
-
-  io.mem.pc := pc
+  // Bore some signals for debugging
+  io.registers := BoringUtils.bore(core.EXU.reg_file.regs)
+  io.pc        := BoringUtils.bore(core.pc)
+  io.inst      := BoringUtils.bore(core.IFU.io.inst)
 }

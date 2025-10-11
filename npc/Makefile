@@ -12,12 +12,13 @@ PRJ = npc
 TOPNAME = Top
 TRACE ?= notrace
 CYCLES ?= 100
+FILENAME ?=
 
 ### Run checks only when `sim`
 ifneq ($(findstring $(MAKECMDGOALS),sim),)
 
 ### Print build info message
-$(info # Building NPC [$(HW)] [Trace: $(TRACE)] [sim $(CYCLES) cycles])
+$(info # Building NPC [$(HW)] [Trace: $(TRACE)] [sim $(CYCLES) cycles] [file: $(FILENAME)])
 
 ### Check: environment variable `HW` must be in the supported list
 HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))
@@ -28,6 +29,11 @@ endif
 ### Check: valid trace
 ifeq ($(filter $(TRACE), notrace fst vcd), )
 $(error Expected $$TRACE in {notrace, fst, vcd}, Got "$(TRACE)")
+endif
+
+### Check: valid program
+ifeq ($(FILENAME), )
+$(error Expected $$FILENAME)
 endif
 
 ### Checks end here
@@ -44,10 +50,12 @@ $(shell mkdir -p $(BUILD_DIR))
 
 ### Compilation targets
 BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
+VERILOG_STAMP := $(BUILD_DIR)/verilog.timestamp
 
 ### Collect the files to be built and linked
 LINKAGE ?=
 CSRCS ?=
+INC_PATH ?=
 SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 
 
@@ -58,11 +66,13 @@ SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 VERILATOR = verilator
 
 ### Compilation flags
-INC_PATH ?=
+INC_PATH += $(abspath ./csrc/common/)
+CSRCS += $(shell find $(abspath ./csrc/common) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
+EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
 
 ifneq ($(TRACE), notrace)
 TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
@@ -77,16 +87,18 @@ endif
 
 ## 5. Compilation Rules
 
-### Rule (compile)
-$(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
-	@rm -rf $(OBJ_DIR)
+$(VERILOG_STAMP): $(SCALASRCS)
 	@rm -rf $(BUILD_DIR)/*.sv
-	./mill -i $(PRJ).runMain utils.EmitVerilog --target-dir $(BUILD_DIR)/
+	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
+	@touch $@
+
+
+$(BIN): $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
+	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
-
 
 
 ## 6. Miscellaneous
@@ -95,7 +107,7 @@ $(BIN): $(SCALASRCS) $(CSRCS) $(LINKAGE)
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(MAKE) $(BIN)
-	$(BIN) $(CYCLES)
+	$(BIN) $(CYCLES) $(FILENAME)
 
 ### Chisel Test
 test:
@@ -104,7 +116,7 @@ test:
 ### Generate Verilog
 verilog:
 	$(call git_commit, "generate verilog")
-	./mill -i $(PRJ).runMain utils.EmitVerilog --target-dir $(BUILD_DIR)
+	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
 
 ### Reformat
 reformat:
