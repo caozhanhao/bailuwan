@@ -417,7 +417,7 @@ private:
                 uint32_t newval = (old & mask) | ((regs[inst.rs2] & 0xffu) << (byte_off * 8));
                 memory[word_idx] = newval;
 
-                // std::cerr << "1 byte changed at " << word_idx << " from " << old << " to " << memory[word_idx] << std::endl;
+                std::cerr << "1 byte changed at " << word_idx << " from " << old << " to " << memory[word_idx] << std::endl;
                 return;
             }
 
