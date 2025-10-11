@@ -1,72 +1,8 @@
 #include <VTop.h>
 
-#ifdef TRACE_fst
-#include "verilated_fst_c.h"
-#define TFP_TYPE VerilatedFstC
-#endif
-
-#ifdef TRACE_vcd
-#include "verilated_vcd_c.h"
-#define TFP_TYPE VerilatedVcdC
-#endif
-
-#ifdef TRACE
-static TFP_TYPE *tfp;
-#endif
-
-#define STRINGIFY(s)        #s
-#define TOSTRING(s)         STRINGIFY(s)
-
-static TOP_NAME dut;
-
-void trace_init() {
-#ifdef TRACE
-  tfp = new TFP_TYPE;
-  Verilated::traceEverOn(true);
-  dut.trace(tfp, 0);
-  tfp->open(TOSTRING(TRACE_FILENAME));
-#endif
-}
-
-void trace_cleanup() {
-#ifdef TRACE
-  tfp->close();
-  delete tfp;
-#endif
-}
-
-
-extern "C" {
-uint32_t memory[65536];
-
-void ebreak_handler() {
-  printf("ebreak\n");
-  trace_cleanup();
-  exit(0);
-}
-
-extern "C" int pmem_read(int raddr) {
-  return memory[((unsigned)raddr & ~0x3u) / 4];
-}
-extern "C" void pmem_write(int waddr, int wdata, char wmask) {
-    unsigned idx = ((unsigned)waddr & ~0x3u) / 4u;
-
-    uint32_t cur = memory[idx];
-    uint32_t newv = cur;
-    uint32_t wd = (uint32_t)wdata;
-    uint8_t mask = (uint8_t)wmask;
-
-    for (int i = 0; i < 4; ++i) {
-        if (mask & (1u << i)) {
-            uint32_t byte_mask = 0xFFu << (i * 8);
-            uint32_t src_byte = (wd >> (i * 8)) & 0xFFu;
-            newv = (newv & ~byte_mask) | (src_byte << (i * 8));
-        }
-    }
-
-    memory[idx] = newv;
-}
-}
+#include "trace.h"
+#include "macro.h"
+#include "common.h"
 
 // 00000000 <_start>:
 //      0:	01400513          	addi	a0,zero,20
@@ -88,49 +24,41 @@ uint32_t inst_mem[1024] = {
     0x00008067, // jalr zero,0(ra)
 };
 
-static uint32_t pmem_read(uint32_t addr) {
-  return inst_mem[addr / 4];
-}
 static uint64_t sim_time = 0;
 
-static void single_cycle() {
-#ifdef TRACE
-  tfp->dump(sim_time++);
-#endif
+static void single_cycle()
+{
+    IFDEF(TRACE, tfp->dump(sim_time++));
 
-  dut.clock = 0;
-  dut.io_mem_inst = pmem_read(dut.io_mem_pc);
-  dut.eval();
+    dut.clock = 0;
+    dut.eval();
 
-#ifdef TRACE
-  tfp->dump(sim_time++);
-#endif
+    IFDEF(TRACE, tfp->dump(sim_time++));
 
-  dut.clock = 1; dut.eval();
+    dut.clock = 1;
+    dut.eval();
 }
 
-static void reset(int n) {
-  dut.reset = 1;
-  while (n -- > 0) single_cycle();
-  dut.reset = 0;
-}
 
-int main(int argc, char* argv[]) {
-  if (argc != 2) {
-    printf("Usage: %s [number of cycles]\n", argv[0]);
-    return -1;
-  }
+int main(int argc, char* argv[])
+{
+    if (argc != 2)
+    {
+        printf("Usage: %s [number of cycles]\n", argv[0]);
+        return -1;
+    }
 
-  int cycles = atoi(argv[1]);
+    int cycles = atoi(argv[1]);
 
-  trace_init();
+    trace_init();
 
-  reset(10);
+    reset(10);
 
-  while(cycles-- > 0) {
-    single_cycle();
-  }
+    while (cycles-- > 0)
+    {
+        single_cycle();
+    }
 
-  trace_cleanup();
-  return 0;
+    trace_cleanup();
+    return 0;
 }

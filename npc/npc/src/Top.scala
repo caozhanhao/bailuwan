@@ -4,27 +4,23 @@ import chisel3._
 
 import core._
 
-class Mem extends Bundle {
-  val pc = Output(UInt(32.W))
-  val inst = Input(UInt(32.W))
-}
-
 class Top extends Module {
-  val io = IO(new Bundle {
-    val mem = new Mem
-  })
-
-  val pc = RegInit(0.U(32.W))
-  val inst = RegInit(0.U(32.W))
-
+  val IFU = Module(new IFU)
   val EXU = Module(new EXU)
   val IDU = Module(new IDU)
 
-  IDU.io.inst := io.mem.inst
+  val Mem = Module(new DPICMem)
+
+  val pc = RegInit(0.U(32.W))
+
+  IFU.io.mem_io := Mem.io
+  EXU.io.mem_io := Mem.io
+
+  IDU.io.inst := IFU.io.inst
   EXU.io.decoded := IDU.io.decoded
+
+  IFU.io.pc := pc
   EXU.io.pc := pc
 
   pc := EXU.io.dnpc
-
-  io.mem.pc := pc
 }

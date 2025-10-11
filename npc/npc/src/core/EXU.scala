@@ -2,13 +2,16 @@ package core
 
 import chisel3._
 import chisel3.util._
+
 import constants._
+import bundles.MemIO
 
 class EXU extends Module {
   val io = IO(new Bundle {
     val pc      = Input(UInt(32.W))
     val decoded = Input(new DecodedBundle)
     val dnpc    = Output(UInt(32.W))
+    val mem_io  = new MemIO
   })
 
   val reg_file = Module(new RegFile)
@@ -43,6 +46,7 @@ class EXU extends Module {
   lsu.io.lsu_op := io.decoded.lsu_op
   lsu.io.addr := rs1_data + io.decoded.imm
   lsu.io.write_data := rs2_data
+  lsu.io.mem_io := io.mem_io
 
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
