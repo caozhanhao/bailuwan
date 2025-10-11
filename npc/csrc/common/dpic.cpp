@@ -39,17 +39,20 @@ void ebreak_handler()
 
 int pmem_read(int raddr)
 {
-    return memory[((unsigned)raddr & ~0x3u) / 4];
+    uint32_t idx = (static_cast<uint32_t>(raddr) & ~0x3u) / 4u;
+    assert(idx < MEMORY_SIZE);
+    return memory[idx];
 }
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
-    unsigned idx = ((unsigned)waddr & ~0x3u) / 4u;
+    uint32_t idx = (static_cast<uint32_t>(waddr) & ~0x3u) / 4;
+    assert(idx < MEMORY_SIZE);
 
     uint32_t cur = memory[idx];
     uint32_t newv = cur;
-    uint32_t wd = (uint32_t)wdata;
-    uint8_t mask = (uint8_t)wmask;
+    uint32_t wd = static_cast<uint32_t>(wdata);
+    uint8_t mask = static_cast<uint8_t>(wmask);
 
     for (int i = 0; i < 4; ++i)
     {
