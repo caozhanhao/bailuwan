@@ -4,6 +4,7 @@
 #include "VTop.h"
 
 extern TOP_NAME dut;
+uint64_t cycle_counter;
 
 class CPUProxy
 {

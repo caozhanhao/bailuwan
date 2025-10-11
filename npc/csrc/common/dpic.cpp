@@ -11,7 +11,7 @@ uint32_t* dut_memory;
 
 void ebreak_handler()
 {
-    printf("ebreak\n");
+    printf("ebreak after %lu cycles\n", cycle_counter);
     trace_cleanup();
     cpu.dump_registers(std::cerr);
     exit(cpu.reg(10));

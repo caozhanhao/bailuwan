@@ -55,6 +55,7 @@ int main(int argc, char* argv[])
         printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
 
         single_cycle();
+        cycle_counter++;
     }
 
     // clean up
