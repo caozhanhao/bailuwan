@@ -60,5 +60,7 @@ void init_memory(const char *filename)
             exit(-1);
         }
     }
+
+    printf("Read %zu bytes from %s\n", bytes_read, filename);
     fclose(fp);
 }
