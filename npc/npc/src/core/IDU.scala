@@ -85,7 +85,7 @@ class IDU extends Module {
     )
   )
 
-  printf(cf"[IDU]: Inst: ${inst}, imm: ${imm}, rd: ${rd}, rs1: ${rs1}, rs2: ${rs2}, exec_type: ${exec_type}\n");
+  // printf(cf"[IDU]: Inst: ${inst}, imm: ${imm}, rd: ${rd}, rs1: ${rs1}, rs2: ${rs2}, exec_type: ${exec_type}\n");
 
   // IO
   io.decoded.alu_oper1_type := oper1_type

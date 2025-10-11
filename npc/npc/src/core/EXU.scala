@@ -45,6 +45,8 @@ class EXU extends Module {
   lsu.io.addr := alu.io.result
   lsu.io.write_data := rs2_data
 
+  printf(cf"[EXU]: lsu_op: ${lsu.io.lsu_op}, addr: ${alu.io.result}, write_data: ${rs2_data}")
+
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
   val br_target = MuxLookup(io.decoded.br_op, (io.pc + io.decoded.imm).asUInt)(
