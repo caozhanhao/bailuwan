@@ -26,8 +26,8 @@ class LSU extends Module {
 
   val write_mask = MuxLookup(io.lsu_op, 0.U(8.W))(
     Seq(
-      LSUOp.SB -> 0x1.U(8.W),
-      LSUOp.SH -> 0x3.U(8.W),
+      LSUOp.SB -> (0x1.U(8.W) << io.addr(1, 0)).asUInt,
+      LSUOp.SH -> (0x3.U(8.W) << io.addr(1, 0)).asUInt,
       LSUOp.SW -> 0xf.U(8.W)
     )
   )
