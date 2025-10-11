@@ -31,6 +31,7 @@ void reset(int n)
 
 int main(int argc, char* argv[])
 {
+    // INIT
     if (argc != 3)
     {
         printf("Usage: %s [number of cycles] [filename]\n", argv[0]);
@@ -40,12 +41,13 @@ int main(int argc, char* argv[])
     int cycles = atoi(argv[1]);
 
     init_memory(argv[2]);
-
+    init_disasm();
     trace_init();
     cpu.bind(&dut);
 
     reset(10);
 
+    // Simulate
     printf("Simulation started...\n");
     while (cycles-- > 0)
     {
@@ -55,6 +57,7 @@ int main(int argc, char* argv[])
         single_cycle();
     }
 
+    // clean up
     trace_cleanup();
     return 0;
 }
