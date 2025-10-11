@@ -48,6 +48,7 @@ BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
 ### Collect the files to be built and linked
 LINKAGE ?=
 CSRCS ?=
+INC_PATH ?=
 SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 
 
@@ -58,8 +59,8 @@ SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 VERILATOR = verilator
 
 ### Compilation flags
-INC_PATH ?=
-INC_PATH += ./csrc/common
+INC_PATH += ./csrc/common/
+CSRCS += $(shell find $(abspath ./csrc/common) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
 INCFLAGS = $(addprefix -I, $(INC_PATH))
