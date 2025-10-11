@@ -1,5 +1,5 @@
-#include "trace.h"
-#include "common.h"
+#include "trace.hpp"
+#include "cpu_proxy.hpp"
 
 TFP_TYPE* tfp;
 

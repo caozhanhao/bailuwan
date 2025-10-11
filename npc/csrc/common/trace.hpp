@@ -1,7 +1,7 @@
-#ifndef TRACE_H
-#define TRACE_H
+#ifndef NPC_CSRC_TRACE_HPP
+#define NPC_CSRC_TRACE_HPP
 
-#include "macro.h"
+#include "macro.hpp"
 
 #ifdef TRACE_fst
 #include "verilated_fst_c.h"
