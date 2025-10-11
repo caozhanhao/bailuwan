@@ -4,7 +4,6 @@ import chisel3._
 import chisel3.util._
 
 import constants._
-import bundles.MemIO
 
 class EXU extends Module {
   val io = IO(new Bundle {
