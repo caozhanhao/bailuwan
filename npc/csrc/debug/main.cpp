@@ -16,15 +16,30 @@ static TFP_TYPE *tfp;
 
 static TOP_NAME dut;
 
+void trace_init() {
+#ifdef TRACE
+  tfp = new TFP_TYPE;
+  Verilated::traceEverOn(true);
+  dut.trace(tfp, 0);
+  tfp->open(TOSTRING(TRACE_FILENAME));
+#endif
+}
 
-bool running = true;
+void trace_cleanup() {
+#ifdef TRACE
+  tfp->close();
+  delete tfp;
+#endif
+}
+
 
 extern "C" {
 uint32_t memory[65536];
 
 void ebreak_handler() {
   printf("ebreak\n");
-  running = false;
+  trace_cleanup();
+  exit(0);
 }
 
 extern "C" int pmem_read(int raddr) {
@@ -108,12 +123,7 @@ int main(int argc, char* argv[]) {
 
   int cycles = atoi(argv[1]);
 
-#ifdef TRACE
-  tfp = new TFP_TYPE;
-  Verilated::traceEverOn(true);
-  dut.trace(tfp, 0);
-  tfp->open(TOSTRING(TRACE_FILENAME));
-#endif
+  trace_init();
 
   reset(10);
 
@@ -121,9 +131,6 @@ int main(int argc, char* argv[]) {
     single_cycle();
   }
 
-#ifdef TRACE
-  tfp->close();
-  delete tfp;
-#endif
+  trace_cleanup();
   return 0;
 }
