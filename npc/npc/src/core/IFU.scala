@@ -10,6 +10,8 @@ class IFU extends Module {
     val inst = Output(UInt(32.W))
   })
 
+  val inst = RegInit(0.U(32.W))
+
   // FIXME
   val Mem = Module(new DPICMem)
 
@@ -20,5 +22,6 @@ class IFU extends Module {
   Mem.io.write_mask := 0.U
   Mem.io.write_data := false.B
 
-  io.inst := Mem.io.data_out
+  inst := Mem.io.data_out
+  io.inst := inst
 }
