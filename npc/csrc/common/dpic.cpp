@@ -85,5 +85,8 @@ void init_memory(const char* filename)
     for (int i = 0; i < 4; i++)
         printf("%08x: %08x\n", i * 4, memory[i]);
 
+    // ebreak for sum
+    memory[0x224/4] = 0b00000000000100000000000001110011;
+
     fclose(fp);
 }
