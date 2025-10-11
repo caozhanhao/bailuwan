@@ -9,7 +9,7 @@ class CPUProxy
 {
     uint32_t* pc_binding;
     uint32_t* inst_binding;
-    uint32_t* register_bindings[32];
+    uint32_t* register_bindings[16];
 
 public:
     CPUProxy() = default;
