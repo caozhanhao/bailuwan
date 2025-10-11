@@ -2,8 +2,6 @@ package core
 
 import chisel3._
 
-import bundles.MemIO
-
 class IFU extends Module {
   val io = IO(new Bundle {
     val pc = Input(UInt(32.W))
