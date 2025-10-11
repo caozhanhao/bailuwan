@@ -1,4 +1,4 @@
-#include "cpu_proxy.hpp"
+#include "dut_proxy.hpp"
 #include <iostream>
 
 TOP_NAME dut;

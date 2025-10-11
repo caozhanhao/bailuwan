@@ -2,7 +2,7 @@
 
 #include "trace.hpp"
 #include "macro.hpp"
-#include "cpu_proxy.hpp"
+#include "dut_proxy.hpp"
 #include "dpic.hpp"
 
 static uint64_t sim_time = 0;
@@ -272,6 +272,7 @@ int main(int argc, char* argv[])
     init_memory(argv[2]);
 
     trace_init();
+    cpu.bind(&dut);
 
     reset(10);
 

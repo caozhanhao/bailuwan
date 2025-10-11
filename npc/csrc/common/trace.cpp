@@ -1,5 +1,5 @@
 #include "trace.hpp"
-#include "cpu_proxy.hpp"
+#include "dut_proxy.hpp"
 
 TFP_TYPE* tfp;
 

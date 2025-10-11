@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "cpu_proxy.hpp"
+#include "dut_proxy.hpp"
 #include "trace.hpp"
 #include "dpic.hpp"
 
