@@ -58,6 +58,8 @@ int main(int argc, char* argv[])
         cycle_counter++;
     }
 
+    printf("Simulation finished, %lu cycles\n", cycle_counter);
+
     // clean up
     trace_cleanup();
     return 0;
