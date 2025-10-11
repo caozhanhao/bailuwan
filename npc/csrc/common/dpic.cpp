@@ -41,6 +41,7 @@ int pmem_read(int raddr)
 {
     uint32_t idx = (static_cast<uint32_t>(raddr) & ~0x3u) / 4u;
     assert(idx < MEMORY_SIZE);
+    printf("Reading from %08x: %08x\n", raddr, memory[idx]);
     return memory[idx];
 }
 
