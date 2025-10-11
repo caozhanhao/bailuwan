@@ -401,7 +401,7 @@ private:
 
                 memory[word_idx] = regs[inst.rs2];
 
-                // std::cerr << "4 byte changed at " << word_idx << " from " << old_mem << " to " << memory[word_idx] << std::endl;
+                std::cerr << "4 byte changed at " << word_idx << " from " << old_mem << " to " << memory[word_idx] << std::endl;
                 return;
             }
 
