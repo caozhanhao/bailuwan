@@ -52,7 +52,7 @@ void init_memory(const char *filename)
     memory = static_cast<uint32_t*>(malloc(MEMORY_SIZE));
     memset(memory, 0, MEMORY_SIZE);
 
-    size_t bytes_read = fread(memory, 1, MEMORY_SIZE, stdin);
+    size_t bytes_read = fread(memory, 1, MEMORY_SIZE, fp);
     if (bytes_read == 0)
     {
         if (ferror(stdin)) {
