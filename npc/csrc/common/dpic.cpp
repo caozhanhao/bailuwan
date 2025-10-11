@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "trace.h"
+#include "dpic.h"
 
 extern "C" {
 uint32_t* memory;
