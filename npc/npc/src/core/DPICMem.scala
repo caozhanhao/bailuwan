@@ -50,7 +50,7 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
   )
 }
 
-class DPICMem extends {
+class DPICMem extends Module {
   val io = IO(new Bundle {
     val addr = Input(UInt(32.W))
     val read_enable = Input(Bool())
