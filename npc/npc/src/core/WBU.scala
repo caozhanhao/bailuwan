@@ -3,6 +3,7 @@ package core
 import chisel3._
 import chisel3.util._
 import bundles._
+import constants._
 
 class WBU extends Module {
   val io = IO(new Bundle {
