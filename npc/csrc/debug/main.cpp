@@ -5,7 +5,6 @@
 #include "disasm.hpp"
 #include "dut_proxy.hpp"
 #include "dpic.hpp"
-#include "minirvemu.hpp"
 
 static uint64_t sim_time = 0;
 
