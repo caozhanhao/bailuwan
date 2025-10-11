@@ -47,26 +47,30 @@ class DecodedBundle extends Bundle {
 class IDU extends Module {
   val io = IO(new Bundle {
     val inst    = Input(UInt(32.W))
+    val inst_valid = Input(Bool())
     val decoded = new DecodedBundle
   })
 
+  val NOP = 0x00000013.U(32.W)
+  val inst = Mux(io.inst_valid, io.inst, NOP)
+
   // Registers
-  val rd  = io.inst(11, 7)
-  val rs1 = io.inst(19, 15)
-  val rs2 = io.inst(24, 20)
+  val rd  = inst(11, 7)
+  val rs1 = inst(19, 15)
+  val rs2 = inst(24, 20)
 
   // Immediates
-  val immI = Fill(20, io.inst(31)) ## io.inst(31, 20)
-  val immS = Fill(20, io.inst(31)) ## io.inst(31, 25) ## io.inst(11, 7)
-  val immB = Fill(20, io.inst(31)) ## io.inst(31) ## io.inst(7) ## io.inst(30, 25)
-  val immU = io.inst(31, 12) ## Fill(12, 0.U)
-  val immJ = Fill(12, io.inst(31)) ## io.inst(31) ## io.inst(20) ## io.inst(30, 21)
+  val immI = Fill(20, inst(31)) ## inst(31, 20)
+  val immS = Fill(20, inst(31)) ## inst(31, 25) ## inst(11, 7)
+  val immB = Fill(20, inst(31)) ## inst(31) ## inst(7) ## inst(30, 25)
+  val immU = inst(31, 12) ## Fill(12, 0.U)
+  val immJ = Fill(12, inst(31)) ## inst(31) ## inst(20) ## inst(30, 21)
 
   // Decode
   val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: exec_type :: Nil =
-    ListLookup(io.inst, InstDecodeTable.default, InstDecodeTable.table)
+    ListLookup(inst, InstDecodeTable.default, InstDecodeTable.table)
 
-  assert(fmt =/= InstFmt.Err, cf"Invalid instruction format. (Inst: ${io.inst})")
+  assert(fmt =/= InstFmt.Err, cf"Invalid instruction format. (Inst: ${inst})")
 
   // Choose immediate
   val imm = MuxLookup(fmt, 0.U)(

@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
     reset(10);
 
-    printf("Starting simulation...\n");
+    printf("Simulation started...\n");
     while (cycles-- > 0)
     {
         printf("0x%08x: 0x%08x\n", dut.io_pc, dut.io_inst);

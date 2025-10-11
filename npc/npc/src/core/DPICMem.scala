@@ -59,6 +59,7 @@ class DPICMem extends Module {
     val write_data = Input(UInt(32.W))
 
     val data_out = Output(UInt(32.W))
+    val valid = Output(Bool())
   })
 
   val read = Module(new PMemReadDPICWrapper)
@@ -71,4 +72,6 @@ class DPICMem extends Module {
   write.io.en   := io.write_enable
   write.io.data := io.write_data
   write.io.mask := io.write_mask
+
+  io.valid := true.B
 }

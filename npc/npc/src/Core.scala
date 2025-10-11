@@ -11,6 +11,7 @@ class Core extends Module {
   val pc = RegInit(0.U(32.W))
 
   IDU.io.inst    := IFU.io.inst
+  IDU.io.inst_valid := IFU.io.valid
   EXU.io.decoded := IDU.io.decoded
 
   IFU.io.pc := pc
