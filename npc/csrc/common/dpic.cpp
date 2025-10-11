@@ -89,5 +89,10 @@ void init_memory(const char* filename)
     }
 
     printf("Read %zu bytes from %s\n", bytes_read, filename);
+
+    printf("First 32 bytes:\n");
+    for (int i = 0; i < 4; i++)
+        printf("%08x: %08x\n", i * 4, memory[i]);
+
     fclose(fp);
 }
