@@ -12,7 +12,7 @@ class PMemReadDPICWrapper extends HasBlackBoxInline {
     val out  = Output(UInt(32.W))
   })
   setInline(
-    "PMemReadDPICWrapper.v",
+    "PMemReadDPICWrapper.sv",
     """
       |module PMemReadDPICWrapper(
       |  input en,
@@ -34,7 +34,7 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
     val mask = Input(UInt(8.W))
   })
   setInline(
-    "PMemWriteDPICWrapper.v",
+    "PMemWriteDPICWrapper.sv",
     """
       |module PMemWriteDPICWrapper(
       |  input en,

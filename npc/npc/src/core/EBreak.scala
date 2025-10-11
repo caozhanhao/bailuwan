@@ -8,7 +8,7 @@ class EBreak extends HasBlackBoxInline {
     val en   = Input(Bool())
   })
   setInline(
-    "EBreak.v",
+    "EBreak.sv",
     """
       |module EBreak(
       |  input  en
