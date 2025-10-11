@@ -8,9 +8,9 @@ class EBreak extends HasBlackBoxInline {
     val en   = Input(Bool())
   })
   setInline(
-    "Ebreak.v",
+    "EBreak.v",
     """
-      |module Ebreak(
+      |module EBreak(
       |  input  en
       |);
       |  import "DPI-C" function int ebreak_handler();
