@@ -59,6 +59,7 @@ VERILATOR = verilator
 
 ### Compilation flags
 INC_PATH ?=
+INC_PATH += ./csrc/common
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
 INCFLAGS = $(addprefix -I, $(INC_PATH))
