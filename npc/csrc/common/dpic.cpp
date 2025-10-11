@@ -89,7 +89,7 @@ void init_memory(const char* filename)
     // dut_memory[0x224 / 4] = 0b00000000000100000000000001110011;
 
     // ebreak for mem
-    dut_memory[0x1218 / 4] = 0b00000000000100000000000001110011;
+    // dut_memory[0x1218 / 4] = 0b00000000000100000000000001110011;
 
     fclose(fp);
 }
