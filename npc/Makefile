@@ -11,7 +11,7 @@ html:
 PRJ = npc
 TOPNAME = Top
 TRACE ?= notrace
-CYCLES ?= 100
+CYCLES ?= -1
 FILENAME ?=
 
 ### Run checks only when `sim`

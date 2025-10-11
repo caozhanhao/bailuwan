@@ -39,6 +39,7 @@ int main(int argc, char* argv[])
     }
 
     int cycles = atoi(argv[1]);
+    bool no_cycle_limit = (cycles <= 0);
 
     init_memory(argv[2]);
     init_disasm();
@@ -50,10 +51,10 @@ int main(int argc, char* argv[])
 
     // Simulate
     printf("Simulation started...\n");
-    while (cycles-- > 0)
+    while (no_cycle_limit || cycles-- > 0)
     {
-        auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
-        printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
+        // auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
+        // printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
 
         single_cycle();
         cycle_counter++;
