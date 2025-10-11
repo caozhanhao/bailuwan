@@ -57,6 +57,7 @@ int main(int argc, char* argv[])
         auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
         printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
 
+        // Diff test
         bool is_equal = true;
         for (int i = 0; i < 16; i++)
         {
@@ -64,13 +65,25 @@ int main(int argc, char* argv[])
             {
                 is_equal = false;
                 std::cerr << "Register mismatch at x" + std::to_string(i) +
-                   ", expected " + std::to_string(emu.reg(i)) + ", got " + std::to_string(cpu.reg(i));
+                    ", expected " + std::to_string(emu.reg(i)) + ", got " + std::to_string(cpu.reg(i))
+                    << std::endl;
             }
         }
         if (!is_equal)
-        {
             eassert(false, "Register mismatch");
+
+        for (int i = 0; i < DUT_MEMORY_SIZE; i++)
+        {
+            if (dut_memory[i] != emu.mem(i))
+            {
+                std::cerr << "Memory mismatch at " + std::to_string(i) +
+                    ", expected " + std::to_string(dut_memory[i]) + ", got " + std::to_string(emu.mem(i))
+                    << std::endl;
+                is_equal = false;
+            }
         }
+        if (!is_equal)
+            eassert(false, "Memory mismatch");
 
         emu.step();
         single_cycle();

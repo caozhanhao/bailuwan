@@ -56,6 +56,12 @@ public:
         return regs[r];
     }
 
+    uint32_t mem(uint32_t addr)
+    {
+        eassert(addr < memory.size(), "Memory access out of range.");
+        return memory[addr];
+    }
+
     void run(size_t max_cycles)
     {
         size_t i = 0;
