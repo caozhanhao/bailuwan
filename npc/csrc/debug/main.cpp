@@ -278,7 +278,9 @@ int main(int argc, char* argv[])
     printf("Simulation started...\n");
     while (cycles-- > 0)
     {
-        printf("0x%08x: 0x%08x\n", dut.io_pc, dut.io_inst);
+        printf("0x%08x: 0x%08x\n", cpu.pc(), cpu.curr_inst());
+        Inst decoded = decode(cpu.curr_inst());
+        dump(&decoded);
 
         single_cycle();
     }
