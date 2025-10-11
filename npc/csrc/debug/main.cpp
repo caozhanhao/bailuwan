@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
     // Simulate
     printf("Simulation started...\n");
     MiniRVEmu emu;
-    emu.load(dut_memory, DUT_MEMORY_SIZE);
+    emu.load(dut_memory, DUT_MEMORY_SIZE / sizeof(uint32_t));
     while (cycles-- > 0)
     {
         auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
         if (!is_equal)
             eassert(false, "Register mismatch");
 
-        for (int i = 0; i < DUT_MEMORY_SIZE; i++)
+        for (int i = 0; i < DUT_MEMORY_SIZE / sizeof(uint32_t); i++)
         {
             if (dut_memory[i] != emu.mem(i))
             {
