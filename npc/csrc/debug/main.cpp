@@ -17,6 +17,34 @@ static TFP_TYPE *tfp;
 static TOP_NAME dut;
 
 
+void ebreak_handler() {
+  printf("ebreak\n");
+  exit(0);
+}
+
+uint32_t memory[65536];
+extern "C" int pmem_read(int raddr) {
+  return memory[((unsigned)raddr & ~0x3u) / 4];
+}
+extern "C" void pmem_write(int waddr, int wdata, char wmask) {
+    unsigned idx = ((unsigned)waddr & ~0x3u) / 4u;
+
+    uint32_t cur = memory[idx];
+    uint32_t newv = cur;
+    uint32_t wd = (uint32_t)wdata;
+    uint8_t mask = (uint8_t)wmask;
+
+    for (int i = 0; i < 4; ++i) {
+        if (mask & (1u << i)) {
+            uint32_t byte_mask = 0xFFu << (i * 8);
+            uint32_t src_byte = (wd >> (i * 8)) & 0xFFu;
+            newv = (newv & ~byte_mask) | (src_byte << (i * 8));
+        }
+    }
+
+    memory[idx] = newv;
+}
+
 // 00000000 <_start>:
 //      0:	01400513          	addi	a0,zero,20
 //      4:	010000e7          	jalr	ra,16(zero) # 10 <fun>
@@ -36,6 +64,7 @@ uint32_t inst_mem[1024] = {
     0x00a50513, // addi a0, a0, 10
     0x00008067, // jalr zero,0(ra)
 };
+
 static uint32_t pmem_read(uint32_t addr) {
   return inst_mem[addr / 4];
 }
