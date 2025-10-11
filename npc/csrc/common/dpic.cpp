@@ -20,14 +20,25 @@ void ebreak_handler()
 int pmem_read(int raddr)
 {
     uint32_t idx = (static_cast<uint32_t>(raddr) & ~0x3u) / 4u;
-    assert(idx < MEMORY_SIZE);
+    if (idx >= MEMORY_SIZE)
+    {
+        printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
+        cpu.dump_registers(std::cerr);
+        exit(-1);
+    }
     return memory[idx];
 }
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
     uint32_t idx = (static_cast<uint32_t>(waddr) & ~0x3u) / 4;
-    assert(idx < MEMORY_SIZE);
+
+    if (idx >= MEMORY_SIZE)
+    {
+        printf("Out of bound memory access at PC = 0x%08x, waddr = 0x%08x\n", cpu.pc(), waddr);
+        cpu.dump_registers(std::cerr);
+        exit(-1);
+    }
 
     uint32_t cur = memory[idx];
     uint32_t newv = cur;

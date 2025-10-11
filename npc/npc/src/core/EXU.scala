@@ -43,7 +43,7 @@ class EXU extends Module {
   // LSU
   val lsu = Module(new LSU)
   lsu.io.lsu_op := io.decoded.lsu_op
-  lsu.io.addr := rs1_data + io.decoded.imm
+  lsu.io.addr := alu.io.result
   lsu.io.write_data := rs2_data
 
   // Branch
