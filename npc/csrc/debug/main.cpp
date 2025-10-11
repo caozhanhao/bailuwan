@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     while (cycles-- > 0)
     {
         auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
-        printf("%08x: %s\n", cpu.pc(), disasm.c_str());
+        printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
 
         single_cycle();
     }
