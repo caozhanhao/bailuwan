@@ -15,7 +15,8 @@ class RegFile extends Module {
     val rs2_data = Output(UInt(32.W))
   })
 
-  val regs = RegInit(VecInit(Seq.fill(32)(0.U(32.W))))
+  // RV32E
+  val regs = RegInit(VecInit(Seq.fill(16)(0.U(32.W))))
 
   regs(io.rd_addr) := Mux(io.rd_we && io.rd_addr =/= 0.U, io.rd_data, regs(io.rd_addr))
 

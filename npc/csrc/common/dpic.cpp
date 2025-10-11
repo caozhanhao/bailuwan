@@ -10,6 +10,23 @@ uint32_t* memory;
 
 void dump_registers()
 {
+#define DUMP(reg) printf("x%d = 0x%08x\n", reg, dut.io_registers_##reg);
+    DUMP(0)
+    DUMP(1)
+    DUMP(2)
+    DUMP(3)
+    DUMP(4)
+    DUMP(5)
+    DUMP(6)
+    DUMP(7)
+    DUMP(8)
+    DUMP(9)
+    DUMP(10)
+    DUMP(11)
+    DUMP(12)
+    DUMP(13)
+    DUMP(14)
+    DUMP(15)
 }
 
 void ebreak_handler()

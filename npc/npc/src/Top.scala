@@ -6,7 +6,7 @@ import core._
 
 class Top extends Module {
   val io = IO(new Bundle {
-    val registers = Output(Vec(32, UInt(32.W)))
+    val registers = Output(Vec(16, UInt(32.W)))
   })
 
   val IFU = Module(new IFU)
