@@ -15,16 +15,13 @@ static void single_cycle()
     dut.clock = 0;
     dut.eval();
 
-    auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
-    printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
-    
     IFDEF(TRACE, tfp->dump(sim_time++));
 
     dut.clock = 1;
     dut.eval();
 }
 
-void reset(int n)
+static void reset(int n)
 {
     dut.reset = 1;
     while (n-- > 0)
@@ -58,6 +55,9 @@ int main(int argc, char* argv[])
     {
         single_cycle();
         cycle_counter++;
+
+        auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
+        printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
     }
 
     printf("Simulation terminated after %lu cycles\n", cycle_counter);
