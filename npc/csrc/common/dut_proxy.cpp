@@ -55,7 +55,7 @@ void CPUProxy::dump_registers(std::ostream& os)
     }
 }
 
-void SimHandle::trace_init()
+void SimHandle::init_trace()
 {
 #ifdef TRACE
     tfp = new TFP_TYPE;
@@ -65,7 +65,7 @@ void SimHandle::trace_init()
 #endif
 }
 
-void SimHandle::trace_cleanup()
+void SimHandle::cleanup_trace()
 {
 #ifdef TRACE
     tfp->close();
@@ -97,9 +97,9 @@ void DUTMemory::init(const std::string& filename)
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
-    printf("First 32 bytes:\n");
-    for (int i = 0; i < 4; i++)
-        printf("%08x: %08x\n", i * 4, data[i]);
+    // printf("First 32 bytes:\n");
+    // for (int i = 0; i < 4; i++)
+    //     printf("%08x: %08x\n", i * 4, data[i]);
 
     fclose(fp);
 }
@@ -108,14 +108,14 @@ void SimHandle::init_sim(const std::string& filename)
 {
     memory.init(filename.c_str());
     cpu.bind(&dut);
-    trace_init();
+    init_trace();
     cycle_counter = 0;
     sim_time = 0;
 }
 
 void SimHandle::cleanup()
 {
-    trace_cleanup();
+    cleanup_trace();
 
     if (memory.data)
         free(memory.data);

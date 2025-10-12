@@ -49,8 +49,8 @@ class SimHandle
     uint64_t sim_time;
     IFDEF(TRACE, TFP_TYPE* tfp);
 
-    void trace_init();
-    void trace_cleanup();
+    void init_trace();
+    void cleanup_trace();
 
 public:
     SimHandle() = default;
