@@ -195,7 +195,6 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
 
 bool DUTMemory::in_bound(uint32_t addr)
 {
-    printf("DUTMemory::in_bound(0x%08x, size: %zu)\n", addr,  size);
     return ((addr - addr_base) / 4 < size) || (addr >= RTC_MMIO && addr <= RTC_MMIO + 28);
 }
 
@@ -217,14 +216,14 @@ void SimHandle::cleanup_trace()
 #endif
 }
 
-void SimHandle::init_sim(const std::string& filename, uint32_t addr_base_)
+void SimHandle::init_sim(const std::string& filename)
 {
     cpu.bind(&dut);
     cycle_counter = 0;
     sim_time = 0;
     init_trace();
 
-    memory.init(filename.c_str(), addr_base_);
+    memory.init(filename.c_str(), 0x80000000u);
 
     boot_time = std::chrono::high_resolution_clock::now();
 }

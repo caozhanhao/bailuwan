@@ -312,7 +312,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    sim_handle.init_sim(argv[1], 0);
+    sim_handle.init_sim(argv[1]);
     sim_handle.reset(10);
 
     sdb_mainloop();

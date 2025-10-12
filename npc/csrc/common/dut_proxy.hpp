@@ -81,7 +81,7 @@ class SimHandle
 public:
     SimHandle() = default;
 
-    void init_sim(const std::string& filename, uint32_t addr_base_ = 0x80000000u);
+    void init_sim(const std::string& filename);
     void cleanup();
     void single_cycle();
     void reset(int n);
