@@ -74,9 +74,6 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
         return -1;
     }
 
-    static int depth = 0;
-    depth = is_call ? depth + 1 : depth - 1;
-
     auto pc = sim_handle.get_cpu().pc();
     auto dnpc = sim_handle.get_cpu().dnpc();
 
@@ -89,9 +86,8 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
             return -1;
         }
 
-        printf("depth: %d\n",  depth);
-        snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d",
-                 pc, depth * 2, "", rd == 1 ? "call" : "tail", callee, dnpc, depth);
+        snprintf(buf, buf_size, FMT_WORD ": %s [%s@" FMT_WORD "]",
+                 pc, rd == 1 ? "call" : "tail", callee, dnpc);
     }
     else if (is_ret)
     {
@@ -101,8 +97,7 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
             Log("ftrace: Unknown function at " FMT_WORD, pc);
             return -1;
         }
-        snprintf(buf, buf_size, FMT_WORD ": %*sret [%s], depth=%d",
-                 pc, (depth + 1) * 2, "", callee, depth + 1);
+        snprintf(buf, buf_size, FMT_WORD ": ret [%s]", pc, callee);
     }
     else
     {
