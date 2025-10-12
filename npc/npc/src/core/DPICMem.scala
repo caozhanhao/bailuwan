@@ -46,7 +46,7 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
       |  input byte mask
       |);
       |  import "DPI-C" function void pmem_write(input int addr, input int data, input byte mask);
-      |  always @(*) begin
+      |  always @(posedge clk) begin
       |    if (en)
       |      pmem_write(addr, data, mask);
       |  end
