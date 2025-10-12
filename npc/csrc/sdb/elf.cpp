@@ -59,7 +59,7 @@ void ftrace_table_push(uint32_t addr, uint32_t size, const char* name)
 
     strncpy(ftrace_table[ftrace_size].name, name, sizeof(ftrace_table[ftrace_size].name));
     ftrace_size++;
-    Log("ftrace: %s @ 0x%x", name, addr);
+    // Log("ftrace: %s @ 0x%x", name, addr);
 }
 
 const char* ftrace_search(uint32_t pc)

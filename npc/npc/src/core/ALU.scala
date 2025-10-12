@@ -16,7 +16,7 @@ class ALU extends Module {
 
   import ALUOp._
   val result = MuxLookup(io.alu_op, 0.U)(Seq(
-      Add  -> (io.oper1 + io.oper2 + 1.U),
+      Add  -> (io.oper1 + io.oper2),
       Sub  -> (io.oper1 - io.oper2),
       Sll  -> (io.oper1 << shamt).asUInt,
       Slt  -> (io.oper1.asSInt < io.oper2.asSInt),
