@@ -62,6 +62,7 @@ void pmem_write(int waddr, int wdata, char wmask)
     if (uaddr == SERIAL_PORT_MMIO && wmask == 1)
     {
         putchar(wdata);
+        fflush(stdout);
         return;
     }
 
