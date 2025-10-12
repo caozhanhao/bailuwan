@@ -19,14 +19,25 @@ void ebreak_handler()
     exit(a0);
 }
 
+#define RTC_MMIO 0xa0000048
 int pmem_read(int raddr)
 {
+    // Clock
+    if (raddr == RTC_MMIO || raddr == RTC_MMIO + 4)
+    {
+        auto now = std::chrono::high_resolution_clock::now();
+        auto delta = now - sim_handle.get_boot_time();
+        return delta.count();
+    }
+
+
+    // Memory
+    auto& mem = sim_handle.get_memory();
+    auto& cpu = sim_handle.get_cpu();
+
     auto uaddr = static_cast<uint32_t>(raddr);
     uaddr -= 0x80000000u;
     uint32_t idx = (uaddr & ~0x3u) / 4u;
-
-    auto& mem = sim_handle.get_memory();
-    auto& cpu = sim_handle.get_cpu();
 
     if (idx >= mem.size)
     {
@@ -40,13 +51,12 @@ int pmem_read(int raddr)
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
-    auto uaddr = static_cast<uint32_t>(waddr);
-    uaddr -= 0x80000000u;
-
-    uint32_t idx = (uaddr & ~0x3u) / 4;
-
     auto& mem = sim_handle.get_memory();
     auto& cpu = sim_handle.get_cpu();
+
+    auto uaddr = static_cast<uint32_t>(waddr);
+    uaddr -= 0x80000000u;
+    uint32_t idx = (uaddr & ~0x3u) / 4;
 
     if (idx >= mem.size)
     {

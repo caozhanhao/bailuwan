@@ -120,6 +120,8 @@ void SimHandle::init_sim(const std::string& filename)
     init_trace();
 
     memory.init(filename.c_str());
+
+    boot_time = std::chrono::high_resolution_clock::now();
 }
 
 void SimHandle::cleanup()
