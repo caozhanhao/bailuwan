@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include <getopt.h>
 #include <readline/history.h>
 #include <readline/readline.h>
 
@@ -10,6 +11,7 @@
 
 SDBState sdb_state;
 int sdb_halt_ret;
+bool is_batch_mode;
 
 static char* rl_gets()
 {
@@ -252,8 +254,16 @@ static int cmd_help(char* args)
     return 0;
 }
 
+void sdb_set_batch_mode() { is_batch_mode = true; }
+
 void sdb_mainloop()
 {
+    if (is_batch_mode)
+    {
+        cmd_c(NULL);
+        return;
+    }
+
     for (char* str; (str = rl_gets()) != nullptr;)
     {
         char* str_end = str + strlen(str);
@@ -305,6 +315,42 @@ int is_exit_status_bad()
     return !good;
 }
 
+static char* elf_file = NULL;
+static char* img_file = NULL;
+
+static int parse_args(int argc, char* argv[])
+{
+    const struct option table[] = {
+        {"batch", no_argument, NULL, 'b'},
+        {"elf", required_argument, NULL, 'e'},
+        {"help", no_argument, NULL, 'h'},
+        {0, 0, NULL, 0},
+    };
+    int o;
+    while ((o = getopt_long(argc, argv, "-bhe:", table, NULL)) != -1)
+    {
+        switch (o)
+        {
+        case 'b':
+            sdb_set_batch_mode();
+            break;
+        case 'e':
+            elf_file = optarg;
+            break;
+        case 1:
+            img_file = optarg;
+            return 0;
+        default:
+            printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
+            printf("\t-b,--batch              run with batch mode\n");
+            printf("\t-e,--elf=ELF_FILE       load symbols for ftrace.\n");
+            printf("\n");
+            exit(0);
+        }
+    }
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     init_regex();
@@ -312,23 +358,18 @@ int main(int argc, char* argv[])
 
     sdb_state = SDBState::Stop;
 
-    // INIT
-    if (argc != 2 && argc != 3)
-    {
-        printf("Usage: %s [filename] [ELF (optional)]\n", argv[0]);
-        return -1;
-    }
+    parse_args(argc, argv);
 
-    sim_handle.init_sim(argv[1]);
+    sim_handle.init_sim(img_file);
     sim_handle.reset(10);
 
     // ATTENTION: Initialize difftest after the dut reset.
     IFDEF(CONFIG_DIFFTEST, init_difftest(sim_handle.get_memory().img_size));
 
 
-    if (argc == 3)
+    if (elf_file)
     {
-        IFDEF(CONFIG_FTRACE, init_ftrace(argv[2]));
+        IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
     }
 
     sdb_mainloop();

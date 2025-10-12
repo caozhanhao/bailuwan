@@ -18,15 +18,47 @@ object InstDecodeTable {
   // format, oper1, oper2, WE, ALUOp, BrOp, LSUOp, ExecType
   val default = List(Err, Zero, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU)
   val table   = Array(
-    ADD    -> List(R, Rs1, Rs2, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
-    ADDI   -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
     LUI    -> List(U, Imm, Zero, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    AUIPC  -> List(U, PC, Imm, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    JAL    -> List(J, PC, Four, T, ALUOp.Add, BrOp.JAL, LSUOp.None, ALU),
+    JALR   -> List(I, PC, Four, T, ALUOp.Add, BrOp.JALR, LSUOp.None, ALU),
+    BEQ    -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BEQ, LSUOp.None, ALU),
+    BNE    -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BNE, LSUOp.None, ALU),
+    BLT    -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BLT, LSUOp.None, ALU),
+    BGE    -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BGE, LSUOp.None, ALU),
+    BLTU   -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BLTU, LSUOp.None, ALU),
+    BGEU   -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BGEU, LSUOp.None, ALU),
+    LB     -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LB, LSU),
+    LH     -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LH, LSU),
     LW     -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LW, LSU),
     LBU    -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LBU, LSU),
-    SW     -> List(S, Rs1, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SW, LSU),
+    LHU    -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LHU, LSU),
     SB     -> List(S, Rs1, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SB, LSU),
-    JALR   -> List(I, PC, Four, T, ALUOp.Add, BrOp.JALR, LSUOp.None, ALU),
-    EBREAK -> List(I, Zero, Zero, F, ALUOp.Add, BrOp.None, LSUOp.None, EBreak)
+    SH     -> List(S, Rs1, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SH, LSU),
+    SW     -> List(S, Rs1, Imm, F, ALUOp.Add, BrOp.None, LSUOp.SW, LSU),
+    ADDI   -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    SLTI   -> List(I, Rs1, Imm, T, ALUOp.Slt, BrOp.None, LSUOp.None, ALU),
+    SLTIU  -> List(I, Rs1, Imm, T, ALUOp.Sltu, BrOp.None, LSUOp.None, ALU),
+    XORI   -> List(I, Rs1, Imm, T, ALUOp.Xor, BrOp.None, LSUOp.None, ALU),
+    ORI    -> List(I, Rs1, Imm, T, ALUOp.Or, BrOp.None, LSUOp.None, ALU),
+    ANDI   -> List(I, Rs1, Imm, T, ALUOp.And, BrOp.None, LSUOp.None, ALU),
+    SLLI   -> List(I, Rs1, Imm, T, ALUOp.Sll, BrOp.None, LSUOp.None, ALU),
+    SRLI   -> List(I, Rs1, Imm, T, ALUOp.Srl, BrOp.None, LSUOp.None, ALU),
+    SRAI   -> List(I, Rs1, Imm, T, ALUOp.Sra, BrOp.None, LSUOp.None, ALU),
+    ADD    -> List(R, Rs1, Rs2, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
+    SUB    -> List(R, Rs1, Rs2, T, ALUOp.Sub, BrOp.None, LSUOp.None, ALU),
+    SLL    -> List(R, Rs1, Rs2, T, ALUOp.Sll, BrOp.None, LSUOp.None, ALU),
+    SLT    -> List(R, Rs1, Rs2, T, ALUOp.Slt, BrOp.None, LSUOp.None, ALU),
+    SLTU   -> List(R, Rs1, Rs2, T, ALUOp.Sltu, BrOp.None, LSUOp.None, ALU),
+    XOR    -> List(R, Rs1, Rs2, T, ALUOp.Xor, BrOp.None, LSUOp.None, ALU),
+    SRL    -> List(R, Rs1, Rs2, T, ALUOp.Srl, BrOp.None, LSUOp.None, ALU),
+    SRA    -> List(R, Rs1, Rs2, T, ALUOp.Sra, BrOp.None, LSUOp.None, ALU),
+    OR     -> List(R, Rs1, Rs2, T, ALUOp.Or, BrOp.None, LSUOp.None, ALU),
+    AND    -> List(R, Rs1, Rs2, T, ALUOp.And, BrOp.None, LSUOp.None, ALU),
+    EBREAK -> List(I, Zero, Zero, F, ALUOp.Add, BrOp.None, LSUOp.None, EBreak),
+    // TODO: fence and ecall
+    // FENCE ->,
+    // EALL ->,
   )
 }
 
@@ -48,8 +80,8 @@ class DecodedBundle extends Bundle {
 
 class IDU extends Module {
   val io = IO(new Bundle {
-    val inst       = Input(UInt(32.W))
-    val decoded    = new DecodedBundle
+    val inst    = Input(UInt(32.W))
+    val decoded = new DecodedBundle
   })
 
   val inst = io.inst
