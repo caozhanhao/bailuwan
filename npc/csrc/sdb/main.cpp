@@ -335,6 +335,7 @@ static int parse_args(int argc, char* argv[])
             sdb_set_batch_mode();
             break;
         case 'e':
+            printf("Load symbols from ELF file: %s\n", optarg);
             elf_file = optarg;
             break;
         case 1:
