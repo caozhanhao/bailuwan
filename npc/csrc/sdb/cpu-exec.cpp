@@ -9,11 +9,11 @@ static void trace_and_difftest() {
     static bool inited = false;
     if (!inited)
         disasm.init();
-    
+
 #ifdef CONFIG_ITRACE
     auto& cpu = sim_handle.get_cpu();
     auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
-    Log("%s", str.c_str());
+    printf("%s", str.c_str());
 #endif
 
 #ifdef CONFIG_FTRACE
