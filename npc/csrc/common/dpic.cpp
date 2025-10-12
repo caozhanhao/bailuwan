@@ -20,6 +20,7 @@ void ebreak_handler()
 
 int pmem_read(int raddr)
 {
+    raddr -= 0x80000000;
     uint32_t idx = (static_cast<uint32_t>(raddr) & ~0x3u) / 4u;
     if (idx >= dut_memory_size)
     {
@@ -32,6 +33,8 @@ int pmem_read(int raddr)
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
+    waddr -= 0x80000000;
+
     uint32_t idx = (static_cast<uint32_t>(waddr) & ~0x3u) / 4;
 
     if (idx >= dut_memory_size)
