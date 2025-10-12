@@ -25,7 +25,7 @@ sed -E -i -e "s/(l[bhw]u?)${sp_require}(${reg})${comma}(${symbol})(${sp}[-+]${sp
 minirv_path=$AM_HOME/tools/minirv
 lut_bin_path=$minirv_path/lut.bin
 sed -i "1i#include \"$minirv_path/inst-replace.h\"" $dst_S
-flock $minirv_path/.lock -c "test -e $lut_bin_path || (cd $minirv_path && gcc gen-lut.c && ./a.out && rm a.out)"
+SHELL=/bin/bash flock $minirv_path/.lock -c "test -e $lut_bin_path || (cd $minirv_path && gcc gen-lut.c && ./a.out && rm a.out)"
 
 src_dir=`dirname $src`
 riscv64-linux-gnu-gcc -I$src_dir $flags -D_LUT_BIN_PATH=\"$lut_bin_path\" -Wno-trigraphs -c -o $dst $dst_S

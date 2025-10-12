@@ -14,7 +14,7 @@ ifeq ($(MAKECMDGOALS),)
 endif
 
 ### Override checks when `make clean/clean-all/html`
-ifeq ($(findstring $(MAKECMDGOALS),clean|clean-all|html),)
+ifeq ($(findstring $(MAKECMDGOALS),clean|clean-all|clean-am|html),)
 
 ### Print build info message
 $(info # Building $(NAME)-$(MAKECMDGOALS) [$(ARCH)])
@@ -168,3 +168,10 @@ clean-all: $(CLEAN_ALL) clean
 $(CLEAN_ALL):
 	-@$(MAKE) -s -C $@ clean
 .PHONY: clean-all $(CLEAN_ALL)
+
+
+### Clean abstract machine
+
+clean-am:
+	rm -rf $(AM_HOME)/build $(AM_HOME)/Makefile.html $(AM_HOME)/am/build
+.PHONY: clean-am

@@ -31,22 +31,24 @@ class PMemReadDPICWrapper extends HasBlackBoxInline {
 
 class PMemWriteDPICWrapper extends HasBlackBoxInline {
   val io = IO(new Bundle {
-    val en   = Input(Bool())
-    val addr = Input(UInt(32.W))
-    val data = Input(UInt(32.W))
-    val mask = Input(UInt(8.W))
+    val clock = Input(Clock())
+    val en    = Input(Bool())
+    val addr  = Input(UInt(32.W))
+    val data  = Input(UInt(32.W))
+    val mask  = Input(UInt(8.W))
   })
   setInline(
     "PMemWriteDPICWrapper.sv",
     """
       |module PMemWriteDPICWrapper(
+      |  input clock,
       |  input en,
       |  input int addr,
       |  input int data,
       |  input byte mask
       |);
       |  import "DPI-C" function void pmem_write(input int addr, input int data, input byte mask);
-      |  always @(*) begin
+      |  always @(posedge clock) begin
       |    if (en)
       |      pmem_write(addr, data, mask);
       |  end
@@ -57,26 +59,31 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
 
 class DPICMem extends Module {
   val io = IO(new Bundle {
-    val addr = Input(UInt(32.W))
-    val read_enable = Input(Bool())
+    val addr         = Input(UInt(32.W))
+    val read_enable  = Input(Bool())
     val write_enable = Input(Bool())
-    val write_mask = Input(UInt(8.W))
-    val write_data = Input(UInt(32.W))
+    val write_mask   = Input(UInt(8.W))
+    val write_data   = Input(UInt(32.W))
 
     val data_out = Output(UInt(32.W))
-    val valid = Output(Bool())
+    val valid    = Output(Bool())
   })
 
-  val read = Module(new PMemReadDPICWrapper)
+  val read    = Module(new PMemReadDPICWrapper)
+  val read_en = io.read_enable && !reset.asBool
+
+  read.io.en   := read_en
   read.io.addr := io.addr
-  read.io.en   := io.read_enable
   io.data_out  := read.io.out
 
-  val write = Module(new PMemWriteDPICWrapper)
-  write.io.addr := io.addr
-  write.io.en   := io.write_enable
-  write.io.data := io.write_data
-  write.io.mask := io.write_mask
+  val write    = Module(new PMemWriteDPICWrapper)
+  val write_en = io.write_enable && !reset.asBool
 
-  io.valid := true.B
+  write.io.clock := clock
+  write.io.addr  := io.addr
+  write.io.en    := write_en
+  write.io.data  := io.write_data
+  write.io.mask  := io.write_mask
+
+  io.valid := read_en
 }

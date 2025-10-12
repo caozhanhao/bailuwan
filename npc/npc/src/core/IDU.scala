@@ -48,13 +48,11 @@ class DecodedBundle extends Bundle {
 
 class IDU extends Module {
   val io = IO(new Bundle {
-    val inst    = Input(UInt(32.W))
-    val inst_valid = Input(Bool())
-    val decoded = new DecodedBundle
+    val inst       = Input(UInt(32.W))
+    val decoded    = new DecodedBundle
   })
 
-  val NOP = 0x00000013.U(32.W)
-  val inst = Mux(io.inst_valid, io.inst, NOP)
+  val inst = io.inst
 
   // Registers
   val rd  = inst(11, 7)

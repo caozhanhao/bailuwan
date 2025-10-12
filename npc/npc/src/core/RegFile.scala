@@ -18,7 +18,7 @@ class RegFile extends Module {
   // RV32E
   val regs = RegInit(VecInit(Seq.fill(16)(0.U(32.W))))
 
-  regs(io.rd_addr(3, 0)) := Mux(io.rd_we && io.rd_addr =/= 0.U, io.rd_data, regs(io.rd_addr))
+  regs(io.rd_addr(3, 0)) := Mux(io.rd_we && io.rd_addr =/= 0.U, io.rd_data, regs(io.rd_addr(3, 0)))
 
   io.rs1_data := regs(io.rs1_addr(3, 0))
   io.rs2_data := regs(io.rs2_addr(3, 0))

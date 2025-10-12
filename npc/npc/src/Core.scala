@@ -8,11 +8,10 @@ class Core extends Module {
   val EXU = Module(new EXU)
   val IDU = Module(new IDU)
 
-  val pc = RegInit(0.U(32.W))
+  val pc = RegInit(0x80000000.S(32.W).asUInt)
 
-  IDU.io.inst    := IFU.io.inst
-  IDU.io.inst_valid := IFU.io.valid
-  EXU.io.decoded := IDU.io.decoded
+  IDU.io.inst       := IFU.io.inst
+  EXU.io.decoded    := IDU.io.decoded
 
   IFU.io.pc := pc
   EXU.io.pc := pc
