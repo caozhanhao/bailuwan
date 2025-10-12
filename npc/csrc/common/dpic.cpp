@@ -32,7 +32,7 @@ int pmem_read(int raddr)
     {
         auto now = std::chrono::high_resolution_clock::now();
         auto delta = now - sim_handle.get_boot_time();
-        auto sec = std::chrono::duration_cast<std::chrono::seconds>(delta).count();
+        auto sec = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(delta).count());
         uint32_t lo = sec;
         uint32_t hi = sec >> 32;
         if (uaddr == RTC_MMIO)
