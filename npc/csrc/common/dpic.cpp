@@ -30,12 +30,17 @@ int pmem_read(int raddr)
     // Clock
     if (uaddr == RTC_MMIO || uaddr == RTC_MMIO + 4)
     {
-        printf("RTC MMIO access at raddr = 0x%08x\n", raddr);
         auto now = std::chrono::high_resolution_clock::now();
         auto delta = now - sim_handle.get_boot_time();
         auto sec = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(delta).count());
         if (uaddr == RTC_MMIO)
+        {
+            printf("LO RTC MMIO access at raddr = 0x%08x\n", raddr);
+            printf("RTC MMIO value: %d\n", (int)(sec & 0xffffffff));
             return sec & 0xffffffff;
+        }
+        printf("HI RTC MMIO access at raddr = 0x%08x\n", raddr);
+        printf("RTC MMIO value: %d\n", (int)(sec >> 32));
         return sec >> 32;
     }
     if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
