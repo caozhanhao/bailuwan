@@ -26,6 +26,6 @@ image: image-dep
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: insert-arg
-	$(MAKE) -C $(NPC_HOME) sim HW=debug TRACE=notrace FILENAME=$(IMAGE).bin
+	$(MAKE) -C $(NPC_HOME) sim HW=$(NPC_HW) TRACE=notrace FILENAME=$(IMAGE).bin ELF=$(IMAGE).elf
 
 .PHONY: insert-arg

@@ -7,7 +7,7 @@
 void Disassembler::init()
 {
     void *dl_handle;
-    dl_handle = dlopen("csrc/common/utils/libcapstone.so.5", RTLD_LAZY);
+    dl_handle = dlopen("csrc/common/lib/libcapstone.so.5", RTLD_LAZY);
     assert(dl_handle);
 
     opendl_t cs_open_dl = NULL;

@@ -1,5 +1,5 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef COMMON_DUT_PROXY_HPP
+#define COMMON_DUT_PROXY_HPP
 
 #include "VTop.h"
 #include "utils/macro.hpp"
@@ -14,9 +14,27 @@
 #define TFP_TYPE VerilatedVcdC
 #endif
 
+class EBreakException : public std::exception
+{
+    int code;
+
+public:
+    explicit EBreakException(int code_) : code(code_)
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return "EBreakException";
+    }
+
+    int get_code() const { return code; }
+};
+
 class CPUProxy
 {
     uint32_t* pc_binding;
+    uint32_t* dnpc_binding;
     uint32_t* inst_binding;
     uint32_t* register_bindings[16];
 
@@ -26,20 +44,28 @@ public:
     void bind(TOP_NAME* dut);
     void dump_registers(std::ostream& os);
     uint32_t pc();
+    uint32_t dnpc();
     uint32_t curr_inst();
     uint32_t reg(uint32_t idx);
 };
 
-// Byte * 1024 * 1024 * 512 Byte -> 512 MB
-#define DUT_MEMORY_MAXSIZE (1024 * 1024 * 512)
-#define IO_SPACE_MAX (32 * 1024 * 1024)
+#define PMEM_LEFT  ((uint32_t)CONFIG_MBASE)
+#define PMEM_RIGHT ((uint32_t)CONFIG_MBASE + CONFIG_MSIZE - 1)
+#define RESET_VECTOR PMEM_LEFT
 struct DUTMemory
 {
     uint32_t* data{};
-    size_t size{};
+    size_t img_size{};
 
     void init(const std::string& filename);
     void destroy();
+
+    uint32_t read(uint32_t raddr);
+    void write(uint32_t waddr, uint32_t wdata, char wmask);
+
+    bool in_pmem(uint32_t addr);
+    uint8_t* guest_to_host(uint32_t paddr) const;
+    uint32_t host_to_guest(uint8_t* haddr) const;
 };
 
 class SimHandle
@@ -65,7 +91,7 @@ public:
     uint64_t get_cycles() const { return cycle_counter; }
     CPUProxy& get_cpu() { return cpu; }
     DUTMemory& get_memory() { return memory; }
-    const auto& get_boot_time() const  { return boot_time; }
+    const auto& get_boot_time() const { return boot_time; }
 };
 
 extern TOP_NAME dut;

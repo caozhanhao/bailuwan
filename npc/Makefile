@@ -108,7 +108,7 @@ $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(MAKE) $(BIN)
-	$(BIN) $(CYCLES) $(FILENAME)
+	$(BIN) $(CLI_ARGS)
 
 ### Chisel Test
 test:

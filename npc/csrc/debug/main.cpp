@@ -18,18 +18,19 @@ int main(int argc, char* argv[])
     sim_handle.init_sim(argv[2]);
     sim_handle.reset(10);
 
-    Disassembler disasm{};
-    disasm.init();
-
     // Simulate
     printf("Simulation started...\n");
     auto& cpu = sim_handle.get_cpu();
     while (no_cycle_limit || cycles-- > 0)
     {
-        sim_handle.single_cycle();
-
-        // auto inst = disasm.disassemble(cpu.pc(), cpu.curr_inst());
-        // printf("%s\n", inst.c_str());
+        try
+        {
+            sim_handle.single_cycle();
+        }
+        catch (EBreakException& e)
+        {
+            exit(e.get_code());
+        }
     }
 
     printf("Simulation terminated after %lu cycles\n", sim_handle.get_cycles());
