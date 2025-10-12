@@ -1,3 +1,5 @@
+#include "config.hpp"
+
 #include <VTop.h>
 
 #include <iostream>
