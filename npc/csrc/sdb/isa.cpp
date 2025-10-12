@@ -83,12 +83,16 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
     if (is_call)
     {
         const char* callee = ftrace_search(dnpc);
+        if (callee == nullptr)
+            return -1;
         snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d",
                  pc, depth * 2, "", rd == 1 ? "call" : "tail", callee, dnpc, depth);
     }
     else if (is_ret)
     {
         const char* callee = ftrace_search(pc);
+        if (callee == nullptr)
+            return -1;
         snprintf(buf, buf_size, FMT_WORD ": %*sret [%s], depth=%d",
                  pc, (depth + 1) * 2, "", callee, depth + 1);
     }
