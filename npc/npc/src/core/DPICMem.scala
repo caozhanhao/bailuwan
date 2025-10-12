@@ -71,7 +71,7 @@ class DPICMem extends Module {
 
   val read_rising = io.read_enable && !RegNext(io.read_enable, false.B)
   val read_en = read_rising && !reset.asBool
-//   val read_en = io.read_enable && !reset.asBool
+
   val read_reg = RegInit(0.U(32.W))
   read_reg := read.io.out
   read.io.en := read_en
@@ -91,5 +91,5 @@ class DPICMem extends Module {
   write.io.data := write_reg
   write.io.mask := io.write_mask
 
-  io.valid := read_en
+  io.valid := RegNext(read_en)
 }
