@@ -15,7 +15,7 @@ class IFU extends Module {
   val read_enable = RegNext(true.B)
 
   Mem.io.addr := io.pc
-  Mem.io.read_enable := read_enable
+  Mem.io.read_enable := io.pc =/= 0.U
 
   Mem.io.write_enable := false.B
   Mem.io.write_mask := 0.U
