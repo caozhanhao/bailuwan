@@ -28,8 +28,8 @@ int main(int argc, char* argv[])
     {
         sim_handle.single_cycle();
 
-        auto inst = disasm.disassemble(cpu.pc(), cpu.curr_inst());
-        printf("%s\n", inst.c_str());
+//         auto inst = disasm.disassemble(cpu.pc(), cpu.curr_inst());
+//        printf("%s\n", inst.c_str());
     }
 
     printf("Simulation terminated after %lu cycles\n", sim_handle.get_cycles());
