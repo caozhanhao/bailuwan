@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstdio>
 
+#include "config.hpp"
 #include "dut_proxy.hpp"
 
 extern "C" {
