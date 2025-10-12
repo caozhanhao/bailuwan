@@ -55,7 +55,7 @@ public:
 struct DUTMemory
 {
     uint32_t* data{};
-    size_t size{};
+    size_t img_size{};
 
     void init(const std::string& filename);
     void destroy();

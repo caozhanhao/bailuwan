@@ -18,7 +18,7 @@ void cpu_exec(uint64_t n);
 
 // Difftest
 void difftest_step();
-void init_difftest();
+void init_difftest(size_t img_size);
 
 // ISA
 void isa_reg_display();

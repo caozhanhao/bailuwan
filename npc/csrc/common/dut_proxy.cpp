@@ -82,7 +82,7 @@ void DUTMemory::init(const std::string& filename)
         }
     }
 
-    size = CONFIG_MSIZE;
+    img_size = CONFIG_MSIZE;
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
@@ -221,7 +221,7 @@ void SimHandle::init_sim(const std::string& filename)
     sim_time = 0;
     init_trace();
 
-    memory.init(filename.c_str(), 0x80000000u);
+    memory.init(filename.c_str());
 
     boot_time = std::chrono::high_resolution_clock::now();
 }
