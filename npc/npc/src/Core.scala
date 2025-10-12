@@ -9,6 +9,7 @@ class Core extends Module {
   val IDU = Module(new IDU)
 
   val pc = RegInit(0x80000000.S(32.W).asUInt)
+  printf("pc: %x\n");
 
   IDU.io.inst       := IFU.io.inst
   IDU.io.inst_valid := IFU.io.valid
