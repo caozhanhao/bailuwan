@@ -35,7 +35,7 @@ enum class SDBState
     Running, Stop, End, Quit, Abort
 };
 
-SDBState sdb_state;
+extern SDBState sdb_state;
 
 #define Log(format, ...) \
     printf(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", \

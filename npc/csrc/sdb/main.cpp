@@ -8,6 +8,8 @@
 #include "sdb.hpp"
 #include "dut_proxy.hpp"
 
+SDBState sdb_state;
+
 static char* rl_gets()
 {
     static char* line_read = nullptr;
