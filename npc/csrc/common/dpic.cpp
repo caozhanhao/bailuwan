@@ -77,8 +77,6 @@ int pmem_read(int raddr)
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
-    printf("Write to 0x%08x, data = 0x%08x, mask = 0x%02x\n", waddr, wdata, wmask);
-    
     auto uaddr = static_cast<uint32_t>(waddr);
     uaddr &= ~0x3u;
 
