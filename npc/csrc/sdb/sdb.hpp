@@ -43,6 +43,7 @@ enum class SDBState
 };
 
 extern SDBState sdb_state;
+extern int sdb_halt_ret;
 
 #define Log(format, ...) \
     printf(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", \

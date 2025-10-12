@@ -39,6 +39,7 @@ static void execute(uint64_t n)
         catch (EBreakException& e)
         {
             sdb_state = SDBState::End;
+            sdb_halt_ret = e.get_code();
         }
 
         trace_and_difftest();

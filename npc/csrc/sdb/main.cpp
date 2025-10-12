@@ -9,6 +9,7 @@
 #include "dut_proxy.hpp"
 
 SDBState sdb_state;
+int sdb_halt_ret;
 
 static char* rl_gets()
 {
@@ -298,6 +299,11 @@ void sdb_mainloop()
     }
 }
 
+int is_exit_status_bad() {
+    int good = (sdb_state == SDBState::End && sdb_halt_ret == 0) || (sdb_state == SDBState::Quit);
+    return !good;
+}
+
 int main(int argc, char* argv[])
 {
     init_regex();
@@ -323,5 +329,5 @@ int main(int argc, char* argv[])
     sdb_mainloop();
 
     sim_handle.cleanup();
-    return 0;
+    return is_exit_status_bad();
 }
