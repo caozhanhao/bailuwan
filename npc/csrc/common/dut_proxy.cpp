@@ -97,9 +97,9 @@ void DUTMemory::init(const std::string& filename)
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
-    // printf("First 32 bytes:\n");
-    // for (int i = 0; i < 4; i++)
-    //     printf("%08x: %08x\n", i * 4, dut_memory[i]);
+    printf("First 32 bytes:\n");
+    for (int i = 0; i < 4; i++)
+        printf("%08x: %08x\n", i * 4, dut_memory[i]);
 
     fclose(fp);
 }
@@ -116,6 +116,9 @@ void SimHandle::init_sim(const std::string& filename)
 void SimHandle::cleanup()
 {
     trace_cleanup();
+
+    if (memory.data)
+        free(memory.data);
 }
 
 void SimHandle::single_cycle()
