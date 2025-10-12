@@ -42,6 +42,7 @@ static void execute(uint64_t n)
             sdb_state = SDBState::End;
         }
 
+        printf("cycle: %lu\n", sim_handle.get_cycles());
         trace_and_difftest();
 
         if (sdb_state != SDBState::Running) break;
