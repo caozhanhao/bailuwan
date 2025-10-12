@@ -51,12 +51,18 @@ int main(int argc, char* argv[])
 
     // Simulate
     printf("Simulation started...\n");
+    bool first = true;
     while (no_cycle_limit || cycles-- > 0)
     {
-        single_cycle();
+        if (first)
+            first = false;
+        else
+        {
+            auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
+            printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
+        }
 
-        auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
-        printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
+        single_cycle();
         cycle_counter++;
     }
 
