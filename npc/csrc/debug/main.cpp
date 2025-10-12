@@ -1,7 +1,6 @@
 #include <VTop.h>
 
 #include "dut_proxy.hpp"
-#include "dpic.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -15,10 +14,8 @@ int main(int argc, char* argv[])
     int cycles = atoi(argv[1]);
     bool no_cycle_limit = (cycles <= 0);
 
-    init_memory(argv[2]);
-
     SimHandle sim{};
-    sim.init_sim();
+    sim.init_sim(argv[2]);
 
     sim.reset(10);
 
