@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
         single_cycle();
         cycle_counter++;
 
-        auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
-        printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
+        // auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
+        // printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
     }
 
     printf("Simulation terminated after %lu cycles\n", cycle_counter);
