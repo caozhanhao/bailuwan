@@ -452,19 +452,21 @@ static word_t eval(int p, int q, bool* success)
                 // TODO: MMIO
                 // return vaddr_read(val, 4);
                 auto& mem = sim_handle.get_memory();
-                if (val / 4 >= mem.size)
-                {
-                    Log("dereference out of bound, addr: 0x%x", val);
-                    *success = false;
-                    return 0;
-                }
                 if (val % 4 != 0)
                 {
                     Log("dereference unaligned, addr: 0x%x", val);
                     *success = false;
                     return 0;
                 }
-                return mem.data[val / 4];
+
+                if (!mem.in_bound(val))
+                {
+                    Log("dereference out of bound, addr: 0x%x", val);
+                    *success = false;
+                    return 0;
+                }
+
+                return mem.read(val);
             }
         default:
             panic("unexpected unary operator");

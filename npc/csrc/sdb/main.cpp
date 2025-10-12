@@ -117,14 +117,15 @@ static int cmd_x(char* args)
     }
 
     auto& mem = sim_handle.get_memory();
-    if ((res + 4 * n) / 4 > mem.size)
+
+    if (!mem.in_bound(res) || !mem.in_bound(res + 4 * n))
     {
         printf("x: Address out of range.\n");
         return 0;
     }
 
     for (word_t i = 0; i < n; i++)
-        printf("0x%x: 0x%08x\n", res + i * 4, mem.data[(res + i * 4) / 4]);
+        printf("0x%x: 0x%08x\n", res + i * 4, mem.read(res + i * 4));
 
     return 0;
 }

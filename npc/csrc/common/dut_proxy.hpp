@@ -62,6 +62,8 @@ struct DUTMemory
 
     uint32_t read(uint32_t raddr);
     void write(uint32_t waddr, uint32_t wdata, char wmask);
+
+    bool in_bound(uint32_t addr);
 };
 
 class SimHandle

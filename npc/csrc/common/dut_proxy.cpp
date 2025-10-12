@@ -193,6 +193,11 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
     data[idx] = newv;
 }
 
+bool DUTMemory::in_bound(uint32_t addr)
+{
+    return ((addr - addr_base) / 4 < size) || (addr >= RTC_MMIO && addr <= RTC_MMIO + 28);
+}
+
 void SimHandle::init_trace()
 {
 #ifdef TRACE
