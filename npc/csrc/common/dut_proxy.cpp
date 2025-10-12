@@ -195,7 +195,7 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
 
 bool DUTMemory::in_bound(uint32_t addr)
 {
-    printf("DUTMemory::in_bound(0x%08x)\n", addr);
+    printf("DUTMemory::in_bound(0x%08x, size: %zu)\n", addr,  size);
     return ((addr - addr_base) / 4 < size) || (addr >= RTC_MMIO && addr <= RTC_MMIO + 28);
 }
 
