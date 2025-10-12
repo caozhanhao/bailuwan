@@ -5,6 +5,7 @@ import chisel3.util.HasBlackBoxInline
 
 class PMemReadDPICWrapper extends HasBlackBoxInline {
   val io = IO(new Bundle {
+    val clock = Input(Clock())
     val en   = Input(Bool())
     val addr = Input(UInt(32.W))
     val out  = Output(UInt(32.W))
@@ -13,12 +14,13 @@ class PMemReadDPICWrapper extends HasBlackBoxInline {
     "PMemReadDPICWrapper.sv",
     """
       |module PMemReadDPICWrapper(
+      |  input clock,
       |  input en,
       |  input int addr,
       |  output int out
       |);
       |  import "DPI-C" function int pmem_read(input int addr);
-      |  always @(*) begin
+      |  always @(posedge clock) begin
       |    if (en)
       |      out = pmem_read(addr);
       |    else
@@ -31,10 +33,11 @@ class PMemReadDPICWrapper extends HasBlackBoxInline {
 
 class PMemWriteDPICWrapper extends HasBlackBoxInline {
   val io = IO(new Bundle {
-    val en   = Input(Bool())
-    val addr = Input(UInt(32.W))
-    val data = Input(UInt(32.W))
-    val mask = Input(UInt(8.W))
+    val clock = Input(Clock())
+    val en    = Input(Bool())
+    val addr  = Input(UInt(32.W))
+    val data  = Input(UInt(32.W))
+    val mask  = Input(UInt(8.W))
   })
   setInline(
     "PMemWriteDPICWrapper.sv",
@@ -58,22 +61,24 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
 
 class DPICMem extends Module {
   val io = IO(new Bundle {
-    val addr = Input(UInt(32.W))
-    val read_enable = Input(Bool())
+    val addr         = Input(UInt(32.W))
+    val read_enable  = Input(Bool())
     val write_enable = Input(Bool())
-    val write_mask = Input(UInt(8.W))
-    val write_data = Input(UInt(32.W))
+    val write_mask   = Input(UInt(8.W))
+    val write_data   = Input(UInt(32.W))
 
     val data_out = Output(UInt(32.W))
-    val valid = Output(Bool())
+    val valid    = Output(Bool())
   })
 
   val read = Module(new PMemReadDPICWrapper)
+  read.io.clock := clock
   read.io.addr := io.addr
   read.io.en   := io.read_enable && !reset.asBool
   io.data_out  := read.io.out
 
   val write = Module(new PMemWriteDPICWrapper)
+  write.io.clock := clock
   write.io.addr := io.addr
   write.io.en   := io.write_enable && !reset.asBool
   write.io.data := io.write_data
