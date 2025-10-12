@@ -3,6 +3,7 @@
 
 #define CONFIG_ITRACE
 #define CONFIG_MTRACE
+// #define CONFIG_DIFFTEST
 // #define CONFIG_FTRACE
 
 #endif
