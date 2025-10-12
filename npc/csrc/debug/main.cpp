@@ -1,33 +1,7 @@
 #include <VTop.h>
 
-#include "trace.hpp"
-#include "macro.hpp"
-#include "disasm.hpp"
 #include "dut_proxy.hpp"
 #include "dpic.hpp"
-
-static uint64_t sim_time = 0;
-
-static void single_cycle()
-{
-    IFDEF(TRACE, tfp->dump(sim_time++));
-
-    dut.clock = 0;
-    dut.eval();
-
-    IFDEF(TRACE, tfp->dump(sim_time++));
-
-    dut.clock = 1;
-    dut.eval();
-}
-
-static void reset(int n)
-{
-    dut.reset = 1;
-    while (n-- > 0)
-        single_cycle();
-    dut.reset = 0;
-}
 
 int main(int argc, char* argv[])
 {
@@ -42,27 +16,21 @@ int main(int argc, char* argv[])
     bool no_cycle_limit = (cycles <= 0);
 
     init_memory(argv[2]);
-    init_disasm();
-    trace_init();
-    cpu.bind(&dut);
-    cycle_counter = 0;
 
-    reset(10);
+    SimHandle sim{};
+    sim.init_sim();
+
+    sim.reset(10);
 
     // Simulate
     printf("Simulation started...\n");
     while (no_cycle_limit || cycles-- > 0)
     {
-        single_cycle();
-        cycle_counter++;
-
-        // auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
-        // printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
+        sim.single_cycle();
     }
 
-    printf("Simulation terminated after %lu cycles\n", cycle_counter);
+    printf("Simulation terminated after %lu cycles\n", sim.get_cycles());
 
-    // clean up
-    trace_cleanup();
+    sim.cleanup();
     return 0;
 }
