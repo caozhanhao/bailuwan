@@ -16,6 +16,9 @@
 !README.md
 build/
 
+!libcapstone.so.5
+!riscv32-nemu-interpreter-so
+
 # mill
 !mill
 !*.mill

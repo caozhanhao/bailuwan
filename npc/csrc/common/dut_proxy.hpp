@@ -49,23 +49,23 @@ public:
     uint32_t reg(uint32_t idx);
 };
 
-// Byte * 1024 * 1024 * 512 Byte -> 512 MB
-#define DUT_MEMORY_MAXSIZE (1024 * 1024 * 512)
-#define IO_SPACE_MAX (32 * 1024 * 1024)
-
+#define PMEM_LEFT  ((uint32_t)CONFIG_MBASE)
+#define PMEM_RIGHT ((uint32_t)CONFIG_MBASE + CONFIG_MSIZE - 1)
+#define RESET_VECTOR PMEM_LEFT
 struct DUTMemory
 {
     uint32_t* data{};
     size_t size{};
-    uint32_t addr_base = 0x80000000u;
 
-    void init(const std::string& filename, uint32_t addr_base_);
+    void init(const std::string& filename);
     void destroy();
 
     uint32_t read(uint32_t raddr);
     void write(uint32_t waddr, uint32_t wdata, char wmask);
 
-    bool in_bound(uint32_t addr);
+    bool in_pmem(uint32_t addr);
+    uint8_t* guest_to_host(uint32_t paddr) const;
+    uint32_t host_to_guest(uint8_t* haddr) const;
 };
 
 class SimHandle

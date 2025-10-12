@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include "dut_proxy.hpp"
 #include <iostream>
 #include <iomanip>
@@ -61,18 +62,16 @@ void CPUProxy::dump_registers(std::ostream& os)
     }
 }
 
-void DUTMemory::init(const std::string& filename, uint32_t addr_base_)
+void DUTMemory::init(const std::string& filename)
 {
-    addr_base = addr_base_;
-
     printf("Initializing memory from %s\n", filename.c_str());
     FILE* fp = fopen(filename.c_str(), "rb");
     assert(fp);
 
-    data = static_cast<uint32_t*>(malloc(DUT_MEMORY_MAXSIZE));
-    memset(data, 0, DUT_MEMORY_MAXSIZE);
+    data = static_cast<uint32_t*>(malloc(CONFIG_MSIZE));
+    memset(data, 0, CONFIG_MSIZE);
 
-    size_t bytes_read = fread(data, 1, DUT_MEMORY_MAXSIZE, fp);
+    size_t bytes_read = fread(data, 1, CONFIG_MSIZE, fp);
     if (bytes_read == 0)
     {
         if (ferror(stdin))
@@ -83,7 +82,7 @@ void DUTMemory::init(const std::string& filename, uint32_t addr_base_)
         }
     }
 
-    size = DUT_MEMORY_MAXSIZE;
+    size = CONFIG_MSIZE;
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
@@ -100,8 +99,7 @@ void DUTMemory::destroy()
         free(data);
     data = nullptr;
 }
-#define RTC_MMIO 0xa0000048
-#define SERIAL_PORT_MMIO 0x10000000
+
 uint32_t DUTMemory::read(uint32_t raddr)
 {
     auto uaddr = static_cast<uint32_t>(raddr);
@@ -140,12 +138,8 @@ uint32_t DUTMemory::read(uint32_t raddr)
         assert(false);
     }
 
-
     // Memory
-    uaddr -= addr_base;
-    uint32_t idx = uaddr / 4u;
-
-    if (idx >= size)
+    if (!in_pmem(uaddr))
     {
         auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
@@ -153,7 +147,7 @@ uint32_t DUTMemory::read(uint32_t raddr)
         exit(-1);
     }
 
-    return data[idx];
+    return *reinterpret_cast<uint32_t*>(guest_to_host(uaddr));
 }
 
 void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
@@ -170,10 +164,7 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
     }
 
     // Memory
-    uaddr -= addr_base;
-    uint32_t idx = uaddr / 4;
-
-    if (idx >= size)
+    if (!in_pmem(uaddr))
     {
         auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, waddr = 0x%08x\n", cpu.pc(), waddr);
@@ -181,27 +172,28 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
         exit(-1);
     }
 
-    uint32_t cur = data[idx];
-    uint32_t newv = cur;
-    uint32_t wd = static_cast<uint32_t>(wdata);
-    uint8_t mask = static_cast<uint8_t>(wmask);
-
-    for (int i = 0; i < 4; ++i)
+    auto haddr = guest_to_host(uaddr);
+    uint8_t* u8data = reinterpret_cast<uint8_t*>(&wdata);
+    for (int i = 0; i < 4; i++)
     {
-        if (mask & (1u << i))
-        {
-            uint32_t byte_mask = 0xFFu << (i * 8);
-            uint32_t src_byte = (wd >> (i * 8)) & 0xFFu;
-            newv = (newv & ~byte_mask) | (src_byte << (i * 8));
-        }
+        if (wmask & (1 << i))
+            haddr[i] = u8data[i];
     }
-
-    data[idx] = newv;
 }
 
-bool DUTMemory::in_bound(uint32_t addr)
+bool DUTMemory::in_pmem(uint32_t addr)
 {
-    return ((addr - addr_base) / 4 < size) || (addr >= RTC_MMIO && addr <= RTC_MMIO + 28);
+    return addr - CONFIG_MBASE < CONFIG_MSIZE;
+}
+
+uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
+{
+    return reinterpret_cast<uint8_t*>(data) + paddr - CONFIG_MBASE;
+}
+
+uint32_t DUTMemory::host_to_guest(uint8_t* haddr) const
+{
+    return haddr - reinterpret_cast<uint8_t*>(data) + CONFIG_MBASE;
 }
 
 void SimHandle::init_trace()

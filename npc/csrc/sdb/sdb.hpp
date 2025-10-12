@@ -16,6 +16,10 @@
 // CPU
 void cpu_exec(uint64_t n);
 
+// Difftest
+void difftest_step();
+void init_difftest();
+
 // ISA
 void isa_reg_display();
 word_t isa_reg_str2val(const char *s, bool *success);
@@ -59,5 +63,4 @@ extern int sdb_halt_ret;
   } while (0)
 
 #define panic(format, ...) Assert(0, format, ## __VA_ARGS__)
-
 #endif

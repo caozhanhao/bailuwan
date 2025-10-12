@@ -23,7 +23,7 @@ static void trace_and_difftest() {
         printf("FTRACE: %s\n", buf);
 #endif
 
-    IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+    IFDEF(CONFIG_DIFFTEST, difftest_step());
 
     wp_update();
 }
