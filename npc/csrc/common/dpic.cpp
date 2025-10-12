@@ -36,8 +36,8 @@ int pmem_read(int raddr)
         uint32_t lo = sec & 0xffffffff;
         uint32_t hi = sec >> 32;
         if (uaddr == RTC_MMIO)
-            return static_cast<uint64_t>(lo);
-        return static_cast<uint64_t>(hi);
+            return lo;
+        return hi;
     }
     if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
     {
