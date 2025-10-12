@@ -78,5 +78,5 @@ class DPICMem extends Module {
   write.io.data := io.write_data
   write.io.mask := io.write_mask
 
-  io.valid := true.B
+  io.valid := read.io.en
 }
