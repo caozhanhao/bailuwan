@@ -39,6 +39,7 @@ struct DUTMemory
     size_t size{};
 
     void init(const std::string& filename);
+    void destroy();
 };
 
 class SimHandle

@@ -104,6 +104,14 @@ void DUTMemory::init(const std::string& filename)
     fclose(fp);
 }
 
+void DUTMemory::destroy()
+{
+    if (data)
+        free(data);
+    data = nullptr;
+}
+
+
 void SimHandle::init_sim(const std::string& filename)
 {
     memory.init(filename.c_str());
@@ -116,9 +124,7 @@ void SimHandle::init_sim(const std::string& filename)
 void SimHandle::cleanup()
 {
     cleanup_trace();
-
-    if (memory.data)
-        free(memory.data);
+    memory.destroy();
 }
 
 void SimHandle::single_cycle()
