@@ -68,6 +68,7 @@ VERILATOR = verilator
 ### Compilation flags
 INC_PATH += $(abspath ./csrc/common/)
 CSRCS += $(shell find $(abspath ./csrc/common) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+HEADERS += $(shell find $(abspath ./csrc/common) -name "*.h" -or -name "*.hpp")
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
 INCFLAGS = $(addprefix -I, $(INC_PATH))
@@ -93,7 +94,7 @@ $(VERILOG_STAMP): $(SCALASRCS)
 	@touch $@
 
 
-$(BIN): $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
+$(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(LINKAGE) \
