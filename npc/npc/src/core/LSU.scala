@@ -24,8 +24,8 @@ class LSU extends Module {
   )
   val read_enable  = io.lsu_op =/= LSUOp.None && !write_enable
 
-  val write_enable_pulse = write_enable && !RegNext(write_enable, init = false.B)
-  val read_enable_pulse = read_enable && !RegNext(read_enable, init = false.B)
+  val write_enable_pulse = write_enable && !RegNext(write_enable, false.B)
+  val read_enable_pulse = read_enable && !RegNext(read_enable, false.B)
 
   val write_mask = MuxLookup(io.lsu_op, 0.U(8.W))(
     Seq(
