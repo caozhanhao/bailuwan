@@ -12,6 +12,7 @@ static void trace_and_difftest() {
 
     auto& cpu = sim_handle.get_cpu();
     auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
+#define CONFIG_ITRACE
     IFDEF(CONFIG_ITRACE, Log("%s", str.c_str()));
 
 #ifdef CONFIG_FTRACE
@@ -42,7 +43,6 @@ static void execute(uint64_t n)
             sdb_state = SDBState::End;
         }
 
-        IFDEF(CONFIG_ITRACE,printf("cycle: %lu\n", sim_handle.get_cycles()));
         trace_and_difftest();
 
         if (sdb_state != SDBState::Running) break;
