@@ -300,9 +300,6 @@ void sdb_mainloop()
 
 int main(int argc, char* argv[])
 {
-#define CONFIG_ITRACE
-    static_assert(MUXDEF(CONFIG_ITRACE, 1, 2) == 1);
-
     init_regex();
     init_wp_pool();
 
