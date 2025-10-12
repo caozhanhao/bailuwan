@@ -20,7 +20,7 @@ void ebreak_handler()
 int pmem_read(int raddr)
 {
     uint32_t idx = (static_cast<uint32_t>(raddr) & ~0x3u) / 4u;
-    if (idx >= DUT_MEMORY_SIZE)
+    if (idx >= dut_memory_size)
     {
         printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
         cpu.dump_registers(std::cerr);
@@ -33,7 +33,7 @@ void pmem_write(int waddr, int wdata, char wmask)
 {
     uint32_t idx = (static_cast<uint32_t>(waddr) & ~0x3u) / 4;
 
-    if (idx >= DUT_MEMORY_SIZE)
+    if (idx >= dut_memory_size)
     {
         printf("Out of bound memory access at PC = 0x%08x, waddr = 0x%08x\n", cpu.pc(), waddr);
         cpu.dump_registers(std::cerr);
@@ -65,10 +65,10 @@ void init_memory(const char* filename)
     FILE* fp = fopen(filename, "rb");
     assert(fp);
 
-    dut_memory = static_cast<uint32_t*>(malloc(DUT_MEMORY_SIZE));
-    memset(dut_memory, 0, DUT_MEMORY_SIZE);
+    dut_memory = static_cast<uint32_t*>(malloc(DUT_MEMORY_MAXSIZE));
+    memset(dut_memory, 0, DUT_MEMORY_MAXSIZE);
 
-    size_t bytes_read = fread(dut_memory, 1, DUT_MEMORY_SIZE, fp);
+    size_t bytes_read = fread(dut_memory, 1, DUT_MEMORY_MAXSIZE, fp);
     if (bytes_read == 0)
     {
         if (ferror(stdin))
@@ -78,6 +78,8 @@ void init_memory(const char* filename)
             exit(-1);
         }
     }
+
+    dut_memory_size = DUT_MEMORY_MAXSIZE;
 
     printf("Read %zu bytes from %s\n", bytes_read, filename);
 
