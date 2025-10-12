@@ -23,11 +23,13 @@ int main(int argc, char* argv[])
 
     // Simulate
     printf("Simulation started...\n");
+    auto& cpu = sim_handle.get_cpu();
     while (no_cycle_limit || cycles-- > 0)
     {
         sim_handle.single_cycle();
 
-        // printf("%s\n", disasm.disassemble(sim_handle.get_cpu().pc(), sim_handle.get_cpu().curr_inst()).c_str());
+        auto inst = disasm.disassemble(cpu.pc(), cpu.curr_inst());
+        printf("%s\n", inst.c_str());
     }
 
     printf("Simulation terminated after %lu cycles\n", sim_handle.get_cycles());
