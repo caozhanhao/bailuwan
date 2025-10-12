@@ -53,10 +53,10 @@ int main(int argc, char* argv[])
     printf("Simulation started...\n");
     while (no_cycle_limit || cycles-- > 0)
     {
+        single_cycle();
+
         auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
         printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
-
-        single_cycle();
         cycle_counter++;
     }
 
