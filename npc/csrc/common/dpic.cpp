@@ -15,7 +15,14 @@ void ebreak_handler()
     printf("ebreak after %lu cycles\n", cycle_counter);
     trace_cleanup();
     cpu.dump_registers(std::cerr);
-    exit(cpu.reg(10));
+
+    auto a0 = cpu.reg(10);
+    if (a0 == 0)
+        printf("\33[1;32mHIT GOOD TRAP\33[0m\n");
+    else
+        printf("\33[1;41mHIT BAD TRAP\33[0m, a0=%d\n", a0);
+
+    exit(a0);
 }
 
 int pmem_read(int raddr)
