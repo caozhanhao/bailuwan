@@ -49,9 +49,9 @@ int pmem_read(int raddr)
         case 20:
             return now->tm_mday;
         case 24:
-            return now->tm_mon;
+            return now->tm_mon + 1;
         case 28:
-            return now->tm_year;
+            return now->tm_year + 1900;
         default: assert(false);
         }
         assert(false);
