@@ -14,7 +14,6 @@ void ebreak_handler()
 {
     printf("ebreak after %lu cycles\n", cycle_counter);
     trace_cleanup();
-    cpu.dump_registers(std::cerr);
 
     auto a0 = cpu.reg(10);
     if (a0 == 0)
@@ -96,9 +95,9 @@ void init_memory(const char* filename)
 
     printf("Read %zu bytes from %s\n", bytes_read, filename);
 
-    printf("First 32 bytes:\n");
-    for (int i = 0; i < 4; i++)
-        printf("%08x: %08x\n", i * 4, dut_memory[i]);
+    // printf("First 32 bytes:\n");
+    // for (int i = 0; i < 4; i++)
+    //     printf("%08x: %08x\n", i * 4, dut_memory[i]);
 
     // ebreak for sum
     // dut_memory[0x224 / 4] = 0b00000000000100000000000001110011;
