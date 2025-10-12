@@ -23,13 +23,13 @@ void ebreak_handler()
 int pmem_read(int raddr)
 {
     auto ret = sim_handle.get_memory().read(raddr);
-    IFDEF(CONFIG_MTRACE, printf("read addr = %x, data = %x\n", raddr, ret));
+    IFDEF(CONFIG_MTRACE, printf("read addr = 0x%08x, data = 0x%08x\n", raddr, ret));
     return ret;
 }
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
-    IFDEF(CONFIG_MTRACE, printf("write addr = %x, data = %x, mask = %x\n", waddr, wdata, wmask));
+    IFDEF(CONFIG_MTRACE, printf("write addr = 0x%08x, data = 0x%08x, mask = 0x%x\n", waddr, wdata, wmask));
     sim_handle.get_memory().write(waddr, wdata, wmask);
 }
 }
