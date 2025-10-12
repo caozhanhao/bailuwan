@@ -299,7 +299,8 @@ void sdb_mainloop()
     }
 }
 
-int is_exit_status_bad() {
+int is_exit_status_bad()
+{
     int good = (sdb_state == SDBState::End && sdb_halt_ret == 0) || (sdb_state == SDBState::Quit);
     return !good;
 }
