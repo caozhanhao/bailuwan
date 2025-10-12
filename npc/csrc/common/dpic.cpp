@@ -8,6 +8,7 @@
 
 extern "C" {
 uint32_t* dut_memory;
+size_t dut_memory_size;
 
 void ebreak_handler()
 {

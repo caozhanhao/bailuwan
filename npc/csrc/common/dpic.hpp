@@ -8,7 +8,7 @@
 
 extern "C" {
     extern uint32_t* dut_memory;
-    extern uint32_t dut_memory_size;
+    extern size_t dut_memory_size;
 }
 
 void init_memory(const char *filename);
