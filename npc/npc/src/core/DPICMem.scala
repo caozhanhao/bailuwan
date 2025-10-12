@@ -40,13 +40,14 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
     "PMemWriteDPICWrapper.sv",
     """
       |module PMemWriteDPICWrapper(
+      |  input clock,
       |  input en,
       |  input int addr,
       |  input int data,
       |  input byte mask
       |);
       |  import "DPI-C" function void pmem_write(input int addr, input int data, input byte mask);
-      |  always @(*) begin
+      |  always @(posedge clock) begin
       |    if (en)
       |      pmem_write(addr, data, mask);
       |  end

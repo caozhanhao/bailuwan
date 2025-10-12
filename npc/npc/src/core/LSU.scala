@@ -24,9 +24,6 @@ class LSU extends Module {
   )
   val read_enable  = io.lsu_op =/= LSUOp.None && !write_enable
 
-  val write_enable_pulse = write_enable && !RegNext(write_enable, false.B)
-  val read_enable_pulse = read_enable && !RegNext(read_enable, false.B)
-
   val write_mask = MuxLookup(io.lsu_op, 0.U(8.W))(
     Seq(
       LSUOp.SB -> (0x1.U(8.W) << io.addr(1, 0)).asUInt,
@@ -72,8 +69,8 @@ class LSU extends Module {
   )
 
   mem.io.addr         := io.addr
-  mem.io.read_enable  := read_enable_pulse
-  mem.io.write_enable := write_enable_pulse
+  mem.io.read_enable  := read_enable
+  mem.io.write_enable := write_enable
   mem.io.write_mask   := write_mask
   mem.io.write_data   := selected_store_data
   io.read_data        := selected_loaded_data
