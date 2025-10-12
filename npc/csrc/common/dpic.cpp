@@ -22,6 +22,8 @@ void ebreak_handler()
 #define RTC_MMIO 0xa0000048
 int pmem_read(int raddr)
 {
+    printf("addr: %x\n", raddr);
+
     // Clock
     if (raddr == RTC_MMIO || raddr == RTC_MMIO + 4)
     {
@@ -52,7 +54,7 @@ int pmem_read(int raddr)
 void pmem_write(int waddr, int wdata, char wmask)
 {
     // Serial port
-    printf("addr: %x, data: %x, mask: %x\n", waddr, wdata, wmask);
+    // printf("addr: %x, data: %x, mask: %x\n", waddr, wdata, wmask);
     if (waddr == 0x10000000 && wmask == 1)
     {
         putchar(wdata);
