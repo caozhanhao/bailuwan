@@ -8,9 +8,9 @@ void __am_timer_init() {
 #define RTC_READ(offset) *(volatile uint32_t*)(RTC_MMIO + offset)
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
-  uint32_t hi = RTC_READ(4);
   uint32_t lo = RTC_READ(0);
-  uptime->us = ((uint64_t)hi << 32) | lo;
+  uint32_t hi = RTC_READ(4);
+  uptime->us = lo;
 }
 
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {
