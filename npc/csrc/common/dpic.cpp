@@ -27,8 +27,7 @@ int pmem_read(int raddr)
     {
         printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
         cpu.dump_registers(std::cerr);
-        return 0;
-        // exit(-1);
+        exit(-1);
     }
     return dut_memory[idx];
 }
@@ -44,8 +43,7 @@ void pmem_write(int waddr, int wdata, char wmask)
     {
         printf("Out of bound memory access at PC = 0x%08x, waddr = 0x%08x\n", cpu.pc(), waddr);
         cpu.dump_registers(std::cerr);
-        return;
-        // exit(-1);
+        exit(-1);
     }
 
     uint32_t cur = dut_memory[idx];
