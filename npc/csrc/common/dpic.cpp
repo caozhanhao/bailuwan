@@ -33,7 +33,7 @@ int pmem_read(int raddr)
         auto now = std::chrono::high_resolution_clock::now();
         auto delta = now - sim_handle.get_boot_time();
         auto sec = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(delta).count());
-        printf("RTC: %lu\n", sec);
+        printf("RTC: %lu\n", sec & 0xffffffff);
         if (uaddr == RTC_MMIO)
             return sec & 0xffffffff;
         return sec >> 32;
