@@ -367,8 +367,10 @@ int main(int argc, char* argv[])
     IFDEF(CONFIG_DIFFTEST, init_difftest(sim_handle.get_memory().img_size));
 
 
-    if (img_file)
-        IFDEF(CONFIG_FTRACE, init_ftrace(img_file));
+    if (elf_file)
+    {
+        IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
+    }
 
     sdb_mainloop();
 
