@@ -117,7 +117,7 @@ int isa_ftrace_dump(char* buf, size_t buf_size)
 
 
     // jal
-    if ((inst & 0x7f) == 0b1101111)
+    if (BITS(inst, 6, 0) == 0b1101111)
     {
         int rd = BITS(inst, 11, 7);
         int rs1 = BITS(inst, 19, 15);
@@ -127,7 +127,7 @@ int isa_ftrace_dump(char* buf, size_t buf_size)
     }
 
     // jalr
-    if ((inst & 0x7f) == 0b1100111)
+    if (BITS(inst, 6, 0) == 0b1100111 && BITS(inst, 14, 12) == 0)
     {
         int rd = BITS(inst, 11, 7);
         int rs1 = BITS(inst, 19, 15);

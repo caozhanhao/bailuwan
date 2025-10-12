@@ -17,7 +17,7 @@ static void trace_and_difftest() {
 #endif
 
 #ifdef CONFIG_FTRACE
-    char buf[1024];
+    char buf[512];
     int ret = isa_ftrace_dump(buf, sizeof(buf));
     if (ret == 0)
         printf("FTRACE: %s\n", buf);
