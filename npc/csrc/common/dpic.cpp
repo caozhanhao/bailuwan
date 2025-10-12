@@ -20,6 +20,8 @@ void ebreak_handler()
 }
 
 #define RTC_MMIO 0xa0000048
+#define SERIAL_MMIO 0x10000000
+
 int pmem_read(int raddr)
 {
     auto uaddr = static_cast<uint32_t>(raddr);
@@ -56,8 +58,8 @@ void pmem_write(int waddr, int wdata, char wmask)
     auto uaddr = static_cast<uint32_t>(waddr);
     uaddr &= ~0x3u;
 
-    // Serial port
-    if (uaddr == 0x10000000 && wmask == 1)
+    // Serial
+    if (uaddr == SERIAL_MMIO && wmask == 1)
     {
         putchar(wdata);
         fflush(stdout);
