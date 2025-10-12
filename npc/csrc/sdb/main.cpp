@@ -320,10 +320,11 @@ int main(int argc, char* argv[])
     }
 
     sim_handle.init_sim(argv[1]);
+    sim_handle.reset(10);
 
+    // ATTENTION: Initialize difftest after the dut reset.
     IFDEF(CONFIG_DIFFTEST, init_difftest(sim_handle.get_memory().img_size));
 
-    sim_handle.reset(10);
 
     if (argc == 3)
     {
