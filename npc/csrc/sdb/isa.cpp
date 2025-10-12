@@ -49,3 +49,80 @@ word_t isa_reg_str2val(const char* s, bool* success)
     *success = false;
     return 0;
 }
+
+static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
+{
+    // call:
+    //   jal  ra, imm        ->  s->dnpc = s->pc + imm;
+    //   jalr ra, rs1, imm   ->  s->dnpc = (src1 + imm) & ~1
+    // tail:
+    //   jalr x0, x6, imm
+    bool is_call = rd == 1 || (rd == 0 && rs1 != 1);
+
+    // ret:
+    //   jalr x0, ra, 0
+    bool is_ret = rd == 0 && rs1 == 1 && imm == 0;
+
+    if (!is_call && !is_ret)
+    {
+        Log("Unrecognized jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
+        return -1;
+    }
+    if (is_call && is_ret)
+    {
+        Log("Ambiguous jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
+        return -1;
+    }
+
+    static int depth = 0;
+    depth = is_call ? depth + 1 : depth - 1;
+
+    auto pc = sim_handle.get_cpu().pc();
+    auto dnpc = sim_handle.get_cpu().dnpc();
+
+    if (is_call)
+    {
+        const char* callee = ftrace_search(dnpc);
+        snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d",
+                 pc, depth * 2, "", rd == 1 ? "call" : "tail", callee, dnpc, depth);
+    }
+    else if (is_ret)
+    {
+        const char* callee = ftrace_search(pc);
+        snprintf(buf, buf_size, FMT_WORD ": %*sret [%s], depth=%d",
+                 pc, (depth + 1) * 2, "", callee, depth + 1);
+    }
+    else
+    {
+        panic("Unreachable");
+    }
+
+    return 0;
+}
+
+int isa_ftrace_dump(char* buf, size_t buf_size)
+{
+    auto inst = sim_handle.get_cpu().curr_inst();
+
+
+    // jal
+    if ((inst & 0x7f) == 0b1101111)
+    {
+        int rd = BITS(inst, 11, 7);
+        int rs1 = BITS(inst, 19, 15);
+        word_t imm = (SEXT(BITS(inst, 31, 31), 1) << 20) | (BITS(inst, 19, 12) << 12) | (BITS(inst, 20, 20) << 11) | (
+            BITS(inst, 30, 21) << 1);
+        return ftrace_dump(rd, rs1, imm, buf, buf_size);
+    }
+
+    // jalr
+    if ((inst & 0x7f) == 0b1100111)
+    {
+        int rd = BITS(inst, 11, 7);
+        int rs1 = BITS(inst, 19, 15);
+        word_t imm = SEXT(BITS(inst, 31, 20), 12);
+        return ftrace_dump(rd, rs1, imm, buf, buf_size);
+    }
+
+    return -2;
+}

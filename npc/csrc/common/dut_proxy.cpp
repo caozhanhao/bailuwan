@@ -27,6 +27,7 @@ void CPUProxy::bind(TOP_NAME* this_dut)
 #undef BIND
 
     pc_binding = &this_dut->io_pc;
+    dnpc_binding = &this_dut->io_dnpc;
     inst_binding = &this_dut->io_inst;
 }
 
@@ -38,6 +39,11 @@ uint32_t CPUProxy::curr_inst()
 uint32_t CPUProxy::pc()
 {
     return *pc_binding;
+}
+
+uint32_t CPUProxy::dnpc()
+{
+    return *dnpc_binding;
 }
 
 uint32_t CPUProxy::reg(uint32_t idx)

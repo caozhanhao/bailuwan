@@ -18,12 +18,9 @@ static void trace_and_difftest() {
 
 #ifdef CONFIG_FTRACE
     char buf[256];
-    int ret = isa_ftrace_dump(_this, buf, sizeof(buf));
-    if (ret == 0) {
-        log_write("FTRACE: %s\n", buf);
-        if (g_print_step)
-            printf("FTRACE: %s\n", buf);
-    }
+    int ret = isa_ftrace_dump(buf, sizeof(buf));
+    if (ret == 0)
+        printf("FTRACE: %s\n", buf);
 #endif
 
     IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));

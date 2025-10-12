@@ -306,14 +306,19 @@ int main(int argc, char* argv[])
     sdb_state = SDBState::Stop;
 
     // INIT
-    if (argc != 2)
+    if (argc != 2 && argc != 3)
     {
-        printf("Usage: %s [filename]\n", argv[0]);
+        printf("Usage: %s [filename] [ELF (optional)]\n", argv[0]);
         return -1;
     }
 
     sim_handle.init_sim(argv[1]);
     sim_handle.reset(10);
+
+    if (argc == 3)
+    {
+        IFDEF(CONFIG_FTRACE, init_ftrace(argv[2]));
+    }
 
     sdb_mainloop();
 

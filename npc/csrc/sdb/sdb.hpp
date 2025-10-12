@@ -19,6 +19,7 @@ void cpu_exec(uint64_t n);
 // ISA
 void isa_reg_display();
 word_t isa_reg_str2val(const char *s, bool *success);
+int isa_ftrace_dump(char* buf, size_t buf_size);
 
 // Expr
 void init_regex();
@@ -31,6 +32,10 @@ void wp_update();
 void wp_display();
 void wp_create(char* expr);
 void wp_delete(int NO);
+
+// FTrace
+void init_ftrace(const char* elf_file);
+const char* ftrace_search(uint32_t pc);
 
 enum class SDBState
 {
