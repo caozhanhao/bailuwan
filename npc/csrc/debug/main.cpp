@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
     {
         sim_handle.single_cycle();
 
-        printf("%s\n", disasm.disassemble(sim_handle.get_cpu().pc(), sim_handle.get_cpu().curr_inst()).c_str());
+        // printf("%s\n", disasm.disassemble(sim_handle.get_cpu().pc(), sim_handle.get_cpu().curr_inst()).c_str());
     }
 
     printf("Simulation terminated after %lu cycles\n", sim_handle.get_cycles());
