@@ -22,10 +22,11 @@ void ebreak_handler()
 #define RTC_MMIO 0xa0000048
 int pmem_read(int raddr)
 {
-    printf("addr: %x\n", raddr);
+    auto uaddr = static_cast<uint32_t>(raddr);
+    uaddr &= ~0x3u;
 
     // Clock
-    if (raddr == RTC_MMIO || raddr == RTC_MMIO + 4)
+    if (uaddr == RTC_MMIO || uaddr == RTC_MMIO + 4)
     {
         auto now = std::chrono::high_resolution_clock::now();
         auto delta = now - sim_handle.get_boot_time();
@@ -37,9 +38,8 @@ int pmem_read(int raddr)
     auto& mem = sim_handle.get_memory();
     auto& cpu = sim_handle.get_cpu();
 
-    auto uaddr = static_cast<uint32_t>(raddr);
     uaddr -= 0x80000000u;
-    uint32_t idx = (uaddr & ~0x3u) / 4u;
+    uint32_t idx = uaddr / 4u;
 
     if (idx >= mem.size)
     {
@@ -53,9 +53,11 @@ int pmem_read(int raddr)
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
+    auto uaddr = static_cast<uint32_t>(waddr);
+    uaddr &= ~0x3u;
+
     // Serial port
-    // printf("addr: %x, data: %x, mask: %x\n", waddr, wdata, wmask);
-    if (waddr == 0x10000000 && wmask == 1)
+    if (uaddr == 0x10000000 && wmask == 1)
     {
         putchar(wdata);
         fflush(stdout);
@@ -66,9 +68,8 @@ void pmem_write(int waddr, int wdata, char wmask)
     auto& mem = sim_handle.get_memory();
     auto& cpu = sim_handle.get_cpu();
 
-    auto uaddr = static_cast<uint32_t>(waddr);
     uaddr -= 0x80000000u;
-    uint32_t idx = (uaddr & ~0x3u) / 4;
+    uint32_t idx = uaddr / 4;
 
     if (idx >= mem.size)
     {
