@@ -32,12 +32,13 @@ int pmem_read(int raddr)
     {
         auto now = std::chrono::high_resolution_clock::now();
         auto delta = now - sim_handle.get_boot_time();
-        return delta.count() >> (uaddr - RTC_MMIO);
+        auto sec = std::chrono::duration_cast<std::chrono::seconds>(delta);
+        return sec.count() >> ((uaddr - RTC_MMIO) * 8);
     }
     if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
     {
         std::time_t t = std::time(nullptr);
-        std::tm* now = std::localtime(&t);
+        std::tm* now = std::gmtime(&t);
         switch (uaddr - RTC_MMIO)
         {
         case 8:
