@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <cassert>
+
 #include "utils/macro.hpp"
+#include "config.hpp"
 
 #define word_t uint32_t
 #define sword_t int32_t

@@ -1,7 +1,7 @@
 #include <VTop.h>
 
-#include "dut_proxy.hpp"
 #include "sdb.hpp"
+#include "dut_proxy.hpp"
 #include "utils/disasm.hpp"
 
 static void trace_and_difftest() {
