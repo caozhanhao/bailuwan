@@ -69,22 +69,26 @@ class DPICMem extends Module {
 
   val read = Module(new PMemReadDPICWrapper)
 
-//  val read_rising = io.read_enable && !RegNext(io.read_enable, false.B)
-//  val read_en = read_rising && !reset.asBool
-  val read_en = io.read_enable && !reset.asBool
-
+  val read_rising = io.read_enable && !RegNext(io.read_enable, false.B)
+  val read_en = read_rising && !reset.asBool
+//   val read_en = io.read_enable && !reset.asBool
+  val read_reg = RegInit(0.U(32.W))
+  read_reg := read.io.out
   read.io.en := read_en
   read.io.addr := io.addr
-  io.data_out  := read.io.out
+  io.data_out  := read_reg
 
   val write = Module(new PMemWriteDPICWrapper)
 
   val write_rising = io.write_enable && !RegNext(io.write_enable, false.B)
   val write_en = write_rising && !reset.asBool
 
+  val write_reg = RegInit(0.U(32.W))
+  write_reg := io.write_data
+
   write.io.addr := io.addr
   write.io.en   := write_en
-  write.io.data := io.write_data
+  write.io.data := write_reg
   write.io.mask := io.write_mask
 
   io.valid := read_en
