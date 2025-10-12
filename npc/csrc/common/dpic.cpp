@@ -52,7 +52,7 @@ int pmem_read(int raddr)
 void pmem_write(int waddr, int wdata, char wmask)
 {
     // Serial port
-    if (waddr == 0x10000000 && wmask == 1)
+    if (waddr == 0xa00003f8 && wmask == 1)
     {
         putchar(wdata);
         fflush(stdout);
