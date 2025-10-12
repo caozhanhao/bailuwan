@@ -15,6 +15,9 @@ static void single_cycle()
     dut.clock = 0;
     dut.eval();
 
+    auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
+    printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
+    
     IFDEF(TRACE, tfp->dump(sim_time++));
 
     dut.clock = 1;
@@ -54,10 +57,6 @@ int main(int argc, char* argv[])
     while (no_cycle_limit || cycles-- > 0)
     {
         single_cycle();
-
-        auto disasm = disassemble(cpu.pc(), cpu.curr_inst());
-        printf("0x%08x: %s\n", cpu.pc(), disasm.c_str());
-
         cycle_counter++;
     }
 
