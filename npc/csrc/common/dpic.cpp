@@ -34,6 +34,28 @@ int pmem_read(int raddr)
         auto delta = now - sim_handle.get_boot_time();
         return delta.count() >> (uaddr - RTC_MMIO);
     }
+    if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
+    {
+        std::time_t t = std::time(nullptr);
+        std::tm* now = std::localtime(&t);
+        switch (uaddr - RTC_MMIO)
+        {
+        case 8:
+            return now->tm_sec;
+        case 12:
+            return now->tm_min;
+        case 16:
+            return now->tm_hour;
+        case 20:
+            return now->tm_mday;
+        case 24:
+            return now->tm_mon;
+        case 28:
+            return now->tm_year;
+        default: assert(false);
+        }
+        assert(false);
+    }
 
 
     // Memory
