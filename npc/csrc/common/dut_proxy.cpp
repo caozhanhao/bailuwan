@@ -26,8 +26,8 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     BIND(15)
 #undef BIND
 
-    pc_binding = &dut.io_pc;
-    inst_binding = &dut.io_inst;
+    pc_binding = &this_dut->io_pc;
+    inst_binding = &this_dut->io_inst;
 }
 
 uint32_t CPUProxy::curr_inst()
@@ -114,11 +114,12 @@ void DUTMemory::destroy()
 
 void SimHandle::init_sim(const std::string& filename)
 {
-    memory.init(filename.c_str());
     cpu.bind(&dut);
-    init_trace();
     cycle_counter = 0;
     sim_time = 0;
+    init_trace();
+
+    memory.init(filename.c_str());
 }
 
 void SimHandle::cleanup()
@@ -129,7 +130,6 @@ void SimHandle::cleanup()
 
 void SimHandle::single_cycle()
 {
-    IFDEF(TRACE, assert(tfp));
     IFDEF(TRACE, tfp->dump(sim_time++));
 
     dut.clock = 0;

@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
     sim.init_sim(argv[2]);
     sim.reset(10);
 
-    Disassembler disasm;
+    Disassembler disasm{};
     disasm.init();
 
     // Simulate
