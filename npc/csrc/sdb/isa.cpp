@@ -88,9 +88,10 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
             Log("ftrace: Unknown function at " FMT_WORD, dnpc);
             return -1;
         }
+
+        printf("ftrace: %d", buf_size);
         snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d",
                  pc, depth * 2, "", rd == 1 ? "call" : "tail", callee, dnpc, depth);
-        printf("DEBUGL::::::%s\n", buf);
     }
     else if (is_ret)
     {
