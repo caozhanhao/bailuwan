@@ -18,9 +18,6 @@ int main(int argc, char* argv[])
     sim_handle.init_sim(argv[2]);
     sim_handle.reset(10);
 
-    Disassembler disasm{};
-    disasm.init();
-
     // Simulate
     printf("Simulation started...\n");
     auto& cpu = sim_handle.get_cpu();
@@ -34,9 +31,6 @@ int main(int argc, char* argv[])
         {
             exit(e.get_code());
         }
-
-        // auto inst = disasm.disassemble(cpu.pc(), cpu.curr_inst());
-        // printf("%s\n", inst.c_str());
     }
 
     printf("Simulation terminated after %lu cycles\n", sim_handle.get_cycles());

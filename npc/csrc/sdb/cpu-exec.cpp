@@ -4,6 +4,31 @@
 #include "sdb.hpp"
 #include "utils/disasm.hpp"
 
+static void trace_and_difftest() {
+    static Disassembler disasm;
+    static bool inited = false;
+    if (!inited)
+        disasm.init();
+
+    auto& cpu = sim_handle.get_cpu();
+    auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
+    IFDEF(CONFIG_ITRACE, Log("%s", str.c_str()));
+
+#ifdef CONFIG_FTRACE
+    char buf[256];
+    int ret = isa_ftrace_dump(_this, buf, sizeof(buf));
+    if (ret == 0) {
+        log_write("FTRACE: %s\n", buf);
+        if (g_print_step)
+            printf("FTRACE: %s\n", buf);
+    }
+#endif
+
+    IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
+    wp_update();
+}
+
 static void execute(uint64_t n)
 {
     for (; n > 0; n--)
@@ -16,6 +41,9 @@ static void execute(uint64_t n)
         {
             sdb_state = SDBState::End;
         }
+
+        trace_and_difftest();
+
         if (sdb_state != SDBState::Running) break;
     }
 }
