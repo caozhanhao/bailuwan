@@ -89,8 +89,8 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
             return -1;
         }
 
-        snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d",
-                 pc, depth * 2, "", rd == 1 ? "call" : "tail", callee, dnpc, depth);
+        snprintf(buf, buf_size, FMT_WORD ": %s%s [%s@" FMT_WORD "], depth=%d",
+                 pc, "  ", rd == 1 ? "call" : "tail", callee, dnpc, depth);
 
         std::string test = buf;
         printf("\n\n\n\nDumping buf:\n");
