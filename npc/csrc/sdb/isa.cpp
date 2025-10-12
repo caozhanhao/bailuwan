@@ -83,6 +83,7 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
     if (is_call)
     {
         const char* callee = ftrace_search(dnpc);
+        printf("%s\n\n\n\n", callee);
         if (callee == nullptr)
         {
             Log("ftrace: Unknown function at " FMT_WORD, dnpc);
