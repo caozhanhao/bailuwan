@@ -12,7 +12,7 @@ class IFU extends Module {
   val Mem = Module(new DPICMem)
 
   // Use a register to avoid reading invalid memory before pc inited.
-  val read_enable = RegInit(true.B)
+  val read_enable = RegNext(true.B)
 
   Mem.io.addr := io.pc
   Mem.io.read_enable := read_enable
