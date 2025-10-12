@@ -59,6 +59,9 @@ struct DUTMemory
 
     void init(const std::string& filename, uint32_t addr_base_);
     void destroy();
+
+    uint32_t read(uint32_t raddr);
+    void write(uint32_t waddr, uint32_t wdata, char wmask);
 };
 
 class SimHandle
