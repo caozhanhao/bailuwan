@@ -51,6 +51,15 @@ int pmem_read(int raddr)
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
+    // Serial port
+    if (waddr == 0x10000000)
+    {
+        putchar(wdata);
+        fflush(stdout);
+        return;
+    }
+
+    // Memory
     auto& mem = sim_handle.get_memory();
     auto& cpu = sim_handle.get_cpu();
 
