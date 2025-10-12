@@ -101,6 +101,7 @@ void difftest_step()
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
     checkregs(&ref_r);
+    Log("Diff ok");
 }
 #else
 void init_difftest()
