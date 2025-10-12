@@ -1,5 +1,5 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef COMMON_DUT_PROXY_HPP
+#define COMMON_DUT_PROXY_HPP
 
 #include "VTop.h"
 #include "utils/macro.hpp"
@@ -13,6 +13,23 @@
 #include "verilated_vcd_c.h"
 #define TFP_TYPE VerilatedVcdC
 #endif
+
+class EBreakException : public std::exception
+{
+    int code;
+
+public:
+    explicit EBreakException(int code_) : code(code_)
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return "EBreakException";
+    }
+
+    int get_code() const { return code; }
+};
 
 class CPUProxy
 {
@@ -33,12 +50,14 @@ public:
 // Byte * 1024 * 1024 * 512 Byte -> 512 MB
 #define DUT_MEMORY_MAXSIZE (1024 * 1024 * 512)
 #define IO_SPACE_MAX (32 * 1024 * 1024)
+
 struct DUTMemory
 {
     uint32_t* data{};
     size_t size{};
+    uint32_t addr_base = 0x80000000u;
 
-    void init(const std::string& filename);
+    void init(const std::string& filename, uint32_t addr_base_);
     void destroy();
 };
 
@@ -57,7 +76,7 @@ class SimHandle
 public:
     SimHandle() = default;
 
-    void init_sim(const std::string& filename);
+    void init_sim(const std::string& filename, uint32_t addr_base_ = 0x80000000u);
     void cleanup();
     void single_cycle();
     void reset(int n);
@@ -65,7 +84,7 @@ public:
     uint64_t get_cycles() const { return cycle_counter; }
     CPUProxy& get_cpu() { return cpu; }
     DUTMemory& get_memory() { return memory; }
-    const auto& get_boot_time() const  { return boot_time; }
+    const auto& get_boot_time() const { return boot_time; }
 };
 
 extern TOP_NAME dut;

@@ -55,26 +55,10 @@ void CPUProxy::dump_registers(std::ostream& os)
     }
 }
 
-void SimHandle::init_trace()
+void DUTMemory::init(const std::string& filename, uint32_t addr_base_)
 {
-#ifdef TRACE
-    tfp = new TFP_TYPE;
-    Verilated::traceEverOn(true);
-    dut.trace(tfp, 0);
-    tfp->open(TOSTRING(TRACE_FILENAME));
-#endif
-}
+    addr_base = addr_base_;
 
-void SimHandle::cleanup_trace()
-{
-#ifdef TRACE
-    tfp->close();
-    delete tfp;
-#endif
-}
-
-void DUTMemory::init(const std::string& filename)
-{
     printf("Initializing memory from %s\n", filename.c_str());
     FILE* fp = fopen(filename.c_str(), "rb");
     assert(fp);
@@ -111,15 +95,32 @@ void DUTMemory::destroy()
     data = nullptr;
 }
 
+void SimHandle::init_trace()
+{
+#ifdef TRACE
+    tfp = new TFP_TYPE;
+    Verilated::traceEverOn(true);
+    dut.trace(tfp, 0);
+    tfp->open(TOSTRING(TRACE_FILENAME));
+#endif
+}
 
-void SimHandle::init_sim(const std::string& filename)
+void SimHandle::cleanup_trace()
+{
+#ifdef TRACE
+    tfp->close();
+    delete tfp;
+#endif
+}
+
+void SimHandle::init_sim(const std::string& filename, uint32_t addr_base_)
 {
     cpu.bind(&dut);
     cycle_counter = 0;
     sim_time = 0;
     init_trace();
 
-    memory.init(filename.c_str());
+    memory.init(filename.c_str(), addr_base_);
 
     boot_time = std::chrono::high_resolution_clock::now();
 }

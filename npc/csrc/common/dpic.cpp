@@ -16,7 +16,7 @@ void ebreak_handler()
     else
         printf("\33[1;41mHIT BAD TRAP\33[0m, a0=%d\n", a0);
 
-    exit(a0);
+    throw EBreakException(static_cast<int>(a0));
 }
 
 #define RTC_MMIO 0xa0000048
@@ -65,7 +65,7 @@ int pmem_read(int raddr)
     auto& mem = sim_handle.get_memory();
     auto& cpu = sim_handle.get_cpu();
 
-    uaddr -= 0x80000000u;
+    uaddr -= sim_handle.get_memory().addr_base;
     uint32_t idx = uaddr / 4u;
 
     if (idx >= mem.size)
@@ -83,7 +83,7 @@ void pmem_write(int waddr, int wdata, char wmask)
     auto uaddr = static_cast<uint32_t>(waddr);
     uaddr &= ~0x3u;
 
-    // Serial
+    // Serial port
     if (uaddr == SERIAL_PORT_MMIO && wmask == 1)
     {
         putchar(wdata);
@@ -95,7 +95,7 @@ void pmem_write(int waddr, int wdata, char wmask)
     auto& mem = sim_handle.get_memory();
     auto& cpu = sim_handle.get_cpu();
 
-    uaddr -= 0x80000000u;
+    uaddr -= sim_handle.get_memory().addr_base;
     uint32_t idx = uaddr / 4;
 
     if (idx >= mem.size)

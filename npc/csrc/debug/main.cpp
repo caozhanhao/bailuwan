@@ -26,7 +26,14 @@ int main(int argc, char* argv[])
     auto& cpu = sim_handle.get_cpu();
     while (no_cycle_limit || cycles-- > 0)
     {
-        sim_handle.single_cycle();
+        try
+        {
+            sim_handle.single_cycle();
+        }
+        catch (EBreakException& e)
+        {
+            exit(e.get_code());
+        }
 
         // auto inst = disasm.disassemble(cpu.pc(), cpu.curr_inst());
         // printf("%s\n", inst.c_str());
