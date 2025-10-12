@@ -9,7 +9,6 @@ void __am_timer_init() {
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
   uint32_t lo = RTC_READ(0);
-  uint32_t hi = RTC_READ(4);
   uptime->us = lo;
 }
 
