@@ -27,7 +27,6 @@ int pmem_read(int raddr)
 
     auto& mem = sim_handle.get_memory();
     auto& cpu = sim_handle.get_cpu();
-    printf("memsize = %lu\n", mem.size);
 
     if (idx >= mem.size)
     {

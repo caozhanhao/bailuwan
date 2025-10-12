@@ -15,9 +15,8 @@ int main(int argc, char* argv[])
     int cycles = atoi(argv[1]);
     bool no_cycle_limit = (cycles <= 0);
 
-    SimHandle sim{};
-    sim.init_sim(argv[2]);
-    sim.reset(10);
+    sim_handle.init_sim(argv[2]);
+    sim_handle.reset(10);
 
     Disassembler disasm{};
     disasm.init();
@@ -26,13 +25,13 @@ int main(int argc, char* argv[])
     printf("Simulation started...\n");
     while (no_cycle_limit || cycles-- > 0)
     {
-        sim.single_cycle();
+        sim_handle.single_cycle();
 
-        printf("%s\n", disasm.disassemble(sim.get_cpu().pc(), sim.get_cpu().curr_inst()).c_str());
+        printf("%s\n", disasm.disassemble(sim_handle.get_cpu().pc(), sim_handle.get_cpu().curr_inst()).c_str());
     }
 
-    printf("Simulation terminated after %lu cycles\n", sim.get_cycles());
+    printf("Simulation terminated after %lu cycles\n", sim_handle.get_cycles());
 
-    sim.cleanup();
+    sim_handle.cleanup();
     return 0;
 }
