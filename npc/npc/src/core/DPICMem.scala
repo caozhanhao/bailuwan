@@ -31,22 +31,24 @@ class PMemReadDPICWrapper extends HasBlackBoxInline {
 
 class PMemWriteDPICWrapper extends HasBlackBoxInline {
   val io = IO(new Bundle {
-    val en   = Input(Bool())
-    val addr = Input(UInt(32.W))
-    val data = Input(UInt(32.W))
-    val mask = Input(UInt(8.W))
+    val clock = Input(Clock())
+    val en    = Input(Bool())
+    val addr  = Input(UInt(32.W))
+    val data  = Input(UInt(32.W))
+    val mask  = Input(UInt(8.W))
   })
   setInline(
     "PMemWriteDPICWrapper.sv",
     """
       |module PMemWriteDPICWrapper(
+      |  input clock,
       |  input en,
       |  input int addr,
       |  input int data,
       |  input byte mask
       |);
       |  import "DPI-C" function void pmem_write(input int addr, input int data, input byte mask);
-      |  always @(*) begin
+      |  always @(posedge clock) begin
       |    if (en)
       |      pmem_write(addr, data, mask);
       |  end
@@ -74,17 +76,12 @@ class DPICMem extends Module {
   read.io.addr := io.addr
   io.data_out  := read.io.out
 
-  val write = Module(new PMemWriteDPICWrapper)
-
-  val write_rising = io.write_enable && !RegNext(io.write_enable, false.B)
-  val write_en     = write_rising && !reset.asBool
-
-  val write_reg = RegInit(0.U(32.W))
-  write_reg := io.write_data
+  val write    = Module(new PMemWriteDPICWrapper)
+  val write_en = io.write_enable && !reset.asBool
 
   write.io.addr := io.addr
   write.io.en   := write_en
-  write.io.data := write_reg
+  write.io.data := io.write_data
   write.io.mask := io.write_mask
 
   io.valid := read_en
