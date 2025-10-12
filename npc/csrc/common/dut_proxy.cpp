@@ -136,20 +136,18 @@ uint32_t DUTMemory::read(uint32_t raddr)
 
 
     // Memory
-    auto& mem = sim_handle.get_memory();
-    auto& cpu = sim_handle.get_cpu();
-
-    uaddr -= sim_handle.get_memory().addr_base;
+    uaddr -= addr_base;
     uint32_t idx = uaddr / 4u;
 
-    if (idx >= mem.size)
+    if (idx >= size)
     {
+        auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
         cpu.dump_registers(std::cerr);
         exit(-1);
     }
 
-    return mem.data[idx];
+    return data[idx];
 }
 
 void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
@@ -166,20 +164,18 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
     }
 
     // Memory
-    auto& mem = sim_handle.get_memory();
-    auto& cpu = sim_handle.get_cpu();
-
-    uaddr -= sim_handle.get_memory().addr_base;
+    uaddr -= addr_base;
     uint32_t idx = uaddr / 4;
 
-    if (idx >= mem.size)
+    if (idx >= size)
     {
+        auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, waddr = 0x%08x\n", cpu.pc(), waddr);
         cpu.dump_registers(std::cerr);
         exit(-1);
     }
 
-    uint32_t cur = mem.data[idx];
+    uint32_t cur = data[idx];
     uint32_t newv = cur;
     uint32_t wd = static_cast<uint32_t>(wdata);
     uint8_t mask = static_cast<uint8_t>(wmask);
@@ -194,7 +190,7 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
         }
     }
 
-    mem.data[idx] = newv;
+    data[idx] = newv;
 }
 
 void SimHandle::init_trace()

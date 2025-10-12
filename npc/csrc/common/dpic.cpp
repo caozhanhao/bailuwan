@@ -21,11 +21,14 @@ void ebreak_handler()
 
 int pmem_read(int raddr)
 {
-    return sim_handle.get_memory().read(raddr);
+    auto ret = sim_handle.get_memory().read(raddr);
+    IFDEF(MTRACE, printf("read addr = %x, data = %x\n", raddr, ret));
+    return ret;
 }
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
+    IFDEF(MTRACE, printf("write addr = %x, data = %x, mask = %x\n", waddr, wdata, wmask));
     sim_handle.get_memory().write(waddr, wdata, wmask);
 }
 }
