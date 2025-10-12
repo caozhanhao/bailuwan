@@ -32,7 +32,7 @@ int pmem_read(int raddr)
     {
         auto now = std::chrono::high_resolution_clock::now();
         auto delta = now - sim_handle.get_boot_time();
-        return delta.count();
+        return delta.count() >> (uaddr - RTC_MMIO);
     }
 
 

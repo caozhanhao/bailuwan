@@ -3,8 +3,12 @@
 void __am_timer_init() {
 }
 
+#define RTC_MMIO 0xa0000048
+
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
-  uptime->us = 0;
+  uint32_t lo = *(volatile uint32_t*)RTC_MMIO;
+  uint32_t hi = *(volatile uint32_t*)(RTC_MMIO + 4);
+  uptime->us = ((uint64_t)hi << 32) | lo;
 }
 
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {
