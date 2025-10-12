@@ -129,6 +129,7 @@ void SimHandle::cleanup()
 
 void SimHandle::single_cycle()
 {
+    IFDEF(TRACE, assert(tfp));
     IFDEF(TRACE, tfp->dump(sim_time++));
 
     dut.clock = 0;
