@@ -99,7 +99,7 @@ void DUTMemory::init(const std::string& filename)
 
     printf("First 32 bytes:\n");
     for (int i = 0; i < 4; i++)
-        printf("%08x: %08x\n", i * 4, dut_memory[i]);
+        printf("%08x: %08x\n", i * 4, data[i]);
 
     fclose(fp);
 }
