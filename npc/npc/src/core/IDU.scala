@@ -49,7 +49,6 @@ class DecodedBundle extends Bundle {
 class IDU extends Module {
   val io = IO(new Bundle {
     val inst       = Input(UInt(32.W))
-    val inst_valid = Input(Bool())
     val decoded    = new DecodedBundle
   })
 

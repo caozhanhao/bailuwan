@@ -57,31 +57,27 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
 
 class DPICMem extends Module {
   val io = IO(new Bundle {
-    val addr = Input(UInt(32.W))
-    val read_enable = Input(Bool())
+    val addr         = Input(UInt(32.W))
+    val read_enable  = Input(Bool())
     val write_enable = Input(Bool())
-    val write_mask = Input(UInt(8.W))
-    val write_data = Input(UInt(32.W))
+    val write_mask   = Input(UInt(8.W))
+    val write_data   = Input(UInt(32.W))
 
     val data_out = Output(UInt(32.W))
-    val valid = Output(Bool())
+    val valid    = Output(Bool())
   })
 
-  val read = Module(new PMemReadDPICWrapper)
+  val read    = Module(new PMemReadDPICWrapper)
+  val read_en = io.read_enable && !reset.asBool
 
-  val read_rising = io.read_enable && !RegNext(io.read_enable, false.B)
-  val read_en = read_rising && !reset.asBool
-
-  val read_reg = RegInit(0.U(32.W))
-  read_reg := read.io.out
-  read.io.en := read_en
+  read.io.en   := read_en
   read.io.addr := io.addr
-  io.data_out  := read_reg
+  io.data_out  := read.io.out
 
   val write = Module(new PMemWriteDPICWrapper)
 
   val write_rising = io.write_enable && !RegNext(io.write_enable, false.B)
-  val write_en = write_rising && !reset.asBool
+  val write_en     = write_rising && !reset.asBool
 
   val write_reg = RegInit(0.U(32.W))
   write_reg := io.write_data
@@ -91,5 +87,5 @@ class DPICMem extends Module {
   write.io.data := write_reg
   write.io.mask := io.write_mask
 
-  io.valid := RegNext(read_en)
+  io.valid := read_en
 }
