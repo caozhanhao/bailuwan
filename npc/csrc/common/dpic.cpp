@@ -20,8 +20,9 @@ void ebreak_handler()
 
 int pmem_read(int raddr)
 {
-    raddr -= 0x80000000;
-    uint32_t idx = (static_cast<uint32_t>(raddr) & ~0x3u) / 4u;
+    auto uaddr = static_cast<uint32_t>(raddr);
+    uaddr -= 0x80000000u;
+    uint32_t idx = (uaddr & ~0x3u) / 4u;
     if (idx >= dut_memory_size)
     {
         printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
@@ -33,9 +34,10 @@ int pmem_read(int raddr)
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
-    waddr -= 0x80000000;
+    auto uaddr = static_cast<uint32_t>(waddr);
+    uaddr -= 0x80000000u;
 
-    uint32_t idx = (static_cast<uint32_t>(waddr) & ~0x3u) / 4;
+    uint32_t idx = (uaddr & ~0x3u) / 4;
 
     if (idx >= dut_memory_size)
     {
