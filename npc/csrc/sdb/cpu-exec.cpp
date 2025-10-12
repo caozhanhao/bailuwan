@@ -13,7 +13,7 @@ static void trace_and_difftest() {
 #ifdef CONFIG_ITRACE
     auto& cpu = sim_handle.get_cpu();
     auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
-    printf("%s", str.c_str());
+    printf(FMT_WORD "%s\n", cpu.pc(), str.c_str());
 #endif
 
 #ifdef CONFIG_FTRACE

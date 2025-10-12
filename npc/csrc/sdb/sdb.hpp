@@ -11,7 +11,7 @@
 #define word_t uint32_t
 #define sword_t int32_t
 
-#define FMT_WORDx "0x%08" PRIx32
+#define FMT_WORD "0x%08" PRIx32
 
 // CPU
 void cpu_exec(uint64_t n);
