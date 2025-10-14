@@ -13,22 +13,24 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
-#ifndef __ISA_RISCV_H__
-#define __ISA_RISCV_H__
+#ifndef __RISCV_CSR_H__
+#define __RISCV_CSR_H__
 
 #include <common.h>
 
-typedef struct {
-  word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
-  vaddr_t pc;
-  word_t csr[4096];
-} MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
+static inline int check_csr_idx(int idx) {
+  IFDEF(CONFIG_RT_CHECK, assert(idx >= 0 && idx < 4096));
+  return idx;
+}
 
-// decode
-typedef struct {
-  uint32_t inst;
-} MUXDEF(CONFIG_RV64, riscv64_ISADecodeInfo, riscv32_ISADecodeInfo);
+#define cpu_csr(idx) (cpu.csr[check_csr_idx(idx)])
 
-#define isa_mmu_check(vaddr, len, type) (MMU_DIRECT)
+static inline const char* csr_name(int idx) {
+  extern const char* csr_names[];
+  const char* ret = csr_names[check_csr_idx(idx)];
+  if (ret == NULL)
+    ret = "unknown";
+  return ret;
+}
 
 #endif

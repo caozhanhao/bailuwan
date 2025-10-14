@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "local-include/csr.h"
 #include "local-include/reg.h"
 #include <cpu/cpu.h>
 #include <cpu/decode.h>
@@ -29,6 +30,8 @@ enum {
   TYPE_B,
   TYPE_U,
   TYPE_J,
+  TYPE_CSR,
+  TYPE_CSR_IMM,
   TYPE_N, // none
 };
 
@@ -61,8 +64,17 @@ enum {
     *imm =                                                                                                             \
         (SEXT(BITS(i, 31, 31), 1) << 20) | (BITS(i, 19, 12) << 12) | (BITS(i, 20, 20) << 11) | (BITS(i, 30, 21) << 1); \
   } while (0)
+#define immCSR()                                                                                                       \
+  do {                                                                                                                 \
+    *imm = BITS(i, 19, 15);                                                                                            \
+  } while (0)
+#define CSRAddr()                                                                                                      \
+  do {                                                                                                                 \
+    *csr = BITS(i, 31, 20);                                                                                            \
+  } while (0)
 
-static void decode_operand(Decode *s, int *rd, int *rs1, int *rs2, word_t *src1, word_t *src2, word_t *imm, int type) {
+static void decode_operand(Decode *s, int *rd, int *rs1, int *rs2, int *csr, word_t *src1, word_t *src2, word_t *imm,
+                           int type) {
   uint32_t i = s->isa.inst;
   *rs1 = BITS(i, 19, 15);
   *rs2 = BITS(i, 24, 20);
@@ -91,6 +103,14 @@ static void decode_operand(Decode *s, int *rd, int *rs1, int *rs2, word_t *src1,
     break;
   case TYPE_J:
     immJ();
+    break;
+  case TYPE_CSR:
+    src1R();
+    CSRAddr();
+    break;
+  case TYPE_CSR_IMM:
+    immCSR();
+    CSRAddr();
     break;
   case TYPE_N:
     break;
@@ -147,15 +167,39 @@ static word_t riscv_remu(word_t src1, word_t src2) {
   return src1 % src2;
 }
 
+static void riscv_csrrwi(int csr, word_t val, int rd) {
+  word_t oldval = cpu_csr(csr);
+  cpu_csr(csr) = val;
+  R(rd) = oldval;
+}
+
+static void riscv_csrrsi(int csr, word_t val, int rd) {
+  word_t oldval = cpu_csr(csr);
+  cpu_csr(csr) = oldval | val;
+  R(rd) = oldval;
+}
+
+static void riscv_csrrci(int csr, word_t val, int rd) {
+  word_t oldval = cpu_csr(csr);
+  cpu_csr(csr) = oldval & ~val;
+  R(rd) = oldval;
+}
+
+static void riscv_csrrw(int csr, int rs1, int rd) { riscv_csrrwi(csr, R(rs1), rd); }
+
+static void riscv_csrrs(int csr, int rs1, int rd) { riscv_csrrsi(csr, R(rs1), rd); }
+
+static void riscv_csrrc(int csr, int rs1, int rd) { riscv_csrrci(csr, R(rs1), rd); }
+
 static int decode_exec(Decode *s) {
   s->dnpc = s->snpc;
 
 #define INSTPAT_INST(s) ((s)->isa.inst)
 #define INSTPAT_MATCH(s, name, type, ... /* execute body */)                                                           \
   {                                                                                                                    \
-    int rd = 0, rs1 = 0, rs2 = 0;                                                                                      \
+    int rd = 0, rs1 = 0, rs2 = 0, csr = 0;                                                                             \
     word_t src1 = 0, src2 = 0, imm = 0;                                                                                \
-    decode_operand(s, &rd, &rs1, &rs2, &src1, &src2, &imm, concat(TYPE_, type));                                       \
+    decode_operand(s, &rd, &rs1, &rs2, &csr, &src1, &src2, &imm, concat(TYPE_, type));                                 \
     __VA_ARGS__;                                                                                                       \
   }
 
@@ -212,13 +256,22 @@ static int decode_exec(Decode *s) {
 
   // RV32M Standard Extension
   INSTPAT("0000001 ????? ????? 000 ????? 01100 11", mul, R, R(rd) = (int64_t)(sword_t)src1 * (int64_t)(sword_t)src2);
-  INSTPAT("0000001 ????? ????? 001 ????? 01100 11", mulh, R, R(rd) = ((int64_t)(sword_t)src1 * (int64_t)(sword_t)src2) >> 32);
+  INSTPAT("0000001 ????? ????? 001 ????? 01100 11", mulh, R,
+          R(rd) = ((int64_t)(sword_t)src1 * (int64_t)(sword_t)src2) >> 32);
   INSTPAT("0000001 ????? ????? 010 ????? 01100 11", mulhsu, R, R(rd) = ((int64_t)(sword_t)src1 * (uint64_t)src2) >> 32);
   INSTPAT("0000001 ????? ????? 011 ????? 01100 11", mulhu, R, R(rd) = ((uint64_t)src1 * (uint64_t)src2) >> 32);
   INSTPAT("0000001 ????? ????? 100 ????? 01100 11", div, R, R(rd) = riscv_div(src1, src2));
   INSTPAT("0000001 ????? ????? 101 ????? 01100 11", divu, R, R(rd) = riscv_divu(src1, src2));
   INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem, R, R(rd) = riscv_rem(src1, src2));
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu, R, R(rd) = riscv_remu(src1, src2));
+
+  // RV32/RV64 Zicsr Standard Extension
+  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw, CSR, riscv_csrrw(csr, rs1, rd));
+  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs, CSR, riscv_csrrs(csr, rs1, rd));
+  INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc, CSR, riscv_csrrc(csr, rs1, rd));
+  INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi, CSR_IMM, riscv_csrrwi(csr, imm, rd));
+  INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi, CSR_IMM, riscv_csrrsi(csr, imm, rd));
+  INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci, CSR_IMM, riscv_csrrci(csr, imm, rd));
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv, N, INV(s->pc));
   INSTPAT_END();
@@ -235,7 +288,7 @@ int isa_exec_once(Decode *s) {
 
 #ifdef CONFIG_FTRACE
 const char *ftrace_search(uint32_t pc);
-static int ftrace_dump(Decode *s, int rd, int rs1, word_t imm, char* buf, size_t buf_size) {
+static int ftrace_dump(Decode *s, int rd, int rs1, word_t imm, char *buf, size_t buf_size) {
   // call:
   //   jal  ra, imm        ->  s->dnpc = s->pc + imm;
   //   jalr ra, rs1, imm   ->  s->dnpc = (src1 + imm) & ~1
@@ -261,12 +314,11 @@ static int ftrace_dump(Decode *s, int rd, int rs1, word_t imm, char* buf, size_t
 
   if (is_call) {
     const char *callee = ftrace_search(s->dnpc);
-    snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d",
-      s->pc, depth * 2, "", rd == 1 ? "call" : "tail", callee, s->dnpc, depth);
+    snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d", s->pc, depth * 2, "",
+             rd == 1 ? "call" : "tail", callee, s->dnpc, depth);
   } else if (is_ret) {
     const char *callee = ftrace_search(s->pc);
-    snprintf(buf, buf_size,  FMT_WORD ": %*sret [%s], depth=%d",
-      s->pc, (depth + 1) * 2, "", callee, depth + 1);
+    snprintf(buf, buf_size, FMT_WORD ": %*sret [%s], depth=%d", s->pc, (depth + 1) * 2, "", callee, depth + 1);
   } else {
     panic("Unreachable");
   }
@@ -274,7 +326,7 @@ static int ftrace_dump(Decode *s, int rd, int rs1, word_t imm, char* buf, size_t
   return 0;
 }
 
-int isa_ftrace_dump(Decode *s, char* buf, size_t buf_size) {
+int isa_ftrace_dump(Decode *s, char *buf, size_t buf_size) {
   int ret = -2;
   INSTPAT_START();
 
