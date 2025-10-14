@@ -3,29 +3,30 @@ package core
 import chisel3._
 import chisel3.util._
 import constants._
+import top.CoreParams
 
-class WriteBackIn extends Bundle {
+class WriteBackIn(implicit p: CoreParams) extends Bundle {
   // Register File
   val src_type = UInt(ExecType.WIDTH)
-  val alu_out  = UInt(32.W)
-  val lsu_out  = UInt(32.W)
+  val alu_out  = UInt(p.XLEN.W)
+  val lsu_out  = UInt(p.XLEN.W)
 
   // PC
-  val snpc      = UInt(32.W)
+  val snpc      = UInt(p.XLEN.W)
   val br_taken  = Bool()
-  val br_target = UInt(32.W)
+  val br_target = UInt(p.XLEN.W)
 }
 
-class WriteBackOut extends Bundle {
+class WriteBackOut(implicit p: CoreParams) extends Bundle {
   // Register File
-  val rd_data = UInt(32.W)
+  val rd_data = UInt(p.XLEN.W)
 
   // PC
-  val dnpc = UInt(32.W)
+  val dnpc = UInt(p.XLEN.W)
 }
 
 
-class WBU extends Module {
+class WBU(implicit p: CoreParams) extends Module {
   val io = IO(new Bundle {
     val in  = Input(new WriteBackIn)
     val out = Output(new WriteBackOut)

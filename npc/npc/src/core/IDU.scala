@@ -3,7 +3,7 @@ package core
 import chisel3._
 import chisel3.util._
 import constants._
-
+import top.CoreParams
 import utils.Utils._
 
 object InstDecodeTable {
@@ -22,12 +22,12 @@ object InstDecodeTable {
     AUIPC  -> List(U, PC, Imm, T, ALUOp.Add, BrOp.None, LSUOp.None, ALU),
     JAL    -> List(J, PC, Four, T, ALUOp.Add, BrOp.JAL, LSUOp.None, ALU),
     JALR   -> List(I, PC, Four, T, ALUOp.Add, BrOp.JALR, LSUOp.None, ALU),
-    BEQ    -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BEQ, LSUOp.None, ALU),
-    BNE    -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BNE, LSUOp.None, ALU),
-    BLT    -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BLT, LSUOp.None, ALU),
-    BGE    -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BGE, LSUOp.None, ALU),
-    BLTU   -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BLTU, LSUOp.None, ALU),
-    BGEU   -> List(B, Zero, Zero, F, ALUOp.Add, BrOp.BGEU, LSUOp.None, ALU),
+    BEQ    -> List(B, Rs1, Rs2, F, ALUOp.Sub, BrOp.BEQ, LSUOp.None, ALU),
+    BNE    -> List(B, Rs1, Rs2, F, ALUOp.Sub, BrOp.BNE, LSUOp.None, ALU),
+    BLT    -> List(B, Rs1, Rs2, F, ALUOp.Slt, BrOp.BLT, LSUOp.None, ALU),
+    BGE    -> List(B, Rs1, Rs2, F, ALUOp.Slt, BrOp.BGE, LSUOp.None, ALU),
+    BLTU   -> List(B, Rs1, Rs2, F, ALUOp.Sltu, BrOp.BLTU, LSUOp.None, ALU),
+    BGEU   -> List(B, Rs1, Rs2, F, ALUOp.Sltu, BrOp.BGEU, LSUOp.None, ALU),
     LB     -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LB, LSU),
     LH     -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LH, LSU),
     LW     -> List(I, Rs1, Imm, T, ALUOp.Add, BrOp.None, LSUOp.LW, LSU),
@@ -62,7 +62,7 @@ object InstDecodeTable {
   )
 }
 
-class DecodedBundle extends Bundle {
+class DecodedBundle(implicit p: CoreParams) extends Bundle {
   val alu_oper1_type = UInt(OperType.WIDTH)
   val alu_oper2_type = UInt(OperType.WIDTH)
 
@@ -70,7 +70,7 @@ class DecodedBundle extends Bundle {
   val rs2   = UInt(5.W)
   val rd    = UInt(5.W)
   val rd_we = Bool()
-  val imm   = UInt(32.W)
+  val imm   = UInt(p.XLEN.W)
 
   val exec_type = UInt(ExecType.WIDTH)
   val alu_op    = UInt(ALUOp.WIDTH)
@@ -78,9 +78,9 @@ class DecodedBundle extends Bundle {
   val br_op     = UInt(BrOp.WIDTH)
 }
 
-class IDU extends Module {
+class IDU(implicit p: CoreParams) extends Module {
   val io = IO(new Bundle {
-    val inst    = Input(UInt(32.W))
+    val inst    = Input(UInt(p.XLEN.W))
     val decoded = new DecodedBundle
   })
 

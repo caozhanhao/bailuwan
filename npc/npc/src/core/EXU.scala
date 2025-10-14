@@ -5,11 +5,13 @@ import chisel3.util._
 
 import constants._
 
-class EXU extends Module {
+import top.CoreParams
+
+class EXU(implicit p: CoreParams) extends Module {
   val io = IO(new Bundle {
-    val pc      = Input(UInt(32.W))
+    val pc      = Input(UInt(p.XLEN.W))
     val decoded = Input(new DecodedBundle)
-    val dnpc    = Output(UInt(32.W))
+    val dnpc    = Output(UInt(p.XLEN.W))
   })
 
   val reg_file = Module(new RegFile)
@@ -50,7 +52,7 @@ class EXU extends Module {
   val br_target = MuxLookup(io.decoded.br_op, (io.pc + io.decoded.imm).asUInt)(
     Seq(
       BrOp.None -> 0.U,
-      BrOp.JALR -> (reg_file.io.rs1_data + io.decoded.imm)(31, 1) ## 0.U
+      BrOp.JALR -> (reg_file.io.rs1_data + io.decoded.imm)(p.XLEN - 1, 1) ## 0.U
     )
   )
 
@@ -59,12 +61,12 @@ class EXU extends Module {
       BrOp.None -> false.B,
       BrOp.JAL  -> true.B,
       BrOp.JALR -> true.B,
-      BrOp.BEQ  -> (rs1_data === rs2_data),
-      BrOp.BNE  -> (rs1_data =/= rs2_data),
-      BrOp.BLT  -> (rs1_data.asSInt < rs2_data.asSInt),
-      BrOp.BGE  -> (rs1_data.asSInt >= rs2_data.asSInt),
-      BrOp.BLTU -> (rs1_data < rs2_data),
-      BrOp.BGEU -> (rs1_data >= rs2_data)
+      BrOp.BEQ  -> (alu.io.result === 0.U).asBool,
+      BrOp.BNE  -> (alu.io.result =/= 0.U).asBool,
+      BrOp.BLT  -> alu.io.result(0),
+      BrOp.BGE  -> !alu.io.result(0),
+      BrOp.BLTU -> alu.io.result(0),
+      BrOp.BGEU -> !alu.io.result(0),
     )
   )
 

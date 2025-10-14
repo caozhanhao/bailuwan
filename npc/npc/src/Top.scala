@@ -12,6 +12,7 @@ class Top extends Module {
     val inst      = Output(UInt(32.W))
   })
 
+  implicit val p: CoreParams = CoreParams()
   val core = Module(new Core)
 
   // Bore some signals for debugging

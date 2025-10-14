@@ -3,15 +3,18 @@ package core
 import chisel3._
 import chisel3.util._
 import constants._
+import top.CoreParams
 import utils.Utils._
 
-class LSU extends Module {
+class LSU(implicit p: CoreParams) extends Module {
   val io = IO(new Bundle {
     val lsu_op     = Input(UInt(LSUOp.WIDTH))
-    val addr       = Input(UInt(32.W))
-    val write_data = Input(UInt(32.W))
-    val read_data  = Output(UInt(32.W))
+    val addr       = Input(UInt(p.XLEN.W))
+    val write_data = Input(UInt(p.XLEN.W))
+    val read_data  = Output(UInt(p.XLEN.W))
   })
+
+  assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
   val mem = Module(new DPICMem())
 
@@ -32,7 +35,7 @@ class LSU extends Module {
     )
   )
 
-  val selected_store_data = MuxLookup(io.lsu_op, 0.U(32.W))(
+  val selected_store_data = MuxLookup(io.lsu_op, 0.U(p.XLEN.W))(
     Seq(
       LSUOp.SB -> (io.write_data << (io.addr(1, 0) << 3).asUInt).asUInt,
       LSUOp.SH -> (io.write_data << (io.addr(1, 0) << 3).asUInt).asUInt,
@@ -58,13 +61,13 @@ class LSU extends Module {
     )
   )
 
-  val selected_loaded_data = MuxLookup(io.lsu_op, 0.U(32.W))(
+  val selected_loaded_data = MuxLookup(io.lsu_op, 0.U(p.XLEN.W))(
     Seq(
-      LSUOp.LB  -> sign_extend(lb_sel, 32),
-      LSUOp.LH  -> sign_extend(lh_sel, 32),
+      LSUOp.LB  -> sign_extend(lb_sel, p.XLEN),
+      LSUOp.LH  -> sign_extend(lh_sel, p.XLEN),
       LSUOp.LW  -> data_out,
-      LSUOp.LBU -> zero_extend(lb_sel, 32),
-      LSUOp.LHU -> zero_extend(lh_sel, 32)
+      LSUOp.LBU -> zero_extend(lb_sel, p.XLEN),
+      LSUOp.LHU -> zero_extend(lh_sel, p.XLEN)
     )
   )
 

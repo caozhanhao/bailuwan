@@ -3,15 +3,15 @@ package top
 import chisel3._
 import core._
 
-class Core extends Module {
+class Core(implicit p: CoreParams) extends Module {
   val IFU = Module(new IFU)
   val EXU = Module(new EXU)
   val IDU = Module(new IDU)
 
-  val pc = RegInit(0x80000000.S(32.W).asUInt)
+  val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
 
-  IDU.io.inst       := IFU.io.inst
-  EXU.io.decoded    := IDU.io.decoded
+  IDU.io.inst    := IFU.io.inst
+  EXU.io.decoded := IDU.io.decoded
 
   IFU.io.pc := pc
   EXU.io.pc := pc
