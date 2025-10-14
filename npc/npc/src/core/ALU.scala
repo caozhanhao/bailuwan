@@ -3,13 +3,14 @@ package core
 import chisel3._
 import chisel3.util.MuxLookup
 import constants.ALUOp
+import top.CoreParams
 
-class ALU extends Module {
+class ALU(implicit p: CoreParams) extends Module {
   val io = IO(new Bundle {
     val alu_op = Input(UInt(ALUOp.WIDTH))
-    val oper1 = Input(UInt(32.W))
-    val oper2 = Input(UInt(32.W))
-    val result = Output(UInt(32.W))
+    val oper1 = Input(UInt(p.XLEN.W))
+    val oper2 = Input(UInt(p.XLEN.W))
+    val result = Output(UInt(p.XLEN.W))
   })
 
   val shamt = io.oper2(4,0)

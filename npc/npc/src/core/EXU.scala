@@ -5,11 +5,13 @@ import chisel3.util._
 
 import constants._
 
-class EXU extends Module {
+import top.CoreParams
+
+class EXU(implicit p: CoreParams) extends Module {
   val io = IO(new Bundle {
-    val pc      = Input(UInt(32.W))
+    val pc      = Input(UInt(p.XLEN.W))
     val decoded = Input(new DecodedBundle)
-    val dnpc    = Output(UInt(32.W))
+    val dnpc    = Output(UInt(p.XLEN.W))
   })
 
   val reg_file = Module(new RegFile)
@@ -50,7 +52,7 @@ class EXU extends Module {
   val br_target = MuxLookup(io.decoded.br_op, (io.pc + io.decoded.imm).asUInt)(
     Seq(
       BrOp.None -> 0.U,
-      BrOp.JALR -> (reg_file.io.rs1_data + io.decoded.imm)(31, 1) ## 0.U
+      BrOp.JALR -> (reg_file.io.rs1_data + io.decoded.imm)(p.XLEN - 1, 1) ## 0.U
     )
   )
 

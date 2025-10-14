@@ -3,7 +3,7 @@ package core
 import chisel3._
 import chisel3.util._
 import constants._
-
+import top.CoreParams
 import utils.Utils._
 
 object InstDecodeTable {
@@ -62,7 +62,7 @@ object InstDecodeTable {
   )
 }
 
-class DecodedBundle extends Bundle {
+class DecodedBundle(implicit p: CoreParams) extends Bundle {
   val alu_oper1_type = UInt(OperType.WIDTH)
   val alu_oper2_type = UInt(OperType.WIDTH)
 
@@ -70,7 +70,7 @@ class DecodedBundle extends Bundle {
   val rs2   = UInt(5.W)
   val rd    = UInt(5.W)
   val rd_we = Bool()
-  val imm   = UInt(32.W)
+  val imm   = UInt(p.XLEN.W)
 
   val exec_type = UInt(ExecType.WIDTH)
   val alu_op    = UInt(ALUOp.WIDTH)
@@ -78,9 +78,9 @@ class DecodedBundle extends Bundle {
   val br_op     = UInt(BrOp.WIDTH)
 }
 
-class IDU extends Module {
+class IDU(implicit p: CoreParams) extends Module {
   val io = IO(new Bundle {
-    val inst    = Input(UInt(32.W))
+    val inst    = Input(UInt(p.XLEN.W))
     val decoded = new DecodedBundle
   })
 
