@@ -61,12 +61,12 @@ class EXU(implicit p: CoreParams) extends Module {
       BrOp.None -> false.B,
       BrOp.JAL  -> true.B,
       BrOp.JALR -> true.B,
-      BrOp.BEQ  -> (rs1_data === rs2_data),
-      BrOp.BNE  -> (rs1_data =/= rs2_data),
-      BrOp.BLT  -> (rs1_data.asSInt < rs2_data.asSInt),
-      BrOp.BGE  -> (rs1_data.asSInt >= rs2_data.asSInt),
-      BrOp.BLTU -> (rs1_data < rs2_data),
-      BrOp.BGEU -> (rs1_data >= rs2_data)
+      BrOp.BEQ  -> (alu.io.result === 0.U).asBool,
+      BrOp.BNE  -> (alu.io.result =/= 0.U).asBool,
+      BrOp.BLT  -> alu.io.result(0),
+      BrOp.BGE  -> !alu.io.result(0),
+      BrOp.BLTU -> alu.io.result(0),
+      BrOp.BGEU -> !alu.io.result(0),
     )
   )
 
