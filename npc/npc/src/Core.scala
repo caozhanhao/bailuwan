@@ -8,7 +8,7 @@ class Core(implicit p: CoreParams) extends Module {
   val EXU = Module(new EXU)
   val IDU = Module(new IDU)
 
-  val pc = RegInit(p.RESET_VECTOR.S(p.XLEN.W).asUInt)
+  val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
 
   IDU.io.inst    := IFU.io.inst
   EXU.io.decoded := IDU.io.decoded

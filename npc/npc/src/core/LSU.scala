@@ -14,6 +14,8 @@ class LSU(implicit p: CoreParams) extends Module {
     val read_data  = Output(UInt(p.XLEN.W))
   })
 
+  assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
+
   val mem = Module(new DPICMem())
 
   val write_enable = MuxLookup(io.lsu_op, false.B)(

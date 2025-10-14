@@ -17,7 +17,7 @@ class RegFile(implicit p: CoreParams) extends Module {
   })
 
   // RV32E
-  val regs = RegInit(VecInit(Seq.fill(16)(0.U(p.XLEN.W))))
+  val regs = RegInit(VecInit(Seq.fill(p.RegCount)(0.U(p.XLEN.W))))
 
   regs(io.rd_addr(3, 0)) := Mux(io.rd_we && io.rd_addr =/= 0.U, io.rd_data, regs(io.rd_addr(3, 0)))
 
