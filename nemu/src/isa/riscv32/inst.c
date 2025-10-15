@@ -191,6 +191,11 @@ static void riscv_csrrs(int csr, int rs1, int rd) { riscv_csrrsi(csr, R(rs1), rd
 
 static void riscv_csrrc(int csr, int rs1, int rd) { riscv_csrrci(csr, R(rs1), rd); }
 
+static word_t riscv_ecall(word_t epc) {
+  // a7 -> x17
+  return isa_raise_intr(R(17), epc);
+}
+
 static int decode_exec(Decode *s) {
   s->dnpc = s->snpc;
 
@@ -251,7 +256,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000000 ????? ????? 111 ????? 01100 11", and, R, R(rd) = src1 & src2);
 
   INSTPAT("??????? ????? ????? 000 ????? 00011 11", fence, N, todo("fence")); // FENCE.TSO, PAUSE
-  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall, N, todo("ecall"));
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall, N, s->dnpc = riscv_ecall(s->pc));
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak, N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
 
   // RV32M Standard Extension
