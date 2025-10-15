@@ -38,6 +38,7 @@ static bool g_print_step = false;
 
 void device_update();
 void wp_update();
+void bp_update();
 
 #ifdef CONFIG_ITRACE
 #define IRINGBUF_SZ 16
@@ -119,6 +120,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 
 #ifndef CONFIG_TARGET_AM
   IFDEF(CONFIG_WATCHPOINT, wp_update());
+  IFDEF(CONFIG_BREAKPOINT, bp_update());
 #endif
 }
 

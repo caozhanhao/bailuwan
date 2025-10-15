@@ -22,4 +22,7 @@ word_t expr(char *e, bool *success);
 
 bool syntax_check(char* e);
 
+#define NR_WP 32
+#define NR_BP 32
+
 #endif
