@@ -19,9 +19,9 @@
 #include <common.h>
 
 enum {
-  PRIV_LEVEL_U = 0x00,
-  PRIV_LEVEL_S = 0x01,
-  PRIV_LEVEL_M = 0x11,
+  PRIV_LEVEL_U = 0b00,
+  PRIV_LEVEL_S = 0b01,
+  PRIV_LEVEL_M = 0b11,
 };
 
 typedef struct {
