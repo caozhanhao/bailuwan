@@ -31,6 +31,9 @@ void isa_csr_display() {
 
 word_t isa_csr_str2val(const char *s, bool *success) {
   for (int i = 0; i < 4096; i++) {
+    if (csr_names[i] == NULL)
+      continue;
+
     if (strcmp(s, csr_names[i]) == 0) {
       *success = true;
       return cpu_csr(i);
