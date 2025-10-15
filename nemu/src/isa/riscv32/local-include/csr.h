@@ -25,8 +25,6 @@ static inline int check_csr_idx(int idx) {
 
 #define cpu_csr(idx) (cpu.csr[check_csr_idx(idx)])
 
-// Index to Name
-// csr_name(0x300) == "mstatus", ...
 static inline const char *csr_name(int idx) {
   extern const char* csr_names[];
   const char *ret = csr_names[check_csr_idx(idx)];

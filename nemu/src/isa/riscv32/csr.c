@@ -17,6 +17,8 @@
 #include <isa.h>
 #include <stdlib.h>
 
+// Index to Name
+// csr_names(0x300) == "mstatus", ...
 #define CSR_TABLE_ENTRY(name, idx) [idx] = #name,
 const char *csr_names[4096] = {CSR_TABLE};
 #undef CSR_TABLE_ENTRY
