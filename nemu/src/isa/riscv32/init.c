@@ -32,6 +32,11 @@ static void restart() {
 
   /* The zero register is always 0. */
   cpu.gpr[0] = 0;
+
+  /* mstatus */
+  cpu.csr[CSR_mstatus] = MUXDEF(CONFIG_ISA64, 0xa00001800, 0x1800);
+
+  cpu.priv_level = PRIV_LEVEL_M;
 }
 
 void init_isa() {

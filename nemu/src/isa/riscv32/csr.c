@@ -13,16 +13,34 @@
  * See the Mulan PSL v2 for more details.
  ***************************************************************************************/
 
-#ifndef __SDB_H__
-#define __SDB_H__
+#include "local-include/csr.h"
+#include <isa.h>
+#include <stdlib.h>
 
-#include <common.h>
+// Index to Name
+// csr_names(0x300) == "mstatus", ...
+#define CSR_TABLE_ENTRY(name, idx) [idx] = #name,
+const char *csr_names[4096] = {CSR_TABLE};
+#undef CSR_TABLE_ENTRY
 
-word_t expr(char *e, bool *success);
+void isa_csr_display() {
+  for (int i = 0; i < 4096; i++) {
+    if (csr_names[i] == NULL)
+      continue;
+    printf("%-10s 0x%08x  %11d\n", csr_names[i], cpu_csr(i), cpu_csr(i));
+  }
+}
 
-bool syntax_check(char* e);
+word_t isa_csr_str2val(const char *s, bool *success) {
+  for (int i = 0; i < 4096; i++) {
+    if (csr_names[i] == NULL)
+      continue;
 
-#define NR_WP 32
-#define NR_BP 32
-
-#endif
+    if (strcmp(s, csr_names[i]) == 0) {
+      *success = true;
+      return cpu_csr(i);
+    }
+  }
+  *success = false;
+  return 0;
+}

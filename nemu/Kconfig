@@ -215,6 +215,13 @@ config WATCHPOINT
   help
     Enable watchpoints.
 
+
+config BREAKPOINT
+  bool "Enable breakpoint"
+  default y
+  help
+    Enable breakpoints.
+
 endmenu
 
 if MODE_SYSTEM

@@ -26,6 +26,7 @@ static int is_batch_mode = false;
 
 void init_regex();
 void init_wp_pool();
+void init_bp_pool();
 
 /* We use the `readline' library to provide more flexibility to read from stdin.
  */
@@ -81,16 +82,18 @@ static int cmd_si(char *args) {
 }
 
 void wp_display();
+void bp_display();
 
-// info [r/w]
+// info [r/w/b]
 static int cmd_info(char *args) {
-  if (strcmp(args, "r") == 0) {
+  if (strcmp(args, "r") == 0)
     isa_reg_display();
-  } else if (strcmp(args, "w") == 0) {
+  else if (strcmp(args, "w") == 0)
     wp_display();
-  } else {
+  else if (strcmp(args, "b") == 0)
+    bp_display();
+  else
     printf("info: Unknown subcommand '%s'\n", args);
-  }
   return 0;
 }
 
@@ -157,6 +160,7 @@ static int cmd_w(char *args) {
 }
 
 void wp_delete(int n);
+void bp_delete(int n);
 // d [N]
 static int cmd_d(char *args) {
   if (args == NULL) {
@@ -171,7 +175,39 @@ static int cmd_d(char *args) {
     return 0;
   }
 
-  wp_delete(n);
+  if (n >= 0 && n < NR_WP)
+    wp_delete(n);
+  else if (n >= NR_WP && n < NR_WP + NR_BP)
+    bp_delete(n);
+  else
+    printf("d: Invalid watchpoint/breakpoint index %d.\n", n);
+
+  return 0;
+}
+
+void bp_create(word_t addr);
+word_t ftrace_get_address_of(const char *name);
+static int cmd_b(char *args) {
+  if (args == NULL) {
+    printf("b: Expected an address/function.\n");
+    return 0;
+  }
+
+  char *endptr;
+  int given_addr = (int)strtoll(args, &endptr, 10);
+  if (endptr == args) {
+    word_t addr = ftrace_get_address_of(args);
+
+    if (addr == 0) {
+      printf("b: Failed to find function '%s'.\n", args);
+      return 0;
+    }
+
+    bp_create(addr);
+    return 0;
+  }
+
+  bp_create(given_addr);
 
   return 0;
 }
@@ -182,21 +218,20 @@ static struct {
   const char *name;
   const char *description;
   int (*handler)(char *);
-} cmd_table[] = {
-    {"help", "Display information about all supported commands", cmd_help},
-    {"c", "Continue the execution of the program", cmd_c},
-    {"q", "Exit NEMU", cmd_q},
-    {"si",
-     "Execute N instructions one by one and then pause. If N is omitted, the "
-     "default is 1.",
-     cmd_si},
-    {"info", "Print register status(r) or watchpoint information(w).",
-     cmd_info},
-    {"x", "Display N consecutive 4-byte words in hexadecimal at given address.",
-     cmd_x},
-    {"p", "Evaluate the expression.", cmd_p},
-    {"w", "Pause execution when the value of the expression changes.", cmd_w},
-    {"d", "Delete the watchpoint with index N.", cmd_d}};
+} cmd_table[] = {{"help", "Display information about all supported commands", cmd_help},
+                 {"c", "Continue the execution of the program", cmd_c},
+                 {"q", "Exit NEMU", cmd_q},
+                 {"si",
+                  "Execute N instructions one by one and then pause. If N is omitted, the "
+                  "default is 1.",
+                  cmd_si},
+                 {"info", "Print register status(r) or watchpoint information(w).", cmd_info},
+                 {"x", "Display N consecutive 4-byte words in hexadecimal at given address.", cmd_x},
+                 {"p", "Evaluate the expression.", cmd_p},
+                 {"w", "Pause execution when the value of the expression changes.", cmd_w},
+                 {"b", "Set a breakpoint at the given address/function.", cmd_b},
+                 {"d", "Delete the watchpoint/breakpoint with index N.", cmd_d},
+                    {"l", ""}};
 
 #define NR_CMD ARRLEN(cmd_table)
 
@@ -274,4 +309,7 @@ void init_sdb() {
 
   /* Initialize the watchpoint pool. */
   init_wp_pool();
+
+  /* Initialize the breakpoint pool. */
+  init_bp_pool();
 }

@@ -191,6 +191,19 @@ static void riscv_csrrs(int csr, int rs1, int rd) { riscv_csrrsi(csr, R(rs1), rd
 
 static void riscv_csrrc(int csr, int rs1, int rd) { riscv_csrrci(csr, R(rs1), rd); }
 
+static word_t riscv_ecall(word_t epc) {
+  // See Table 14. Machine cause (mcause) register values after trap.
+  // 8 -> U, 9 -> S, 10 -> Reserved, 11 -> M,
+  // which is simply the privilege level encoding + 8.
+  return isa_raise_intr(cpu.priv_level + 8, epc);
+}
+
+static word_t riscv_mret() {
+  // TODO:
+  // cpu.priv_level = ?
+  return cpu_csr(CSR_mepc);
+}
+
 static int decode_exec(Decode *s) {
   s->dnpc = s->snpc;
 
@@ -251,7 +264,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000000 ????? ????? 111 ????? 01100 11", and, R, R(rd) = src1 & src2);
 
   INSTPAT("??????? ????? ????? 000 ????? 00011 11", fence, N, todo("fence")); // FENCE.TSO, PAUSE
-  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall, N, todo("ecall"));
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall, N, s->dnpc = riscv_ecall(s->pc));
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak, N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
 
   // RV32M Standard Extension
@@ -272,6 +285,9 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi, CSR_IMM, riscv_csrrwi(csr, imm, rd));
   INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi, CSR_IMM, riscv_csrrsi(csr, imm, rd));
   INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci, CSR_IMM, riscv_csrrci(csr, imm, rd));
+
+  // Trap-Return Instructions
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret, N, s->dnpc = riscv_mret());
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv, N, INV(s->pc));
   INSTPAT_END();

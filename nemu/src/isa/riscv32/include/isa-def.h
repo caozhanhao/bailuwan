@@ -18,16 +18,37 @@
 
 #include <common.h>
 
+enum {
+  PRIV_LEVEL_U = 0b00,
+  PRIV_LEVEL_S = 0b01,
+  PRIV_LEVEL_M = 0b11,
+};
+
 typedef struct {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
   vaddr_t pc;
   word_t csr[4096];
+  uint8_t priv_level;
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
 // decode
 typedef struct {
   uint32_t inst;
 } MUXDEF(CONFIG_RV64, riscv64_ISADecodeInfo, riscv32_ISADecodeInfo);
+
+#define CSR_TABLE                                                                                                      \
+  CSR_TABLE_ENTRY(mstatus, 0x300)                                                                                      \
+  CSR_TABLE_ENTRY(mtvec, 0x305)                                                                                        \
+  CSR_TABLE_ENTRY(mepc, 0x341)                                                                                         \
+  CSR_TABLE_ENTRY(mcause, 0x342)
+
+// Name to Index
+// CSR_mstatus = 0x300, ...
+enum {
+#define CSR_TABLE_ENTRY(name, idx) CSR_##name = idx,
+  CSR_TABLE
+#undef CSR_TABLE_ENTRY
+};
 
 #define isa_mmu_check(vaddr, len, type) (MMU_DIRECT)
 
