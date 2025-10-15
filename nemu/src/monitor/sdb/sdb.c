@@ -230,7 +230,8 @@ static struct {
                  {"p", "Evaluate the expression.", cmd_p},
                  {"w", "Pause execution when the value of the expression changes.", cmd_w},
                  {"b", "Set a breakpoint at the given address/function.", cmd_b},
-                 {"d", "Delete the watchpoint with index N.", cmd_d}};
+                 {"d", "Delete the watchpoint/breakpoint with index N.", cmd_d},
+                    {"l", ""}};
 
 #define NR_CMD ARRLEN(cmd_table)
 
