@@ -89,7 +89,7 @@ static void iringbuf_update(word_t pc) {
   iringbuf_push(pc, inst);
 }
 
-static void iringbuf_display() {
+void iringbuf_display() {
   for (int i = g_iringbuf.rptr; i != g_iringbuf.wptr; i = (i + 1) % IRINGBUF_SZ) {
     if (i == g_iringbuf.wptr - 1)
       printf("%s <<<<<<<<<<<<<<<<<<<\n", (char *)g_iringbuf.buf[i]);
