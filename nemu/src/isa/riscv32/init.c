@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <isa.h>
+#include "local-include/csr.h"
 #include <memory/paddr.h>
 
 // this is not consistent with uint8_t
@@ -32,6 +33,9 @@ static void restart() {
 
   /* The zero register is always 0. */
   cpu.gpr[0] = 0;
+
+  /* mstatus */
+  cpu.csr[CSR_mstatus] = MUXDEF(CONFIG_ISA64, 0xa00001800, 0x1800);
 }
 
 void init_isa() {
