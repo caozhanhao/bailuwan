@@ -31,7 +31,6 @@ static inline int check_csr_idx(int idx) {
   CSR_TABLE_ENTRY(mepc, 0x341)                                                                                         \
   CSR_TABLE_ENTRY(mcause, 0x342)
 
-
 // Name to Index
 // CSR_mstatus = 0x300, ...
 enum {
@@ -43,10 +42,7 @@ enum {
 // Index to Name
 // csr_name(0x300) == "mstatus", ...
 static inline const char *csr_name(int idx) {
-#define CSR_TABLE_ENTRY(name, idx) [idx] = #name,
-  static const char *csr_names[4096] = {CSR_TABLE};
-#undef CSR_TABLE_ENTRY
-
+  extern const char* csr_names[];
   const char *ret = csr_names[check_csr_idx(idx)];
   if (ret == NULL)
     ret = "unknown";
