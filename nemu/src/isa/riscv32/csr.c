@@ -25,7 +25,7 @@ void isa_csr_display() {
   for (int i = 0; i < 4096; i++) {
     if (csr_names[i] == NULL)
       continue;
-    printf("%-12s  0x%08x  %11d\n", csr_names[i], cpu_csr(i), cpu_csr(i));
+    printf("%-10s  0x%08x  %11d\n", csr_names[i], cpu_csr(i), cpu_csr(i));
   }
 }
 
