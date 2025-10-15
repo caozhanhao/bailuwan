@@ -18,6 +18,7 @@ Context* __am_irq_handle(Context* c)
                 ev.event = EVENT_YIELD;
                 break;
             }
+        // fall through
         default:
             ev.event = EVENT_ERROR;
             break;
