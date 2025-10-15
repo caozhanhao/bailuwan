@@ -14,7 +14,6 @@
 ***************************************************************************************/
 
 #include <isa.h>
-#include "local-include/csr.h"
 #include <memory/paddr.h>
 
 // this is not consistent with uint8_t
@@ -36,6 +35,8 @@ static void restart() {
 
   /* mstatus */
   cpu.csr[CSR_mstatus] = MUXDEF(CONFIG_ISA64, 0xa00001800, 0x1800);
+
+  cpu.priv_level = PRIV_LEVEL_M;
 }
 
 void init_isa() {

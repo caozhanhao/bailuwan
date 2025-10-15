@@ -192,8 +192,9 @@ static void riscv_csrrs(int csr, int rs1, int rd) { riscv_csrrsi(csr, R(rs1), rd
 static void riscv_csrrc(int csr, int rs1, int rd) { riscv_csrrci(csr, R(rs1), rd); }
 
 static word_t riscv_ecall(word_t epc) {
-  // a7 -> x17
-  return isa_raise_intr(R(17), epc);
+  // Table 14. Machine cause (mcause) register values after trap.
+  // 8 -> U, 9 -> S, 10 -> Reserved, 11 -> M
+  return isa_raise_intr(cpu.priv_level + 8, epc);
 }
 
 static int decode_exec(Decode *s) {
