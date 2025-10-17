@@ -48,10 +48,17 @@ Context* kcontext(Area kstack, void (*entry)(void*), void* arg)
 {
     Context *c = kstack.end - sizeof(Context);
     //   uintptr_t gpr[NR_REGS], mcause, mstatus, mepc; void* pdir;
-    *c = (Context) {
-        .mepc = (uintptr_t)entry,
-        .mstatus = 0x1800,
-    };
+
+
+
+    // Don't do this. It will call memset.
+    // *c = (Context) {
+    //     .mepc = (uintptr_t)entry,
+    //     .mstatus = 0x1800,
+    // };
+    c->mepc = (uintptr_t)entry;
+    c->mstatus = 0x1800;
+
     return c;
 }
 
