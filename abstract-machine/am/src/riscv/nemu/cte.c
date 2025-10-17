@@ -48,10 +48,11 @@ Context* kcontext(Area kstack, void (*entry)(void*), void* arg)
 {
     Context *c = kstack.end - sizeof(Context);
     //   uintptr_t gpr[NR_REGS], mcause, mstatus, mepc; void* pdir;
-    *c = (Context) {
-        .mepc = (uintptr_t)entry,
-        .mstatus = 0x1800,
-    };
+    // *c = (Context) {
+    //     .mepc = (uintptr_t)entry,
+    //     .mstatus = 0x1800,
+    // };
+    c->mepc = (uintptr_t)entry;
 
     *(Context**)(kstack.start) = c;
     return c;
