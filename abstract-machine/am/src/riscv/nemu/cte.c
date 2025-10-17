@@ -52,8 +52,6 @@ Context* kcontext(Area kstack, void (*entry)(void*), void* arg)
         .mepc = (uintptr_t)entry,
         .mstatus = 0x1800,
     };
-
-    *(Context**)(kstack.start) = c;
     return c;
 }
 
