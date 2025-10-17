@@ -22,7 +22,7 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
    * Then return the address of the interrupt/exception vector.
    */
 
-  cpu_csr(CSR_mepc) = epc;
+  cpu_csr(CSR_mepc) = epc + 4;
   cpu_csr(CSR_mcause) = NO;
 
   IFDEF(CONFIG_ETRACE,
