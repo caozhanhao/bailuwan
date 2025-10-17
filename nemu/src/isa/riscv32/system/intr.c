@@ -25,9 +25,10 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
   cpu_csr(CSR_mepc) = epc;
   cpu_csr(CSR_mcause) = NO;
 
+  IFDEF(CONFIG_ETRACE,
+        printf("ETRACE: raise interrupt %d at 0x%x. mtvec=" FMT_WORD "\n", NO, epc, cpu_csr(CSR_mtvec)));
+
   return cpu_csr(CSR_mtvec);
 }
 
-word_t isa_query_intr() {
-  return INTR_EMPTY;
-}
+word_t isa_query_intr() { return INTR_EMPTY; }
