@@ -112,7 +112,11 @@ static void checkregs(diff_context_t* ref)
     if (!match)
     {
         sdb_state = SDBState::Abort;
+        printf("Test failed at pc = " FMT_WORD "\n", cpu.pc());
+        printf("Registers:\n");
         isa_reg_display();
+        printf("CSRs:\n");
+        isa_csr_display();
     }
 }
 
