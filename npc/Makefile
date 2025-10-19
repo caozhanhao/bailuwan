@@ -77,7 +77,7 @@ EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
 
 ifndef NO_BATCH
 CXXFLAGS += -DDISABLE_ALL_TRACE
-BIN += -nosimtrace
+BIN := $(BIN)-nosimtrace
 endif
 
 ifneq ($(TRACE), notrace)
