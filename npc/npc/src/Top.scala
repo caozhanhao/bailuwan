@@ -39,6 +39,6 @@ class Top extends Module {
   io.csrs.mcause    := BoringUtils.bore(core.EXU.csr_file.mcause)
   io.csrs.mcycle    := BoringUtils.bore(core.EXU.csr_file.mcycle)
   io.csrs.mcycleh   := BoringUtils.bore(core.EXU.csr_file.mcycleh)
-//  io.csrs.mvendorid := BoringUtils.bore(core.EXU.csr_file.mvendorid)
-//  io.csrs.marchid   := BoringUtils.bore(core.EXU.csr_file.marchid)
+  io.csrs.mvendorid := 0.U // BoringUtils.bore(core.EXU.csr_file.mvendorid)
+  io.csrs.marchid   := 0.U // BoringUtils.bore(core.EXU.csr_file.marchid)
 }
