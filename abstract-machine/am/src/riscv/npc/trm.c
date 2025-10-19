@@ -34,7 +34,7 @@ void _trm_init() {
   buf[3] = (char)( mvendorid        & 0xFF);
   buf[4] = '\0';
 
-  printf("[trm_init]: %s_%d caozhanhao\n", buf, marchid);
+  printf("[_trm_init]: %s_%d caozhanhao\n", buf, marchid);
 
   int ret = main(mainargs);
   halt(ret);
