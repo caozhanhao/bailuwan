@@ -6,6 +6,10 @@
 TOP_NAME dut;
 SimHandle sim_handle;
 
+#define CSR_TABLE_ENTRY(name, idx) [idx] = #name,
+const char *csr_names[4096] = {CSR_TABLE};
+#undef CSR_TABLE_ENTRY
+
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
 #define BIND(reg) register_bindings[reg] = &this_dut->io_registers_##reg;

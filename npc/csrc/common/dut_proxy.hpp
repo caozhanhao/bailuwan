@@ -50,10 +50,6 @@ enum CSR
 #undef CSR_TABLE_ENTRY
 };
 
-#define CSR_TABLE_ENTRY(name, idx) [idx] = #name,
-const char *csr_names[4096] = {CSR_TABLE};
-#undef CSR_TABLE_ENTRY
-
 class CPUProxy
 {
     uint32_t* pc_binding;
@@ -122,4 +118,5 @@ public:
 
 extern TOP_NAME dut;
 extern SimHandle sim_handle;
+extern const char *csr_names[4096];
 #endif
