@@ -48,7 +48,7 @@ static char *rl_gets() {
   if (line_read && line_read[0] == '\0') {
     HIST_ENTRY *prev = previous_history();
     if (prev)
-      return prev->line;
+      line_read = strdup(prev->line);
   }
 
   return line_read;
