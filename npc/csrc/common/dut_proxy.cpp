@@ -5,10 +5,7 @@
 
 TOP_NAME dut;
 SimHandle sim_handle;
-
-#define CSR_TABLE_ENTRY(name, idx) [idx] = #name,
-const char *csr_names[4096] = {CSR_TABLE};
-#undef CSR_TABLE_ENTRY
+const char *csr_names[4096];
 
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
@@ -243,6 +240,10 @@ void SimHandle::init_sim(const std::string& filename)
     memory.init(filename.c_str());
 
     boot_time = std::chrono::high_resolution_clock::now();
+
+#define CSR_TABLE_ENTRY(name, idx) csr_names[idx] = #name;
+    CSR_TABLE
+#undef CSR_TABLE_ENTRY
 }
 
 void SimHandle::cleanup()
