@@ -75,9 +75,8 @@ INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
 
-ifndef NO_BATCH
+ifdef $(NO_SIM_TRACE)
 CXXFLAGS += -DDISABLE_ALL_TRACE
-BIN := $(BIN)-nosimtrace
 endif
 
 ifneq ($(TRACE), notrace)
