@@ -40,7 +40,7 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
     for (int i = 0; i < 32; i++)
       cpu.gpr[i] = ctx->gpr[i];
     for (int i = 0; i < 4096; i++) {
-      if (csr_name(i) != nullptr)
+      if (csr_name(i) != NULL)
         cpu.csr[i] = ctx->csr[i];
       else
         cpu.csr[i] = 0;
@@ -50,7 +50,7 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
     for (int i = 0; i < 32; i++)
       ctx->gpr[i] = cpu.gpr[i];
     for (int i = 0; i < 4096; i++) {
-      if (csr_name(i) != nullptr)
+      if (csr_name(i) != NULL)
         ctx->csr[i] = cpu.csr[i];
       else
         ctx->csr[i] = 0;
