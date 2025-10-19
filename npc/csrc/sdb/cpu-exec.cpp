@@ -26,6 +26,7 @@ static void trace_and_difftest() {
     IFDEF(CONFIG_DIFFTEST, difftest_step());
 
     wp_update();
+    bp_update();
 }
 
 static void execute(uint64_t n)
