@@ -47,7 +47,7 @@ bool cte_init(Context*(*handler)(Event, Context*))
 
 Context* kcontext(Area kstack, void (*entry)(void*), void* arg)
 {
-    Context *c = kstack.end - sizeof(Context);
+    Context* c = kstack.end - sizeof(Context);
     //   uintptr_t gpr[NR_REGS], mcause, mstatus, mepc; void* pdir;
 
     // Don't do this. It will call memset.
