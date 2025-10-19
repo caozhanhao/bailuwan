@@ -9,11 +9,11 @@ class CSRFile(
   implicit p: CoreParams)
     extends Module {
   val io = IO(new Bundle {
-    val read_addr   = Input(UInt(5.W))
+    val read_addr   = Input(UInt(12.W))
     val read_enable = Input(Bool())
     val read_data   = Output(UInt(p.XLEN.W))
 
-    val write_addr   = Input(UInt(5.W))
+    val write_addr   = Input(UInt(12.W))
     val write_data   = Input(UInt(p.XLEN.W))
     val write_enbale = Input(Bool())
   })
@@ -51,8 +51,6 @@ class CSRFile(
       CSR.marchid   -> marchid
     )
   )
-
-  printf("[CSR] read_addr: %x, read_data: %x\n", io.read_addr, read_data)
 
   io.read_data := Mux(io.read_enable, read_data, 0.U)
 }
