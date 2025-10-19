@@ -96,6 +96,10 @@ static void checkregs(diff_context_t* ref)
                 csr_names[i] ? csr_names[i] : "unknown", ref->csr[i], cpu.csr(i));
             match = false;
         }
+        if (cpu.is_csr_valid(i))
+        {
+            Log("checked csr: %s = " FMT_WORD "\n", csr_names[i], cpu.csr(i));
+        }
     }
 
     if (cpu.pc() != ref->pc)
