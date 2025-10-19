@@ -1,0 +1,63 @@
+package core
+
+import chisel3._
+import chisel3.util._
+import constants.CSR
+import top.CoreParams
+
+class CSRFile(
+  implicit p: CoreParams)
+    extends Module {
+  val io = IO(new Bundle {
+    val read_addr   = Input(UInt(12.W))
+    val read_enable = Input(Bool())
+    val read_data   = Output(UInt(p.XLEN.W))
+
+    val write_addr   = Input(UInt(12.W))
+    val write_data   = Input(UInt(p.XLEN.W))
+    val write_enbale = Input(Bool())
+
+    val has_intr = Input(Bool())
+    val epc      = Input(UInt(p.XLEN.W))
+    val cause    = Input(UInt(p.XLEN.W))
+  })
+
+  // ysyx_25100251 caozhanhao
+  val mvendorid = 0x79737978.U
+  val marchid   = 25100251.U
+
+  val mstatus_init_val = if (p.XLEN == 32) 0x1800.U(32.W) else 0xa00001800L.U(64.W)
+
+  val mstatus = RegInit(mstatus_init_val)
+  val mtvec   = RegInit(0.U(p.XLEN.W))
+  val mepc    = RegInit(0.U(p.XLEN.W))
+  val mcause  = RegInit(0.U(p.XLEN.W))
+
+  val mcycle = RegInit(0.U(64.W))
+  mcycle := mcycle + 1.U
+
+  def writable(addr: UInt, old_val: UInt) = Mux(io.write_enbale && (io.write_addr === addr), io.write_data, old_val)
+
+  mstatus := writable(CSR.mstatus, mstatus)
+  mtvec   := writable(CSR.mtvec, mtvec)
+
+  mepc   := Mux(io.has_intr, io.epc, writable(CSR.mepc, mepc))
+  mcause := Mux(io.has_intr, io.cause, writable(CSR.mcause, mcause))
+
+  val read_data = MuxLookup(io.read_addr, 0.U)(
+    Seq(
+      CSR.mstatus   -> mstatus,
+      CSR.mtvec     -> mtvec,
+      CSR.mepc      -> mepc,
+      CSR.mcause    -> mcause,
+      CSR.mcycle    -> (if (p.XLEN == 32) mcycle(31, 0) else mcycle),
+      CSR.mcycleh   -> (if (p.XLEN == 32) mcycle(63, 32) else 0.U),
+      CSR.mvendorid -> mvendorid,
+      CSR.marchid   -> marchid
+    )
+  )
+
+  // printf("[CSR] read_addr: %x, read_data: %x\n", io.read_addr, read_data)
+
+  io.read_data := Mux(io.read_enable, read_data, 0.U)
+}

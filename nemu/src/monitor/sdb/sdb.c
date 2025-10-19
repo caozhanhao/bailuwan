@@ -48,7 +48,7 @@ static char *rl_gets() {
   if (line_read && line_read[0] == '\0') {
     HIST_ENTRY *prev = previous_history();
     if (prev)
-      return prev->line;
+      line_read = strdup(prev->line);
   }
 
   return line_read;
@@ -194,7 +194,7 @@ static int cmd_b(char *args) {
   }
 
   char *endptr;
-  int given_addr = (int)strtoll(args, &endptr, 10);
+  int given_addr = (int)strtoll(args, &endptr, 16);
   if (endptr == args) {
     word_t addr = ftrace_get_address_of(args);
 

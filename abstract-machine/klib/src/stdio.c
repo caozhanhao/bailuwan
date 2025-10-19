@@ -55,6 +55,89 @@ int snprintf(char* out, size_t n, const char* fmt, ...)
     return r;
 }
 
+#define WRITE_CHAR(c) do { \
+        if (pos < cap) out[pos++] = (c); \
+        needed++; \
+    } while (0)
+
+static void print_signed_integer(char* out, long long val, int zero_pad, int width, size_t* pos_ptr, size_t* cap_ptr,
+                                 size_t* needed_ptr)
+{
+    int pos = *pos_ptr;
+    int cap = *cap_ptr;
+    int needed = *needed_ptr;
+
+    int negative = 0;
+    unsigned long long u;
+
+    if (val < 0)
+    {
+        negative = 1;
+        u = (unsigned long long)(-val);
+    }
+    else
+    {
+        u = (unsigned long long)val;
+    }
+
+    // produce digits into buf in reverse
+    char buf[128];
+    int bi = 0;
+    if (u == 0)
+    {
+        buf[bi++] = '0';
+    }
+    else
+    {
+        while (u > 0 && bi < (int)sizeof(buf))
+        {
+            buf[bi++] = (char)('0' + (u % 10));
+            u /= 10;
+        }
+    }
+    int digits_len = bi; // number of digit characters
+
+    if (negative)
+    {
+        if (zero_pad && width > 0)
+        {
+            // sign first
+            WRITE_CHAR('-');
+            // zeros padding AFTER sign
+            int pad = width - 1 - digits_len;
+            while (pad-- > 0)
+                WRITE_CHAR('0');
+            // write digits
+            while (bi > 0)
+                WRITE_CHAR(buf[--bi]);
+        }
+        else
+        {
+            // space padding BEFORE sign
+            int pad = width - 1 - digits_len;
+            while (pad-- > 0)
+                WRITE_CHAR(' ');
+            // sign
+            WRITE_CHAR('-');
+            // digits
+            while (bi > 0)
+                WRITE_CHAR(buf[--bi]);
+        }
+    }
+    else // positive
+    {
+        int pad = width - digits_len;
+        while (pad-- > 0)
+            WRITE_CHAR(zero_pad ? '0' : ' ');
+        while (bi > 0)
+            WRITE_CHAR(buf[--bi]);
+    }
+
+    *pos_ptr = pos;
+    *cap_ptr = cap;
+    *needed_ptr = needed;
+}
+
 int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
 {
     size_t pos = 0; // written
@@ -63,10 +146,6 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
 
     const char* f = fmt;
 
-#define WRITE_CHAR(c) do { \
-        if (pos < cap) out[pos++] = (c); \
-        needed++; \
-    } while (0)
 
     while (*f)
     {
@@ -121,74 +200,20 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
         else if (*f == 'd')
         {
             int v = va_arg(ap, int);
-            long long val = (long long)v;
-            int negative = 0;
-            unsigned long long u;
-
-            if (val < 0)
-            {
-                negative = 1;
-                u = (unsigned long long)(-val);
-            }
-            else
-            {
-                u = (unsigned long long)val;
-            }
-
-            // produce digits into buf in reverse
-            char buf[128];
-            int bi = 0;
-            if (u == 0)
-            {
-                buf[bi++] = '0';
-            }
-            else
-            {
-                while (u > 0 && bi < (int)sizeof(buf))
-                {
-                    buf[bi++] = (char)('0' + (u % 10));
-                    u /= 10;
-                }
-            }
-            int digits_len = bi; // number of digit characters
-
-            if (negative)
-            {
-                if (zero_pad && width > 0)
-                {
-                    // sign first
-                    WRITE_CHAR('-');
-                    // zeros padding AFTER sign
-                    int pad = width - 1 - digits_len;
-                    while (pad-- > 0)
-                        WRITE_CHAR('0');
-                    // write digits
-                    while (bi > 0)
-                        WRITE_CHAR(buf[--bi]);
-                }
-                else
-                {
-                    // space padding BEFORE sign
-                    int pad = width - 1 - digits_len;
-                    while (pad-- > 0)
-                        WRITE_CHAR(' ');
-                    // sign
-                    WRITE_CHAR('-');
-                    // digits
-                    while (bi > 0)
-                        WRITE_CHAR(buf[--bi]);
-                }
-            }
-            else // positive
-            {
-                int pad = width - digits_len;
-                while (pad-- > 0)
-                    WRITE_CHAR(zero_pad ? '0' : ' ');
-                while (bi > 0)
-                    WRITE_CHAR(buf[--bi]);
-            }
-
+            print_signed_integer(out, v, zero_pad, width, &pos, &cap, &needed);
             f++;
+        }
+        else if (*f == 'l' && *(f + 1) == 'd')
+        {
+            long v = va_arg(ap, long);
+            print_signed_integer(out, v, zero_pad, width, &pos, &cap, &needed);
+            f += 2;
+        }
+        else if (*f == 'l' && *(f + 1) == 'l' && *(f + 2) == 'd')
+        {
+            long long v = va_arg(ap, long long);
+            print_signed_integer(out, v, zero_pad, width, &pos, &cap, &needed);
+            f += 3;
         }
         else
         {

@@ -31,12 +31,32 @@ public:
     int get_code() const { return code; }
 };
 
+#define CSR_TABLE                                                                                                      \
+CSR_TABLE_ENTRY(mstatus, 0x300)                                                                                      \
+CSR_TABLE_ENTRY(mtvec, 0x305)                                                                                        \
+CSR_TABLE_ENTRY(mepc, 0x341)                                                                                         \
+CSR_TABLE_ENTRY(mcause, 0x342)                                                                                       \
+CSR_TABLE_ENTRY(mcycle, 0xb00)                                                                                       \
+CSR_TABLE_ENTRY(mcycleh, 0xb80)                                                                                      \
+CSR_TABLE_ENTRY(mvendorid, 0xf11)                                                                                    \
+CSR_TABLE_ENTRY(marchid, 0xf12)
+
+// Name to Index
+// CSR_mstatus = 0x300, ...
+enum CSR
+{
+#define CSR_TABLE_ENTRY(name, idx) CSR_##name = idx,
+    CSR_TABLE
+#undef CSR_TABLE_ENTRY
+};
+
 class CPUProxy
 {
     uint32_t* pc_binding;
     uint32_t* dnpc_binding;
     uint32_t* inst_binding;
     uint32_t* register_bindings[16];
+    uint32_t* csr_bindings[4096];
 
 public:
     CPUProxy() = default;
@@ -47,11 +67,14 @@ public:
     uint32_t dnpc();
     uint32_t curr_inst();
     uint32_t reg(uint32_t idx);
+    uint32_t csr(uint32_t idx);
+    bool is_csr_valid(uint32_t idx);
 };
 
 #define PMEM_LEFT  ((uint32_t)CONFIG_MBASE)
 #define PMEM_RIGHT ((uint32_t)CONFIG_MBASE + CONFIG_MSIZE - 1)
 #define RESET_VECTOR PMEM_LEFT
+
 struct DUTMemory
 {
     uint32_t* data{};
@@ -74,6 +97,7 @@ class SimHandle
     CPUProxy cpu;
     uint64_t cycle_counter;
     uint64_t sim_time;
+    uint32_t prev_inst;
     IFDEF(TRACE, TFP_TYPE* tfp);
     std::chrono::high_resolution_clock::time_point boot_time;
 
@@ -96,4 +120,5 @@ public:
 
 extern TOP_NAME dut;
 extern SimHandle sim_handle;
+extern const char *csr_names[4096];
 #endif

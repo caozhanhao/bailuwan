@@ -13,4 +13,4 @@ add_compile_definitions(TOP_NAME=VTop TRACE TRACE_fst)
 
 add_executable(debug debug/main.cpp)
 add_executable(nvboard nvboard/main.cpp)
-add_executable(sdb sdb/main.cpp sdb/cpu-exec.cpp sdb/expr.cpp sdb/watchpoint.cpp sdb/elf.cpp)
+add_executable(sdb sdb/main.cpp sdb/cpu-exec.cpp sdb/expr.cpp sdb/watchpoint.cpp sdb/elf.cpp sdb/breakpoint.cpp)

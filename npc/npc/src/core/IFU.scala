@@ -3,7 +3,9 @@ package core
 import chisel3._
 import top.CoreParams
 
-class IFU(implicit p: CoreParams) extends Module {
+class IFU(
+  implicit p: CoreParams)
+    extends Module {
   val io = IO(new Bundle {
     val pc   = Input(UInt(p.XLEN.W))
     val inst = Output(UInt(32.W))

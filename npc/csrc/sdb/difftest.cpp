@@ -19,9 +19,29 @@ struct diff_context_t
 {
     word_t gpr[32];
     word_t pc;
+    word_t csr[4096];
 };
 
 #ifdef CONFIG_DIFFTEST
+
+static void sync_regs_to_ref()
+{
+    auto& cpu = sim_handle.get_cpu();
+
+    diff_context_t ctx;
+    for (int i = 0; i < 16; i++)
+        ctx.gpr[i] = cpu.reg(i);
+    for (int i = 0; i < 4096; i++)
+    {
+        if (cpu.is_csr_valid(i))
+            ctx.csr[i] = cpu.csr(i);
+        else
+            ctx.csr[i] = 0;
+    }
+    ctx.pc = cpu.pc();
+    ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
+    // Log("Syncing to ref at pc: " FMT_WORD "\n", cpu.pc());
+}
 
 void init_difftest(size_t img_size)
 {
@@ -54,17 +74,10 @@ void init_difftest(size_t img_size)
 
     ref_difftest_init(0);
     auto& mem = sim_handle.get_memory();
-    auto& cpu = sim_handle.get_cpu();
 
     ref_difftest_memcpy(RESET_VECTOR, mem.guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
 
-    diff_context_t ctx;
-    for (int i = 0; i < 16; i++)
-        ctx.gpr[i] = cpu.reg(i);
-    ctx.pc = cpu.pc();
-
-    Log("Initializing difftest, pc: " FMT_WORD "\n", ctx.pc);
-    ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
+    sync_regs_to_ref();
 }
 
 static void checkregs(diff_context_t* ref)
@@ -80,6 +93,16 @@ static void checkregs(diff_context_t* ref)
         }
     }
 
+    for (int i = 0; i < 4096; i++)
+    {
+        if (cpu.is_csr_valid(i) && cpu.csr(i) != ref->csr[i])
+        {
+            Log("csr: addr=%d, name=%s, expected " FMT_WORD ", but got " FMT_WORD "\n", i,
+                csr_names[i] ? csr_names[i] : "unknown", ref->csr[i], cpu.csr(i));
+            match = false;
+        }
+    }
+
     if (cpu.pc() != ref->pc)
     {
         Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", ref->pc, cpu.pc());
@@ -89,18 +112,64 @@ static void checkregs(diff_context_t* ref)
     if (!match)
     {
         sdb_state = SDBState::Abort;
+        printf("Test failed at pc = " FMT_WORD "\n", cpu.pc());
+        printf("Registers:\n");
         isa_reg_display();
+        printf("CSRs:\n");
+        isa_csr_display();
     }
+}
+
+// Attention: trace_and_difftest runs after each cycle, which means curr_inst
+//            hasn't been executed yet. So it is `should_skip_next`.
+static bool skip_this_one = false;
+static bool should_skip_next()
+{
+    auto& cpu = sim_handle.get_cpu();
+    auto inst = cpu.curr_inst();
+
+    bool is_store = BITS(inst, 6, 0) == 0b0100011;
+    bool is_load = BITS(inst, 6, 0) == 0b0000011;
+    word_t imm;
+    // Store
+    if (is_store)
+        imm = (SEXT(BITS(inst, 31, 25), 7) << 5) | BITS(inst, 11, 7);
+    else if (is_load)
+        imm = SEXT(BITS(inst, 31, 20), 12);
+    else
+        return false;
+
+    auto rs1 = BITS(inst, 19, 15);
+    auto src1 = cpu.reg(rs1);
+
+    auto addr = src1 + imm;
+
+    // See if it is accessing devices.
+    auto& mem = sim_handle.get_memory();
+    if (!mem.in_pmem(addr))
+    {
+        // printf("Accessing device at addr: " FMT_WORD "\n", addr);
+        return true;
+    }
+
+    return false;
 }
 
 void difftest_step()
 {
-    diff_context_t ref_r;
+    if (skip_this_one)
+    {
+        sync_regs_to_ref();
+        skip_this_one = false;
+        return;
+    }
 
     ref_difftest_exec(1);
+    diff_context_t ref_r;
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-
     checkregs(&ref_r);
+
+    skip_this_one = should_skip_next();
 }
 #else
 void init_difftest()

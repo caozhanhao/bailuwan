@@ -18,8 +18,7 @@ object EmitVerilog extends App {
 
 object Emit4BitALUVerilog extends App {
   class ALU4BitParams extends top.CoreParams {
-    override val XLEN:          Int = 4
-    override val ALUShamtWidth: Int = 1
+    override val XLEN: Int = 4
   }
 
   implicit val p: ALU4BitParams = new ALU4BitParams()

@@ -33,7 +33,7 @@ static char* rl_gets()
     {
         HIST_ENTRY* prev = previous_history();
         if (prev)
-            return prev->line;
+            line_read = strdup(prev->line);
     }
 
     return line_read;
@@ -72,20 +72,18 @@ static int cmd_si(char* args)
 }
 
 
-// info [r/w]
-static int cmd_info(char* args)
-{
+// info [r/w/b]
+static int cmd_info(char *args) {
     if (strcmp(args, "r") == 0)
         isa_reg_display();
     else if (strcmp(args, "w") == 0)
         wp_display();
+    else if (strcmp(args, "b") == 0)
+        bp_display();
     else
-    {
         printf("info: Unknown subcommand '%s'\n", args);
-    }
     return 0;
 }
-
 // x [n] [EXPR]
 static int cmd_x(char* args)
 {
@@ -155,7 +153,6 @@ static int cmd_p(char* args)
     return 0;
 }
 
-void wp_create(char* expr);
 // w [EXPR]
 static int cmd_w(char* args)
 {
@@ -170,25 +167,51 @@ static int cmd_w(char* args)
     return 0;
 }
 
-void wp_delete(int n);
 // d [N]
-static int cmd_d(char* args)
-{
-    if (args == nullptr)
-    {
+static int cmd_d(char *args) {
+    if (args == nullptr) {
         printf("d: Expected an index.\n");
         return 0;
     }
 
-    char* endptr;
+    char *endptr;
     int n = (int)strtoll(args, &endptr, 10);
-    if (endptr == args)
-    {
+    if (endptr == args) {
         printf("d: Expected a number.\n");
         return 0;
     }
 
-    wp_delete(n);
+    if (n >= 0 && n < NR_WP)
+        wp_delete(n);
+    else if (n >= NR_WP && n < NR_WP + NR_BP)
+        bp_delete(n);
+    else
+        printf("d: Invalid watchpoint/breakpoint index %d.\n", n);
+
+    return 0;
+}
+
+static int cmd_b(char *args) {
+    if (args == nullptr) {
+        printf("b: Expected an address/function.\n");
+        return 0;
+    }
+
+    char *endptr;
+    int given_addr = (int)strtoll(args, &endptr, 16);
+    if (endptr == args) {
+        word_t addr = ftrace_get_address_of(args);
+
+        if (addr == 0) {
+            printf("b: Failed to find function '%s'.\n", args);
+            return 0;
+        }
+
+        bp_create(addr);
+        return 0;
+    }
+
+    bp_create(given_addr);
 
     return 0;
 }
@@ -210,17 +233,13 @@ static struct
         "default is 1.",
         cmd_si
     },
-    {
-        "info", "Print register status(r) or watchpoint information(w).",
-        cmd_info
-    },
-    {
-        "x", "Display N consecutive 4-byte words in hexadecimal at given address.",
-        cmd_x
-    },
+    {"info", "Print register status(r) or watchpoint information(w).", cmd_info},
+    {"x", "Display N consecutive 4-byte words in hexadecimal at given address.", cmd_x},
     {"p", "Evaluate the expression.", cmd_p},
     {"w", "Pause execution when the value of the expression changes.", cmd_w},
-    {"d", "Delete the watchpoint with index N.", cmd_d}
+    {"b", "Set a breakpoint at the given address/function.", cmd_b},
+    {"d", "Delete the watchpoint/breakpoint with index N.", cmd_d},
+    {"l", ""}
 };
 
 #define NR_CMD ARRLEN(cmd_table)
@@ -260,7 +279,7 @@ void sdb_mainloop()
 {
     if (is_batch_mode)
     {
-        cmd_c(NULL);
+        cmd_c(nullptr);
         return;
     }
 
@@ -315,19 +334,19 @@ int is_exit_status_bad()
     return !good;
 }
 
-static char* elf_file = NULL;
-static char* img_file = NULL;
+static char* elf_file = nullptr;
+static char* img_file = nullptr;
 
 static int parse_args(int argc, char* argv[])
 {
     const struct option table[] = {
-        {"batch", no_argument, NULL, 'b'},
-        {"elf", required_argument, NULL, 'e'},
-        {"help", no_argument, NULL, 'h'},
-        {0, 0, NULL, 0},
+        {"batch", no_argument, nullptr, 'b'},
+        {"elf", required_argument, nullptr, 'e'},
+        {"help", no_argument, nullptr, 'h'},
+        {0, 0, nullptr, 0},
     };
     int o;
-    while ((o = getopt_long(argc, argv, "-bhe:", table, NULL)) != -1)
+    while ((o = getopt_long(argc, argv, "-bhe:", table, nullptr)) != -1)
     {
         switch (o)
         {
@@ -355,6 +374,7 @@ int main(int argc, char* argv[])
 {
     init_regex();
     init_wp_pool();
+    init_bp_pool();
 
     sdb_state = SDBState::Stop;
 

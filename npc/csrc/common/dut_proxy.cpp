@@ -5,6 +5,7 @@
 
 TOP_NAME dut;
 SimHandle sim_handle;
+const char *csr_names[4096];
 
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
@@ -30,6 +31,10 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     pc_binding = &this_dut->io_pc;
     dnpc_binding = &this_dut->io_dnpc;
     inst_binding = &this_dut->io_inst;
+
+#define CSR_TABLE_ENTRY(name, idx) csr_bindings[idx] = &this_dut->io_csrs_##name;
+    CSR_TABLE
+#undef CSR_TABLE_ENTRY
 }
 
 uint32_t CPUProxy::curr_inst()
@@ -51,6 +56,22 @@ uint32_t CPUProxy::reg(uint32_t idx)
 {
     return *register_bindings[idx];
 }
+
+uint32_t CPUProxy::csr(uint32_t idx)
+{
+    if (csr_bindings[idx] == nullptr)
+    {
+        printf("Reading unknown CSR: 0x%x\n", idx);
+        return 0;
+    }
+    return *csr_bindings[idx];
+}
+
+bool CPUProxy::is_csr_valid(uint32_t idx)
+{
+    return csr_bindings[idx] != nullptr;
+}
+
 
 void CPUProxy::dump_registers(std::ostream& os)
 {
@@ -224,6 +245,10 @@ void SimHandle::init_sim(const std::string& filename)
     memory.init(filename.c_str());
 
     boot_time = std::chrono::high_resolution_clock::now();
+
+#define CSR_TABLE_ENTRY(name, idx) csr_names[idx] = #name;
+    CSR_TABLE
+#undef CSR_TABLE_ENTRY
 }
 
 void SimHandle::cleanup()

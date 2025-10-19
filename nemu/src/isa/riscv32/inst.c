@@ -299,7 +299,16 @@ static int decode_exec(Decode *s) {
 
 int isa_exec_once(Decode *s) {
   s->isa.inst = inst_fetch(&s->snpc, 4);
-  return decode_exec(s);
+
+  int ret = decode_exec(s);
+
+  // Increase mcycle after instruction exec to better match npc.
+  uint64_t mcycle = ((uint64_t)cpu_csr(CSR_mcycleh) << 32) | (uint64_t)cpu_csr(CSR_mcycle);
+  ++mcycle;
+  cpu_csr(CSR_mcycleh) = mcycle >> 32;
+  cpu_csr(CSR_mcycle) = mcycle;
+
+  return ret;
 }
 
 #ifdef CONFIG_FTRACE

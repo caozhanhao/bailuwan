@@ -16,8 +16,6 @@
 #include <cstdlib>
 #include "sdb.hpp"
 
-#define NR_WP 32
-
 typedef struct watchpoint {
   int NO;
   int pool_index;

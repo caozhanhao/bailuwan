@@ -6,7 +6,7 @@ import chisel3.util._
 object BrOp {
   val WIDTH = log2Ceil(9).W
 
-  val None = 0.U(BrOp.WIDTH)
+  val Nop = 0.U(BrOp.WIDTH)
   val JAL  = 1.U(BrOp.WIDTH)
   val JALR = 2.U(BrOp.WIDTH)
   val BEQ  = 3.U(BrOp.WIDTH)
