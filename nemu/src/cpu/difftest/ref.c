@@ -28,6 +28,7 @@ __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction)
 struct diff_context_t {
   word_t gpr[32];
   word_t pc;
+  word_t csr[4096];
 };
 
 __EXPORT void difftest_regcpy(void *dut, bool direction) {
@@ -36,10 +37,14 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
     cpu.pc = ctx->pc;
     for (int i = 0; i < 32; i++)
       cpu.gpr[i] = ctx->gpr[i];
+    for (int i = 0; i < 4096; i++)
+      cpu.csr[i] = ctx->csr[i];
   } else {
     ctx->pc = cpu.pc;
     for (int i = 0; i < 32; i++)
       ctx->gpr[i] = cpu.gpr[i];
+    for (int i = 0; i < 4096; i++)
+      ctx->csr[i] = cpu.csr[i];
   }
 }
 

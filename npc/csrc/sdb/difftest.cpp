@@ -19,6 +19,7 @@ struct diff_context_t
 {
     word_t gpr[32];
     word_t pc;
+    word_t csr[4096];
 };
 
 #ifdef CONFIG_DIFFTEST
@@ -61,6 +62,8 @@ void init_difftest(size_t img_size)
     diff_context_t ctx;
     for (int i = 0; i < 16; i++)
         ctx.gpr[i] = cpu.reg(i);
+    for (int i = 0; i < 4096; i++)
+        ctx.csr[i] = cpu.csr(i);
     ctx.pc = cpu.pc();
 
     Log("Initializing difftest, pc: " FMT_WORD "\n", ctx.pc);
@@ -84,6 +87,16 @@ static void checkregs(diff_context_t* ref)
     {
         Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", ref->pc, cpu.pc());
         match = false;
+    }
+
+    for (int i = 0; i < 4096; i++)
+    {
+        if (cpu.csr(i) != ref->csr[i])
+        {
+            Log("csr: addr=%d, name=%s, expected " FMT_WORD ", but got " FMT_WORD "\n", i,
+                csr_names[i] ? csr_names[i] : "unknown", ref->csr[i], cpu.csr(i));
+            match = false;
+        }
     }
 
     if (!match)
