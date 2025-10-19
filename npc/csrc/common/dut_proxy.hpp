@@ -68,6 +68,7 @@ public:
     uint32_t curr_inst();
     uint32_t reg(uint32_t idx);
     uint32_t csr(uint32_t idx);
+    bool is_csr_valid(uint32_t idx);
 };
 
 #define PMEM_LEFT  ((uint32_t)CONFIG_MBASE)

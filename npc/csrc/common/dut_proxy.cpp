@@ -67,6 +67,11 @@ uint32_t CPUProxy::csr(uint32_t idx)
     return *csr_bindings[idx];
 }
 
+bool CPUProxy::is_csr_valid(uint32_t idx)
+{
+    return csr_bindings[idx] != nullptr;
+}
+
 
 void CPUProxy::dump_registers(std::ostream& os)
 {

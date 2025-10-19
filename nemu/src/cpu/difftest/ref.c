@@ -13,6 +13,8 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "../../isa/riscv32/local-include/csr.h"
+
 #include <cpu/cpu.h>
 #include <difftest-def.h>
 #include <isa.h>
@@ -37,14 +39,22 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
     cpu.pc = ctx->pc;
     for (int i = 0; i < 32; i++)
       cpu.gpr[i] = ctx->gpr[i];
-    for (int i = 0; i < 4096; i++)
-      cpu.csr[i] = ctx->csr[i];
+    for (int i = 0; i < 4096; i++) {
+      if (csr_name(i) != nullptr)
+        cpu.csr[i] = ctx->csr[i];
+      else
+        cpu.csr[i] = 0;
+    }
   } else {
     ctx->pc = cpu.pc;
     for (int i = 0; i < 32; i++)
       ctx->gpr[i] = cpu.gpr[i];
-    for (int i = 0; i < 4096; i++)
-      ctx->csr[i] = cpu.csr[i];
+    for (int i = 0; i < 4096; i++) {
+      if (csr_name(i) != nullptr)
+        ctx->csr[i] = cpu.csr[i];
+      else
+        ctx->csr[i] = 0;
+    }
   }
 }
 

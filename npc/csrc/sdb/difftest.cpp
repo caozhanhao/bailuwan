@@ -63,7 +63,12 @@ void init_difftest(size_t img_size)
     for (int i = 0; i < 16; i++)
         ctx.gpr[i] = cpu.reg(i);
     for (int i = 0; i < 4096; i++)
-        ctx.csr[i] = cpu.csr(i);
+    {
+        if (cpu.is_csr_valid(i))
+            ctx.csr[i] = cpu.csr(i);
+        else
+            ctx.csr[i] = 0;
+    }
     ctx.pc = cpu.pc();
 
     Log("Initializing difftest, pc: " FMT_WORD "\n", ctx.pc);
@@ -91,7 +96,7 @@ static void checkregs(diff_context_t* ref)
 
     for (int i = 0; i < 4096; i++)
     {
-        if (cpu.csr(i) != ref->csr[i])
+        if (cpu.is_csr_valid(i) && cpu.csr(i) != ref->csr[i])
         {
             Log("csr: addr=%d, name=%s, expected " FMT_WORD ", but got " FMT_WORD "\n", i,
                 csr_names[i] ? csr_names[i] : "unknown", ref->csr[i], cpu.csr(i));
