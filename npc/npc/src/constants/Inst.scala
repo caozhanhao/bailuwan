@@ -44,7 +44,7 @@ object InstPat {
   val OR     = BitPat("b0000000 ????? ????? 110 ????? 01100 11")
   val AND    = BitPat("b0000000 ????? ????? 111 ????? 01100 11")
   val FENCE  = BitPat("b??????? ????? ????? 000 ????? 00011 11")
-  val EALL   = BitPat("b0000000 00000 00000 000 00000 11100 11")
+  val ECALL  = BitPat("b0000000 00000 00000 000 00000 11100 11")
   val EBREAK = BitPat("b0000000 00001 00000 000 00000 11100 11")
 
   // RV32M Standard Extension
@@ -97,10 +97,12 @@ object OperType {
 }
 
 object ExecType {
-  val WIDTH = log2Ceil(4).W
+  val WIDTH = log2Ceil(6).W
 
   val ALU    = 0.U(ExecType.WIDTH)
   val LSU    = 1.U(ExecType.WIDTH)
-  val EBreak = 2.U(ExecType.WIDTH)
-  val CSR    = 3.U(ExecType.WIDTH)
+  val ECall  = 2.U(ExecType.WIDTH)
+  val MRet   = 3.U(ExecType.WIDTH)
+  val EBreak = 4.U(ExecType.WIDTH)
+  val CSR    = 5.U(ExecType.WIDTH)
 }

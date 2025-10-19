@@ -34,6 +34,16 @@ class EXU(
   csr_file.io.write_addr   := io.decoded.csr_addr
   csr_file.io.write_enbale := exec_type === ExecType.CSR
 
+  // FIXME
+  csr_file.io.has_intr := (exec_type === ExecType.ECall)
+  csr_file.io.epc      := io.pc
+  csr_file.io.cause    := MuxLookup(exec_type, 0.U)(
+    Seq(
+      // ECall from M priv.
+      ExecType.ECall -> (0x3 + 8).U
+    )
+  )
+
   val csr_data = csr_file.io.read_data
 
   val oper_table = Seq(
@@ -97,7 +107,7 @@ class EXU(
   )
 
   // printf(cf"[EXU/CSR]: op=${io.decoded.csr_op}, oper2=${oper2}, csr_addr=${io.decoded.csr_addr}, csr_data=${csr_data}, rd=${io.decoded.rd}, rd_we=${io.decoded.rd_we}\n")
-  
+
   csr_file.io.write_data := csr_write_data
 
   // Write Back
@@ -113,7 +123,10 @@ class EXU(
   wbu.io.in.br_target := br_target
 
   reg_file.io.rd_data := wbu.io.out.rd_data
-  io.dnpc             := wbu.io.out.dnpc
+
+  val wbu_dnpc = wbu.io.out.dnpc
+  val dnpc     = Mux(exec_type === ExecType.MRet, csr_data, wbu_dnpc)
+  io.dnpc := dnpc
 
   // EBreak
   val ebreak = Module(new EBreak)

@@ -11,7 +11,7 @@ object InstDecodeTable {
   import InstFmt._
   import OperType._
   // Don't import CSR to avoid conflict
-  import ExecType.{ALU, CSR => CSRInst, EBreak, LSU}
+  import ExecType.{ALU, CSR => CSRInst, EBreak, ECall, LSU, MRet}
 
   val T = true.B
   val F = false.B
@@ -60,7 +60,7 @@ object InstDecodeTable {
     SRA    -> List(R, Rs1,  Rs2,  T, ALUOp.Sra,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
     OR     -> List(R, Rs1,  Rs2,  T, ALUOp.Or,   BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
     AND    -> List(R, Rs1,  Rs2,  T, ALUOp.And,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-
+    ECALL  -> List(I, Zero, Zero, F, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ECall),
     EBREAK -> List(I, Zero, Zero, F, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, EBreak),
 
     // RV32/RV64 Zicsr Standard Extension
@@ -69,9 +69,12 @@ object InstDecodeTable {
     CSRRC  -> List(C, CSR,  Rs1,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RC,  CSRInst),
     CSRRWI -> List(C, CSR,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RW,  CSRInst),
     CSRRSI -> List(C, CSR,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RS,  CSRInst),
-    CSRRCI -> List(C, CSR,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RC,  CSRInst)
-                                                                                  
-    // TODO: FENCE, ECALL
+    CSRRCI -> List(C, CSR,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RC,  CSRInst),
+
+    // Trap-Return Instructions
+    MRET   -> List(I, Zero, Zero, F, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, MRet),
+
+    // TODO: FENCE?
   )
 
 // format: on
@@ -138,7 +141,7 @@ class IDU(
     )
   )
 
-  val csr_addr = inst(31, 20)
+  val csr_addr = Mux(exec_type === ExecType.MRet, CSR.mepc, inst(31, 20))
 
   // printf(cf"[IDU]: Inst: ${inst}, imm: ${imm}, rd: ${rd}, rs1: ${rs1}, rs2: ${rs2}, exec_type: ${exec_type}\n");
 
