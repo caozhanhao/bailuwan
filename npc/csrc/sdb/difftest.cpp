@@ -64,9 +64,9 @@ void init_difftest(size_t img_size)
         ctx.gpr[i] = cpu.reg(i);
     for (int i = 0; i < 4096; i++)
     {
-        // if (cpu.is_csr_valid(i))
-        //     ctx.csr[i] = cpu.csr(i);
-        // else
+        if (cpu.is_csr_valid(i))
+            ctx.csr[i] = cpu.csr(i);
+        else
             ctx.csr[i] = 0;
     }
     ctx.pc = cpu.pc();
