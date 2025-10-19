@@ -28,15 +28,9 @@ class CSRFile(
   val mtvec   = RegInit(0.U(p.XLEN.W))
   val mepc    = RegInit(0.U(p.XLEN.W))
   val mcause  = RegInit(0.U(p.XLEN.W))
-  val mcycle  = RegInit(0.U(p.XLEN.W))
-  val mcycleh = if (p.XLEN == 32) RegInit(0.U(p.XLEN.W)) else null
 
-  if (p.XLEN == 32) {
-    mcycle  := Mux(mcycle(31), 0.U, mcycle + 1.U)
-    mcycleh := Mux(mcycle(31), mcycleh + 1.U, mcycleh)
-  } else {
-    mcycle := mcycle + 1.U
-  }
+  val mcycle  = RegInit(0.U(64.W))
+  mcycle := mcycle + 1.U
 
   def writable(addr: UInt, old_val: UInt) = Mux(io.write_enbale && (io.write_addr === addr), io.write_data, old_val)
 
@@ -44,10 +38,6 @@ class CSRFile(
   mtvec   := writable(CSR.mtvec, mtvec)
   mepc    := writable(CSR.mepc, mepc)
   mcause  := writable(CSR.mcause, mcause)
-  mcycle  := writable(CSR.mcycle, mcycle)
-
-  if (p.XLEN == 32)
-    mcycleh := writable(CSR.mcycleh, mcycleh)
 
   val read_data = MuxLookup(io.read_addr, 0.U)(
     Seq(
@@ -55,8 +45,8 @@ class CSRFile(
       CSR.mtvec     -> mtvec,
       CSR.mepc      -> mepc,
       CSR.mcause    -> mcause,
-      CSR.mcycle    -> mcycle,
-      CSR.mcycleh   -> (if (p.XLEN == 32) mcycleh else 0.U),
+      CSR.mcycle    -> (if (p.XLEN == 32) mcycle(31, 0) else mcycle),
+      CSR.mcycleh   -> (if (p.XLEN == 32) mcycle(63, 32) else 0.U),
       CSR.mvendorid -> mvendorid,
       CSR.marchid   -> marchid
     )
