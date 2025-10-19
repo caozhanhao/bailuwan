@@ -10,7 +10,7 @@ const char* regs[] = {
 void isa_reg_display()
 {
     auto& cpu = sim_handle.get_cpu();
-    for (int i = 0; i < 32; i++)
+    for (int i = 0; i < 16; i++)
         printf("x%-2d %-5s  0x%08x  %11d\n", i, regs[i], cpu.reg(i), cpu.reg(i));
 }
 
