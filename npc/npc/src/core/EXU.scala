@@ -91,8 +91,8 @@ class EXU(
     Seq(
       CSROp.Nop -> 0.U,
       CSROp.RW  -> oper2,
-      CSROp.RS  -> (csr_data | oper2),
-      CSROp.RC  -> (csr_data & (~oper2).asUInt)
+      CSROp.RS  -> (oper1 | oper2),
+      CSROp.RC  -> (oper1 & (~oper2).asUInt)
     )
   )
   
