@@ -24,6 +24,25 @@ struct diff_context_t
 
 #ifdef CONFIG_DIFFTEST
 
+static void sync_regs_to_ref()
+{
+    auto& cpu = sim_handle.get_cpu();
+
+    diff_context_t ctx;
+    for (int i = 0; i < 16; i++)
+        ctx.gpr[i] = cpu.reg(i);
+    for (int i = 0; i < 4096; i++)
+    {
+        if (cpu.is_csr_valid(i))
+            ctx.csr[i] = cpu.csr(i);
+        else
+            ctx.csr[i] = 0;
+    }
+    ctx.pc = cpu.pc();
+    ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
+    Log("Syncing to ref at pc: " FMT_WORD "\n", cpu.pc());
+}
+
 void init_difftest(size_t img_size)
 {
     const char* ref_so_file = "csrc/common/lib/riscv32-nemu-interpreter-so";
@@ -55,24 +74,10 @@ void init_difftest(size_t img_size)
 
     ref_difftest_init(0);
     auto& mem = sim_handle.get_memory();
-    auto& cpu = sim_handle.get_cpu();
 
     ref_difftest_memcpy(RESET_VECTOR, mem.guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
 
-    diff_context_t ctx;
-    for (int i = 0; i < 16; i++)
-        ctx.gpr[i] = cpu.reg(i);
-    for (int i = 0; i < 4096; i++)
-    {
-        if (cpu.is_csr_valid(i))
-            ctx.csr[i] = cpu.csr(i);
-        else
-            ctx.csr[i] = 0;
-    }
-    ctx.pc = cpu.pc();
-
-    Log("Initializing difftest, pc: " FMT_WORD "\n", ctx.pc);
-    ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
+    sync_regs_to_ref();
 }
 
 static void checkregs(diff_context_t* ref)
@@ -111,11 +116,42 @@ static void checkregs(diff_context_t* ref)
     }
 }
 
+static bool should_skip_this()
+{
+    auto& cpu = sim_handle.get_cpu();
+    auto inst = cpu.curr_inst();
+
+    bool is_store = BITS(inst, 6, 0) == 0b0100011;
+    bool is_load = BITS(inst, 6, 0) == 0b0000011;
+    word_t imm;
+    // Store
+    if (is_store)
+        imm = (SEXT(BITS(inst, 31, 25), 7) << 5) | BITS(inst, 11, 7);
+    else if (is_load)
+        imm = SEXT(BITS(inst, 31, 20), 12);
+    else
+        return false;
+
+    auto rs1 = BITS(inst, 19, 15);
+    auto src1 = cpu.reg(rs1);
+
+    auto addr = src1 + imm;
+
+    // See if it is accessing devices.
+    auto& mem = sim_handle.get_memory();
+    if (!mem.in_pmem(addr))
+        return true;
+
+    return false;
+}
+
 void difftest_step()
 {
     diff_context_t ref_r;
 
-    ref_difftest_exec(1);
+    if (!should_skip_this())
+        ref_difftest_exec(1);
+
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
     checkregs(&ref_r);
