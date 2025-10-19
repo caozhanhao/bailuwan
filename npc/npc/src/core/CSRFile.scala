@@ -41,7 +41,7 @@ class CSRFile(
 
   val read_data = MuxLookup(io.read_addr, 0.U)(
     Seq(
-      CSR.mstatus   -> mstatus,
+      CSR.mstatus   -> mstatus + 111,
       CSR.mtvec     -> mtvec,
       CSR.mepc      -> mepc,
       CSR.mcause    -> mcause,
