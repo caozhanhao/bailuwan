@@ -22,7 +22,9 @@ void init_difftest(size_t img_size);
 
 // ISA
 void isa_reg_display();
+void isa_csr_display();
 word_t isa_reg_str2val(const char *s, bool *success);
+word_t isa_csr_str2val(const char *s, bool *success);
 int isa_ftrace_dump(char* buf, size_t buf_size);
 
 // Expr

@@ -18,6 +18,10 @@ class CSRFile(
     val write_enbale = Input(Bool())
   })
 
+  // ysyx_25100251 caozhanhao
+  val mvendorid = 0x79737978.U
+  val marchid   = 25100251.U
+
   val mstatus_init_val = if (p.XLEN == 32) 0x1800.U(32.W) else 0xa00001800L.U(64.W)
 
   val mstatus = RegInit(mstatus_init_val)
@@ -25,7 +29,6 @@ class CSRFile(
   val mepc    = RegInit(0.U(p.XLEN.W))
   val mcause  = RegInit(0.U(p.XLEN.W))
   val mcycle  = RegInit(0.U(p.XLEN.W))
-
   val mcycleh = if (p.XLEN == 32) RegInit(0.U(p.XLEN.W)) else null
 
   if (p.XLEN == 32) {
@@ -54,9 +57,8 @@ class CSRFile(
       CSR.mcause    -> mcause,
       CSR.mcycle    -> mcycle,
       CSR.mcycleh   -> (if (p.XLEN == 32) mcycleh else 0.U),
-      // ysyx_25100251 caozhanhao
-      CSR.mvendorid -> 0x79737978.U,
-      CSR.marchid   -> 25100251.U
+      CSR.mvendorid -> mvendorid,
+      CSR.marchid   -> marchid
     )
   )
 

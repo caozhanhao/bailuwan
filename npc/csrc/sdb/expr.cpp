@@ -401,11 +401,16 @@ static word_t eval(int p, int q, bool* success)
             return ret;
         }
 
-        if (tokens[p].type == TK_REG)
-        {
+        if (tokens[p].type == TK_REG) {
             word_t res = isa_reg_str2val(tokens[p].str + 1, success);
+            if (*success)
+                return res;
+
+            res = isa_csr_str2val(tokens[p].str + 1, success);
+
             if (!*success)
-                Log("eval: Bad register: %s", tokens[p].str);
+                Log("eval: Bad reg/csr: %s", tokens[p].str);
+
             return res;
         }
 
