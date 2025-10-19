@@ -75,10 +75,6 @@ INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
 
-ifdef $(NO_SIM_TRACE)
-CXXFLAGS += -DDISABLE_ALL_TRACE
-endif
-
 ifneq ($(TRACE), notrace)
 TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
 CXXFLAGS += -DTRACE -DTRACE_$(TRACE) -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
