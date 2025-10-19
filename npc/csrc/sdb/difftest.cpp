@@ -71,7 +71,7 @@ void init_difftest(size_t img_size)
     }
     ctx.pc = cpu.pc();
 
-    Log("Initializing difftest, pc: " FMT_WORD "\n", ctx.pc);
+    Log("Initializing difftest, pc: " FMT_WORD ", mcycle: " FMT_WORD "\n", ctx.pc, ctx.csr[CSR_mcycle]);
     ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
 }
 
