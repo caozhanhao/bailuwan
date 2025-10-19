@@ -374,6 +374,7 @@ int main(int argc, char* argv[])
 {
     init_regex();
     init_wp_pool();
+    init_bp_pool();
 
     sdb_state = SDBState::Stop;
 
