@@ -96,7 +96,7 @@ class EXU(
     )
   )
 
-  printf(cf"[EXU/CSR]: op=${io.decoded.csr_op}, oper2=${oper2}, csr_data=${csr_data}, rd=${io.decoded.rd}, rd_we=${io.decoded.rd}\n")
+  printf(cf"[EXU/CSR]: op=${io.decoded.csr_op}, oper2=${oper2}, csr_data=${csr_data}, rd=${io.decoded.rd}, rd_we=${io.decoded.rd_we}\n")
   
   csr_file.io.write_data := csr_write_data
 
