@@ -119,7 +119,7 @@ static void checkregs(diff_context_t* ref)
 static bool should_skip_this()
 {
     auto& cpu = sim_handle.get_cpu();
-    auto inst = cpu.next_inst();
+    auto inst = cpu.curr_inst();
 
     bool is_store = BITS(inst, 6, 0) == 0b0100011;
     bool is_load = BITS(inst, 6, 0) == 0b0000011;
