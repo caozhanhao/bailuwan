@@ -147,13 +147,15 @@ static bool should_skip_this()
 
 void difftest_step()
 {
+    if (should_skip_this())
+    {
+        sync_regs_to_ref();
+        return;
+    }
+
+    ref_difftest_exec(1);
     diff_context_t ref_r;
-
-    if (!should_skip_this())
-        ref_difftest_exec(1);
-
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-
     checkregs(&ref_r);
 }
 #else
