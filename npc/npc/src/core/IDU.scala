@@ -138,7 +138,7 @@ class IDU(
     )
   )
 
-  val csr_addr = imm(31, 20)
+  val csr_addr = inst(31, 20)
 
   // printf(cf"[IDU]: Inst: ${inst}, imm: ${imm}, rd: ${rd}, rs1: ${rs1}, rs2: ${rs2}, exec_type: ${exec_type}\n");
 
