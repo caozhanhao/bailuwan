@@ -40,7 +40,7 @@ static void sync_regs_to_ref()
     }
     ctx.pc = cpu.pc();
     ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
-    Log("Syncing to ref at pc: " FMT_WORD "\n", cpu.pc());
+    // Log("Syncing to ref at pc: " FMT_WORD "\n", cpu.pc());
 }
 
 void init_difftest(size_t img_size)
