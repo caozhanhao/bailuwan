@@ -198,7 +198,7 @@ static int cmd_b(char *args) {
     }
 
     char *endptr;
-    int given_addr = (int)strtoll(args, &endptr, 10);
+    int given_addr = (int)strtoll(args, &endptr, 16);
     if (endptr == args) {
         word_t addr = ftrace_get_address_of(args);
 
