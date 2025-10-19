@@ -52,7 +52,7 @@ class CSRFile(
     )
   )
 
-  printf(cf"[CSR] read_addr: %x, read_data: %x\n", io.read_addr, read_data)
+  printf("[CSR] read_addr: %x, read_data: %x\n", io.read_addr, read_data)
 
   io.read_data := Mux(io.read_enable, read_data, 0.U)
 }
