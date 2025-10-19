@@ -91,10 +91,12 @@ class EXU(
     Seq(
       CSROp.Nop -> 0.U,
       CSROp.RW  -> oper2,
-      CSROp.RS  -> (oper1 | oper2),
-      CSROp.RC  -> (oper1 & (~oper2).asUInt)
+      CSROp.RS  -> (csr_data | oper2),
+      CSROp.RC  -> (csr_data & (~oper2).asUInt)
     )
   )
+
+  printf(cf"[EXU/CSR]: op=${io.decoded.csr_op}, oper2=${oper2}, csr_data=${csr_data}, rd=${io.decoded.rd}, rd_we=${io.decoded.rd}\n")
   
   csr_file.io.write_data := csr_write_data
 
