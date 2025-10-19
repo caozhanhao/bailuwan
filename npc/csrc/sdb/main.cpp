@@ -33,7 +33,7 @@ static char* rl_gets()
     {
         HIST_ENTRY* prev = previous_history();
         if (prev)
-            line_read = prev->line;
+            line_read = strdup(prev->line);
     }
 
     return line_read;
