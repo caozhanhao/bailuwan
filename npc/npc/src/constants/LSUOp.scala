@@ -6,7 +6,7 @@ import chisel3.util._
 object LSUOp {
   val WIDTH = log2Ceil(9).W
 
-  val None = 0.U(WIDTH)
+  val Nop = 0.U(WIDTH)
   val LB   = 1.U(WIDTH)
   val LH   = 2.U(WIDTH)
   val LW   = 3.U(WIDTH)

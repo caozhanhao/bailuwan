@@ -1,6 +1,7 @@
 package core
 
 import chisel3._
+import chisel3.util._
 import chisel3.util.MuxLookup
 import constants.ALUOp
 import top.CoreParams
@@ -15,7 +16,8 @@ class ALU(
     val result = Output(UInt(p.XLEN.W))
   })
 
-  val shamt = io.oper2(p.ALUShamtWidth - 1, 0)
+  val shamt_width = log2Ceil(p.XLEN)
+  val shamt = io.oper2(shamt_width - 1, 0)
 
   import ALUOp._
   val result = MuxLookup(io.alu_op, 0.U)(

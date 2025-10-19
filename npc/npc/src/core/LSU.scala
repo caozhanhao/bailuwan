@@ -6,7 +6,9 @@ import constants._
 import top.CoreParams
 import utils.Utils._
 
-class LSU(implicit p: CoreParams) extends Module {
+class LSU(
+  implicit p: CoreParams)
+    extends Module {
   val io = IO(new Bundle {
     val lsu_op     = Input(UInt(LSUOp.WIDTH))
     val addr       = Input(UInt(p.XLEN.W))
@@ -25,7 +27,7 @@ class LSU(implicit p: CoreParams) extends Module {
       LSUOp.SW -> true.B
     )
   )
-  val read_enable  = io.lsu_op =/= LSUOp.None && !write_enable
+  val read_enable  = io.lsu_op =/= LSUOp.Nop && !write_enable
 
   val write_mask = MuxLookup(io.lsu_op, 0.U(8.W))(
     Seq(

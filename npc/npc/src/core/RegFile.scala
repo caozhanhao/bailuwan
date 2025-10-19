@@ -3,7 +3,9 @@ package core
 import chisel3._
 import top.CoreParams
 
-class RegFile(implicit p: CoreParams) extends Module {
+class RegFile(
+  implicit p: CoreParams)
+    extends Module {
   val io = IO(new Bundle {
     val rs1_addr = Input(UInt(5.W))
     val rs2_addr = Input(UInt(5.W))
@@ -16,7 +18,6 @@ class RegFile(implicit p: CoreParams) extends Module {
     val rs2_data = Output(UInt(p.XLEN.W))
   })
 
-  // RV32E
   val regs = RegInit(VecInit(Seq.fill(p.RegCount)(0.U(p.XLEN.W))))
 
   regs(io.rd_addr(3, 0)) := Mux(io.rd_we && io.rd_addr =/= 0.U, io.rd_data, regs(io.rd_addr(3, 0)))

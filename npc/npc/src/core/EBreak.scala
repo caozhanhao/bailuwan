@@ -5,7 +5,7 @@ import chisel3.util.HasBlackBoxInline
 
 class EBreak extends HasBlackBoxInline {
   val io = IO(new Bundle {
-    val en   = Input(Bool())
+    val en = Input(Bool())
   })
   setInline(
     "EBreak.sv",

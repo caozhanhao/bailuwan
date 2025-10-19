@@ -56,10 +56,21 @@ object InstPat {
   val DIVU   = BitPat("b0000001 ????? ????? 101 ????? 01100 11")
   val REM    = BitPat("b0000001 ????? ????? 110 ????? 01100 11")
   val REMU   = BitPat("b0000001 ????? ????? 111 ????? 01100 11")
+
+  // RV32/RV64 Zicsr Standard Extension
+  val CSRRW  = BitPat("b??????? ????? ????? 001 ????? 11100 11")
+  val CSRRS  = BitPat("b??????? ????? ????? 010 ????? 11100 11")
+  val CSRRC  = BitPat("b??????? ????? ????? 011 ????? 11100 11")
+  val CSRRWI = BitPat("b??????? ????? ????? 101 ????? 11100 11")
+  val CSRRSI = BitPat("b??????? ????? ????? 110 ????? 11100 11")
+  val CSRRCI = BitPat("b??????? ????? ????? 111 ????? 11100 11")
+
+  // Trap-Return Instructions
+  val MRET = BitPat("b0011000 00010 00000 000 00000 11100 11")
 }
 
 object InstFmt {
-  val WIDTH = log2Ceil(7).W
+  val WIDTH = log2Ceil(8).W
 
   val R = 0.U(WIDTH)
   val I = 1.U(WIDTH)
@@ -67,25 +78,29 @@ object InstFmt {
   val B = 3.U(WIDTH)
   val U = 4.U(WIDTH)
   val J = 5.U(WIDTH)
-  val Err = 6.U(WIDTH)
+
+  // Helper Format
+  val C = 6.U(WIDTH) // CSR
+  val E = 7.U(WIDTH) // Err
 }
 
 object OperType {
-  val WIDTH = log2Ceil(6).W
+  val WIDTH = log2Ceil(7).W
 
-  val Rs1 = 0.U(OperType.WIDTH)
-  val Rs2 = 1.U(OperType.WIDTH)
+  val Rs1  = 0.U(OperType.WIDTH)
+  val Rs2  = 1.U(OperType.WIDTH)
   val Imm  = 2.U(OperType.WIDTH)
   val Zero = 3.U(OperType.WIDTH)
   val Four = 4.U(OperType.WIDTH)
   val PC   = 5.U(OperType.WIDTH)
+  val CSR  = 6.U(OperType.WIDTH)
 }
 
 object ExecType {
   val WIDTH = log2Ceil(4).W
 
-  val None = 0.U(ExecType.WIDTH)
-  val ALU = 1.U(ExecType.WIDTH)
-  val LSU = 2.U(ExecType.WIDTH)
-  val EBreak = 3.U(ExecType.WIDTH)
+  val ALU    = 0.U(ExecType.WIDTH)
+  val LSU    = 1.U(ExecType.WIDTH)
+  val EBreak = 2.U(ExecType.WIDTH)
+  val CSR    = 3.U(ExecType.WIDTH)
 }

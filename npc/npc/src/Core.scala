@@ -3,7 +3,9 @@ package top
 import chisel3._
 import core._
 
-class Core(implicit p: CoreParams) extends Module {
+class Core(
+  implicit p: CoreParams)
+    extends Module {
   val IFU = Module(new IFU)
   val EXU = Module(new EXU)
   val IDU = Module(new IDU)
