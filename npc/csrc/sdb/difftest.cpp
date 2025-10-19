@@ -149,7 +149,7 @@ void difftest_step()
 {
     if (should_skip_this())
     {
-        sync_regs_to_ref();
+        // sync_regs_to_ref();
         return;
     }
 
