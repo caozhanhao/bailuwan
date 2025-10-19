@@ -97,6 +97,7 @@ class SimHandle
     CPUProxy cpu;
     uint64_t cycle_counter;
     uint64_t sim_time;
+    uint32_t prev_inst;
     IFDEF(TRACE, TFP_TYPE* tfp);
     std::chrono::high_resolution_clock::time_point boot_time;
 
