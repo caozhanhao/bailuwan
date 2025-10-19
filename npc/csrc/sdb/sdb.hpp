@@ -32,6 +32,10 @@ void init_regex();
 bool syntax_check(char* e);
 word_t expr(char *e, bool *success);
 
+
+#define NR_WP 32
+#define NR_BP 32
+
 // Watch point
 void init_wp_pool();
 void wp_update();
@@ -39,9 +43,18 @@ void wp_display();
 void wp_create(char* expr);
 void wp_delete(int NO);
 
+// Break point
+void init_bp_pool();
+void bp_update();
+void bp_display();
+void bp_create(word_t addr);
+void bp_delete(int NO);
+
+
 // FTrace
 void init_ftrace(const char* elf_file);
 const char* ftrace_search(uint32_t pc);
+word_t ftrace_get_address_of(const char *name);
 
 enum class SDBState
 {

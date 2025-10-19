@@ -72,6 +72,14 @@ const char* ftrace_search(uint32_t pc)
     return nullptr;
 }
 
+word_t ftrace_get_address_of(const char *name) {
+    for (size_t i = 0; i < ftrace_size; i++) {
+        if (strcmp(ftrace_table[i].name, name) == 0)
+            return ftrace_table[i].addr;
+    }
+    return 0;
+}
+
 void init_ftrace(const char* file)
 {
     if (file == nullptr)
