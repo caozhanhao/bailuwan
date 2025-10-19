@@ -37,8 +37,8 @@ class Top extends Module {
   io.csrs.mtvec     := BoringUtils.bore(core.EXU.csr_file.mtvec)
   io.csrs.mepc      := BoringUtils.bore(core.EXU.csr_file.mepc)
   io.csrs.mcause    := BoringUtils.bore(core.EXU.csr_file.mcause)
-  io.csrs.mcycle    := BoringUtils.bore(core.EXU.csr_file.mcycle)
-  io.csrs.mcycleh   := BoringUtils.bore(core.EXU.csr_file.mcycleh)
+  io.csrs.mcycle    := BoringUtils.bore(core.EXU.csr_file.mcycle).asUInt(31, 0)
+  io.csrs.mcycleh   := BoringUtils.bore(core.EXU.csr_file.mcycle).asUInt(63, 32)
   io.csrs.mvendorid := core.EXU.csr_file.mvendorid
   io.csrs.marchid   := core.EXU.csr_file.marchid
 }
