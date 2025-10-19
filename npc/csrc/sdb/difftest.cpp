@@ -138,6 +138,7 @@ static bool should_skip_this()
     auto addr = src1 + imm;
 
     // See if it is accessing devices.
+    printf("Recognized addr: " FMT_WORD "\n",  addr);
     auto& mem = sim_handle.get_memory();
     if (!mem.in_pmem(addr))
         return true;
