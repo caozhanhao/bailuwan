@@ -36,6 +36,14 @@ static void restart() {
   /* mstatus */
   cpu.csr[CSR_mstatus] = MUXDEF(CONFIG_ISA64, 0xa00001800, 0x1800);
 
+  /* mcycle */
+  cpu.csr[CSR_mcycle] = 0;
+  cpu.csr[CSR_mcycleh] = 0;
+
+  /* ysyx_25100251 caozhanhao */
+  cpu.csr[CSR_mvendorid] = 0x79737978;
+  cpu.csr[CSR_marchid] = 25100251;
+
   cpu.priv_level = PRIV_LEVEL_M;
 }
 
