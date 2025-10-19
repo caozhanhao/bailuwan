@@ -141,7 +141,16 @@ class IDU(
     )
   )
 
-  val csr_addr = Mux(exec_type === ExecType.MRet, CSR.mepc, inst(31, 20))
+  // CSR Addr:
+  //   CSR{RW, RS, RC}[I] -> the CSR indicated by inst[31:0]
+  //   ECall              -> mtvec
+  //   Mret               -> mepc
+  val csr_addr = MuxLookup(exec_type, inst(31, 20))(
+    Seq(
+      ExecType.ECall -> CSR.mtvec,
+      ExecType.MRet  -> CSR.mepc
+    )
+  )
 
   // printf(cf"[IDU]: Inst: ${inst}, imm: ${imm}, rd: ${rd}, rs1: ${rs1}, rs2: ${rs2}, exec_type: ${exec_type}\n");
 

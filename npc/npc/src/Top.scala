@@ -30,7 +30,7 @@ class Top extends Module {
   // Bore some signals for debugging
   io.registers := BoringUtils.bore(core.EXU.reg_file.regs)
   io.pc        := BoringUtils.bore(core.pc)
-  io.dnpc      := BoringUtils.bore(core.EXU.wbu.dnpc)
+  io.dnpc      := BoringUtils.bore(core.EXU.wbu.br_dnpc)
   io.inst      := BoringUtils.bore(core.IFU.io.inst)
 
   io.csrs.mstatus   := BoringUtils.bore(core.EXU.csr_file.mstatus)

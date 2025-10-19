@@ -123,10 +123,7 @@ class EXU(
   wbu.io.in.br_target := br_target
 
   reg_file.io.rd_data := wbu.io.out.rd_data
-
-  val wbu_dnpc = wbu.io.out.dnpc
-  val dnpc     = Mux(exec_type === ExecType.MRet, csr_data, wbu_dnpc)
-  io.dnpc := dnpc
+  io.dnpc             := wbu.io.out.dnpc
 
   // EBreak
   val ebreak = Module(new EBreak)
