@@ -67,8 +67,9 @@ class DPICMem extends Module {
     val write_mask   = Input(UInt(8.W))
     val write_data   = Input(UInt(32.W))
 
-    val data_out = Output(UInt(32.W))
-    val valid    = Output(Bool())
+    val data_out    = Output(UInt(32.W))
+    val read_valid  = Output(Bool())
+    val write_ready = Output(Bool())
   })
 
   val read    = Module(new PMemReadDPICWrapper)
@@ -88,7 +89,8 @@ class DPICMem extends Module {
   write.io.data  := io.write_data
   write.io.mask  := io.write_mask
 
-  io.valid := RegNext(read_en, false.B)
+  io.read_valid  := RegNext(read_en, false.B)
+  io.write_ready := RegNext(write_en, false.B)
 }
 
 //class TempMemForSTA extends Module {

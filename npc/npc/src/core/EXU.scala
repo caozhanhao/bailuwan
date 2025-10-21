@@ -81,10 +81,11 @@ class EXU(
 
   // LSU
   val lsu = Module(new LSU)
-  lsu.io.lsu_op          := decoded.lsu_op
-  lsu.io.addr            := alu.io.result
-  lsu.io.write_data      := rs2_data
-  lsu.io.read_data.ready := io.out.ready
+  lsu.io.lsu_op           := decoded.lsu_op
+  lsu.io.addr             := alu.io.result
+  lsu.io.write_data.bits  := rs2_data
+  lsu.io.write_data.valid := io.in.valid
+  lsu.io.read_data.ready  := io.out.ready
 
   // FIXME: Write ready?
   val is_ld = MuxLookup(decoded.lsu_op, true.B)(
@@ -95,7 +96,9 @@ class EXU(
       LSUOp.SW  -> false.B
     )
   )
-  val lsu_valid = !is_ld || lsu.io.read_data.valid
+
+  val is_str = !is_ld && decoded.lsu_op =/= LSUOp.Nop
+  val lsu_valid = (!is_ld || lsu.io.read_data.valid) && (!is_str || lsu.io.write_data.ready)
 
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.

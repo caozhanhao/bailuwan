@@ -10,32 +10,43 @@ class LSU(
   implicit p: CoreParams)
     extends Module {
   val io = IO(new Bundle {
-    val lsu_op     = Input(UInt(LSUOp.WIDTH))
-    val addr       = Input(UInt(p.XLEN.W))
-    val write_data = Input(UInt(p.XLEN.W))
+    val lsu_op = Input(UInt(LSUOp.WIDTH))
+    val addr   = Input(UInt(p.XLEN.W))
 
-    val read_data = Decoupled(UInt(p.XLEN.W))
+    val write_data = Flipped(Decoupled(UInt(p.XLEN.W)))
+    val read_data  = Decoupled(UInt(p.XLEN.W))
   })
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
   val mem = Module(new DPICMem())
 
-  val write_enable = MuxLookup(io.lsu_op, false.B)(
+  val write_enable = io.write_data.valid && MuxLookup(io.lsu_op, false.B)(
     Seq(
       LSUOp.SB -> true.B,
       LSUOp.SH -> true.B,
       LSUOp.SW -> true.B
     )
   )
-  val read_enable  = io.lsu_op =/= LSUOp.Nop && !write_enable
+  val read_enable  = MuxLookup(io.lsu_op, false.B)(
+    Seq(
+      LSUOp.LB  -> true.B,
+      LSUOp.LH  -> true.B,
+      LSUOp.LW  -> true.B,
+      LSUOp.LBU -> true.B,
+      LSUOp.LHU -> true.B
+    )
+  )
 
   val s_idle :: s_wait_ready :: Nil = Enum(2)
+
   val state = RegInit(s_idle)
-  state := MuxLookup(state, s_idle)(List(
-    s_idle       -> Mux(mem.io.valid && !read_enable, s_wait_ready, s_idle),
-    s_wait_ready -> Mux(io.read_data.ready, s_idle, s_wait_ready)
-  ))
+  state := MuxLookup(state, s_idle)(
+    Seq(
+      s_idle       -> Mux(read_enable && mem.io.read_valid, s_wait_ready, s_idle),
+      s_wait_ready -> Mux(io.read_data.ready, s_idle, s_wait_ready)
+    )
+  )
 
   val write_mask = MuxLookup(io.lsu_op, 0.U(8.W))(
     Seq(
@@ -47,9 +58,9 @@ class LSU(
 
   val selected_store_data = MuxLookup(io.lsu_op, 0.U(p.XLEN.W))(
     Seq(
-      LSUOp.SB -> (io.write_data << (io.addr(1, 0) << 3).asUInt).asUInt,
-      LSUOp.SH -> (io.write_data << (io.addr(1, 0) << 3).asUInt).asUInt,
-      LSUOp.SW -> io.write_data
+      LSUOp.SB -> (io.write_data.bits << (io.addr(1, 0) << 3).asUInt).asUInt,
+      LSUOp.SH -> (io.write_data.bits << (io.addr(1, 0) << 3).asUInt).asUInt,
+      LSUOp.SW -> io.write_data.bits
     )
   )
 
@@ -87,6 +98,9 @@ class LSU(
   mem.io.write_enable := write_enable
   mem.io.write_mask   := write_mask
   mem.io.write_data   := selected_store_data
-  io.read_data.valid  := state === s_wait_ready
-  io.read_data.bits   := selected_loaded_data
+
+  io.read_data.valid := state === s_wait_ready
+  io.read_data.bits  := selected_loaded_data
+
+  io.write_data.ready := mem.io.write_ready
 }
