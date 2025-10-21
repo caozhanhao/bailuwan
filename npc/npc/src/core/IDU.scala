@@ -125,7 +125,8 @@ class IDU(
     val regfile_out = Output(new IDURegfileOut)
   })
 
-  val inst = io.in.bits.inst
+  val NOP = 0x00000013.U(32.W)
+  val inst = Mux(io.in.valid, io.in.bits.inst, NOP)
 
   // Registers
   val rd  = inst(11, 7)
