@@ -6,9 +6,9 @@ import chisel3.util.HasBlackBoxInline
 class PMemReadDPICWrapper extends HasBlackBoxInline {
   val io = IO(new Bundle {
     val clock = Input(Clock())
-    val en   = Input(Bool())
-    val addr = Input(UInt(32.W))
-    val out  = Output(UInt(32.W))
+    val en    = Input(Bool())
+    val addr  = Input(UInt(32.W))
+    val out   = Output(UInt(32.W))
   })
   setInline(
     "PMemReadDPICWrapper.sv",
@@ -74,9 +74,10 @@ class DPICMem extends Module {
   val read    = Module(new PMemReadDPICWrapper)
   val read_en = io.read_enable && !reset.asBool
 
-  read.io.en   := read_en
-  read.io.addr := io.addr
-  io.data_out  := read.io.out
+  read.io.clock := clock
+  read.io.en    := read_en
+  read.io.addr  := io.addr
+  io.data_out   := read.io.out
 
   val write    = Module(new PMemWriteDPICWrapper)
   val write_en = io.write_enable && !reset.asBool
