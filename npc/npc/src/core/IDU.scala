@@ -127,17 +127,8 @@ class IDU(
 
   val s_idle :: s_decode :: s_wait_ready :: Nil = Enum(3)
 
-  val state = RegInit(s_idle)
-  state := MuxLookup(state, s_idle)(
-    Seq(
-      s_idle       -> Mux(io.in.valid, s_decode, s_idle),
-      s_decode     -> Mux(io.out.ready, s_idle, s_wait_ready),
-      s_wait_ready -> Mux(io.out.ready, s_idle, s_wait_ready)
-    )
-  )
-
   val NOP  = 0x00000013.U(32.W)
-  val inst = Mux(state === s_decode, io.in.bits.inst, NOP)
+  val inst = Mux(io.in.valid, io.in.bits.inst, NOP)
 
   // Registers
   val rd  = inst(11, 7)
