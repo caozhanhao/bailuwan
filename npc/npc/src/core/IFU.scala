@@ -53,5 +53,5 @@ class IFU(
   io.out.valid := state === s_wait_ready
 
   // For debug
-  val difftest_ready = state === s_idle
+  val difftest_ready = RegNext(state === s_idle)
 }
