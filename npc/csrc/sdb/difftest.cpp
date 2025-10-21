@@ -159,7 +159,7 @@ void difftest_step()
 {
     auto& cpu = sim_handle.get_cpu();
 
-    if (!cpu.is_ready_for_difftest() || !skip_this_one)
+    if (!skip_this_one)
     {
         sync_regs_to_ref();
         skip_this_one = false;
