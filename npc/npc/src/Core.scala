@@ -32,6 +32,6 @@ class Core(
   RegFile.io.rs1_addr        := IDU.io.regfile_out.rs1_addr
   RegFile.io.rs2_addr        := IDU.io.regfile_out.rs2_addr
   RegFile.io.rd_addr         := IDU.io.regfile_out.rd_addr
-  RegFile.io.rd_we           := IDU.io.regfile_out.rd_we
+  RegFile.io.rd_we           := WBU.io.regfile_out.rd_we
   RegFile.io.rd_data         := WBU.io.regfile_out.rd_data
 }

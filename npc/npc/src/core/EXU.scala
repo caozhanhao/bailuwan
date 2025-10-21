@@ -11,6 +11,7 @@ class EXUOut(
   implicit p: CoreParams)
     extends Bundle {
   val src_type = UInt(ExecType.WIDTH)
+  val rd_we    = Bool()
   val alu_out  = UInt(p.XLEN.W)
   val lsu_out  = UInt(p.XLEN.W)
 
@@ -80,9 +81,24 @@ class EXU(
 
   // LSU
   val lsu = Module(new LSU)
-  lsu.io.lsu_op     := decoded.lsu_op
-  lsu.io.addr       := alu.io.result
-  lsu.io.write_data := rs2_data
+  lsu.io.lsu_op           := decoded.lsu_op
+  lsu.io.addr             := alu.io.result
+  lsu.io.write_data.bits  := rs2_data
+  lsu.io.write_data.valid := io.in.valid
+  lsu.io.read_data.ready  := io.out.ready
+
+  // FIXME: Write ready?
+  val is_ld = MuxLookup(decoded.lsu_op, true.B)(
+    Seq(
+      LSUOp.Nop -> false.B,
+      LSUOp.SB  -> false.B,
+      LSUOp.SH  -> false.B,
+      LSUOp.SW  -> false.B
+    )
+  )
+
+  val is_str = !is_ld && decoded.lsu_op =/= LSUOp.Nop
+  val lsu_valid = (!is_ld || lsu.io.read_data.valid) && (!is_str || lsu.io.write_data.ready)
 
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
@@ -122,9 +138,10 @@ class EXU(
 
   csr_file.io.write_data := csr_write_data
 
+  io.out.bits.rd_we    := decoded.rd_we
   io.out.bits.src_type := exec_type
   io.out.bits.alu_out  := alu.io.result
-  io.out.bits.lsu_out  := lsu.io.read_data
+  io.out.bits.lsu_out  := lsu.io.read_data.bits
   io.out.bits.csr_out  := csr_data
 
   io.out.bits.snpc      := decoded.pc + 4.U
@@ -132,9 +149,11 @@ class EXU(
   io.out.bits.br_target := br_target
 
   // EBreak
+  // val ebreak = Module(new TempEBreakForSTA)
   val ebreak = Module(new EBreak)
+
   ebreak.io.en := decoded.exec_type === ExecType.EBreak
 
   io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid
+  io.out.valid := io.in.valid && lsu_valid
 }

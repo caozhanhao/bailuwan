@@ -90,6 +90,7 @@ class IDUOut(
 
   val rs1_data = UInt(p.XLEN.W)
   val rs2_data = UInt(p.XLEN.W)
+  val rd_we    = Bool()
   val imm      = UInt(p.XLEN.W)
   val csr_addr = UInt(12.W)
 
@@ -111,7 +112,6 @@ class IDURegfileOut extends Bundle {
   val rs1_addr = UInt(5.W)
   val rs2_addr = UInt(5.W)
   val rd_addr  = UInt(5.W)
-  val rd_we    = Bool()
 }
 
 class IDU(
@@ -125,7 +125,8 @@ class IDU(
     val regfile_out = Output(new IDURegfileOut)
   })
 
-  val inst = io.in.bits.inst
+  val NOP  = 0x00000013.U(32.W)
+  val inst = Mux(io.in.valid, io.in.bits.inst, NOP)
 
   // Registers
   val rd  = inst(11, 7)
@@ -187,9 +188,9 @@ class IDU(
   io.regfile_out.rs1_addr := rs1
   io.regfile_out.rs2_addr := rs2
   io.regfile_out.rd_addr  := rd
-  io.regfile_out.rd_we    := we
   io.out.bits.rs1_data    := io.regfile_in.rs1_data
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
+  io.out.bits.rd_we       := we
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid

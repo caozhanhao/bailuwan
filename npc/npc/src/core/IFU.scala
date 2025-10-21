@@ -19,24 +19,36 @@ class IFU(
     val out = Decoupled(new IFUOut)
   })
 
+  val Mem = Module(new DPICMem)
+  // val Mem = Module(new TempMemForSTA)
+
+  val s_idle :: s_wait_ready :: Nil = Enum(2)
+
+  val state = RegInit(s_idle)
+  state := MuxLookup(state, s_idle)(
+    Seq(
+      s_idle       -> Mux(Mem.io.read_valid, s_wait_ready, s_idle),
+      s_wait_ready -> Mux(io.out.ready, s_idle, s_wait_ready)
+    )
+  )
+
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.valid, io.in.bits.dnpc, pc)
 
-  val Mem = Module(new DPICMem)
+  val inst_reg = RegInit(0.U(32.W))
 
   Mem.io.addr        := pc
   Mem.io.read_enable := true.B
 
   Mem.io.write_enable := false.B
   Mem.io.write_mask   := 0.U
-  Mem.io.write_data   := false.B
+  Mem.io.write_data   := DontCare
 
-  val NOP = 0x00000013.U(32.W)
-  io.out.bits.inst := Mux(Mem.io.valid, Mem.io.data_out, NOP)
+  inst_reg := Mem.io.data_out
+
+  io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
 
-  // io.in.ready := io.out.ready
-  // io.out.valid := io.in.valid
-  io.in.ready := true.B
-  io.out.valid := true.B
+  io.in.ready  := io.out.ready
+  io.out.valid := state === s_wait_ready
 }
