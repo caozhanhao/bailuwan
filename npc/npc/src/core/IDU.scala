@@ -80,16 +80,16 @@ object InstDecodeTable {
 // format: on
 }
 
-class DecodedBundle(
+class IDUOut(
   implicit p: CoreParams)
     extends Bundle {
+  val pc = UInt(p.XLEN.W)
+
   val alu_oper1_type = UInt(OperType.WIDTH)
   val alu_oper2_type = UInt(OperType.WIDTH)
 
-  val rs1      = UInt(5.W)
-  val rs2      = UInt(5.W)
-  val rd       = UInt(5.W)
-  val rd_we    = Bool()
+  val rs1_data = UInt(p.XLEN.W)
+  val rs2_data = UInt(p.XLEN.W)
   val imm      = UInt(p.XLEN.W)
   val csr_addr = UInt(12.W)
 
@@ -100,15 +100,32 @@ class DecodedBundle(
   val csr_op    = UInt(CSROp.WIDTH)
 }
 
+class IDURegfileIn(
+  implicit p: CoreParams)
+    extends Bundle {
+  val rs1_data = UInt(p.XLEN.W)
+  val rs2_data = UInt(p.XLEN.W)
+}
+
+class IDURegfileOut extends Bundle {
+  val rs1_addr = UInt(5.W)
+  val rs2_addr = UInt(5.W)
+  val rd_addr  = UInt(5.W)
+  val rd_we    = Bool()
+}
+
 class IDU(
   implicit p: CoreParams)
     extends Module {
   val io = IO(new Bundle {
-    val inst    = Input(UInt(p.XLEN.W))
-    val decoded = new DecodedBundle
+    val in  = Flipped(Decoupled(new IFUOut))
+    val out = Decoupled(new IDUOut)
+
+    val regfile_in  = Input(new IDURegfileIn)
+    val regfile_out = Output(new IDURegfileOut)
   })
 
-  val inst = io.inst
+  val inst = io.in.bits.inst
 
   // Registers
   val rd  = inst(11, 7)
@@ -142,9 +159,9 @@ class IDU(
   )
 
   // CSR Addr:
-  //   CSR{RW, RS, RC}[I] -> the CSR indicated by inst[31:0]
+  //   CSR{RW, RS, RC}[I] -> the CSR indicated by inst[31:20]
   //   ECall              -> mtvec
-  //   Mret               -> mepc
+  //   MRet               -> mepc
   val csr_addr = MuxLookup(exec_type, inst(31, 20))(
     Seq(
       ExecType.ECall -> CSR.mtvec,
@@ -155,17 +172,25 @@ class IDU(
   // printf(cf"[IDU]: Inst: ${inst}, imm: ${imm}, rd: ${rd}, rs1: ${rs1}, rs2: ${rs2}, exec_type: ${exec_type}\n");
 
   // IO
-  io.decoded.alu_oper1_type := oper1_type
-  io.decoded.alu_oper2_type := oper2_type
-  io.decoded.rs1            := rs1
-  io.decoded.rs2            := rs2
-  io.decoded.imm            := imm
-  io.decoded.csr_addr       := csr_addr
-  io.decoded.rd             := rd
-  io.decoded.rd_we          := we
-  io.decoded.alu_op         := alu_op
-  io.decoded.lsu_op         := lsu_op
-  io.decoded.br_op          := br_op
-  io.decoded.exec_type      := exec_type
-  io.decoded.csr_op         := csr_op
+  io.out.bits.pc             := io.in.bits.pc
+  io.out.bits.alu_oper1_type := oper1_type
+  io.out.bits.alu_oper2_type := oper2_type
+  io.out.bits.imm            := imm
+  io.out.bits.csr_addr       := csr_addr
+  io.out.bits.alu_op         := alu_op
+  io.out.bits.lsu_op         := lsu_op
+  io.out.bits.br_op          := br_op
+  io.out.bits.exec_type      := exec_type
+  io.out.bits.csr_op         := csr_op
+
+  // Regfile
+  io.regfile_out.rs1_addr := rs1
+  io.regfile_out.rs2_addr := rs2
+  io.regfile_out.rd_addr  := rd
+  io.regfile_out.rd_we    := we
+  io.out.bits.rs1_data    := io.regfile_in.rs1_data
+  io.out.bits.rs2_data    := io.regfile_in.rs2_data
+
+  io.in.ready  := io.out.ready
+  io.out.valid := io.in.valid
 }

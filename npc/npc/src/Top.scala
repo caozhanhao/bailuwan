@@ -28,10 +28,10 @@ class Top extends Module {
   val core = Module(new Core)
 
   // Bore some signals for debugging
-  io.registers := BoringUtils.bore(core.EXU.reg_file.regs)
-  io.pc        := BoringUtils.bore(core.pc)
-  io.dnpc      := BoringUtils.bore(core.EXU.wbu.br_dnpc)
-  io.inst      := BoringUtils.bore(core.IFU.io.inst)
+  io.registers := BoringUtils.bore(core.RegFile.regs)
+  io.pc        := BoringUtils.bore(core.IFU.pc)
+  io.dnpc      := BoringUtils.bore(core.WBU.dnpc)
+  io.inst      := BoringUtils.bore(core.IDU.inst)
 
   io.csrs.mstatus   := BoringUtils.bore(core.EXU.csr_file.mstatus)
   io.csrs.mtvec     := BoringUtils.bore(core.EXU.csr_file.mtvec)
