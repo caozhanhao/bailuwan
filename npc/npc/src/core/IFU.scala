@@ -19,6 +19,13 @@ class IFU(
     val out = Decoupled(new IFUOut)
   })
 
+  val s_idle :: s_wait_ready :: Nil = Enum(2)
+  val state = RegInit(s_idle)
+  state := MuxLookup(state, s_idle)(List(
+    s_idle       -> Mux(io.out.valid, s_wait_ready, s_idle),
+    s_wait_ready -> Mux(io.out.ready, s_idle, s_wait_ready)
+  ))
+
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.valid, io.in.bits.dnpc, pc)
 
@@ -36,8 +43,6 @@ class IFU(
   io.out.bits.inst := Mux(Mem.io.valid, Mem.io.data_out, NOP)
   io.out.bits.pc   := pc
 
-  // io.in.ready := io.out.ready
-  // io.out.valid := io.in.valid
-  io.in.ready := true.B
-  io.out.valid := true.B
+  io.in.ready := state === s_idle
+  io.out.valid := Mem.io.valid && state === s_wait_ready
 }
