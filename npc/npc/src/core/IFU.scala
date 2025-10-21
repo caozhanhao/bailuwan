@@ -36,5 +36,5 @@ class IFU(
   io.out.bits.pc   := pc
 
   io.in.ready := io.out.ready
-  io.out.valid := io.in.valid
+  io.out.valid := Mem.io.valid
 }
