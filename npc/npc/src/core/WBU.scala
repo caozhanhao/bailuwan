@@ -53,6 +53,6 @@ class WBU(
   io.regfile_out.rd_we   := io.in.valid && exu_out.rd_we
 
   // In valid -> Out Valid, thus In Ready
-  io.in.ready            := io.in.valid
+  io.in.ready            := true.B
   io.out.valid           := true.B
 }
