@@ -148,7 +148,7 @@ static bool should_skip_next()
     auto& mem = sim_handle.get_memory();
     if (!mem.in_pmem(addr))
     {
-        // printf("Accessing device at addr: " FMT_WORD "\n", addr);
+        printf("Accessing device at addr: " FMT_WORD "\n", addr);
         return true;
     }
 
