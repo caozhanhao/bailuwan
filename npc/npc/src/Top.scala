@@ -43,5 +43,5 @@ class Top extends Module {
   io.csrs.mvendorid := core.EXU.csr_file.mvendorid
   io.csrs.marchid   := core.EXU.csr_file.marchid
 
-  io.difftest_ready := BoringUtils.bore(core.WBU.io.out.ready)
+  io.difftest_ready := BoringUtils.bore(core.IFU.io.out.ready)
 }
