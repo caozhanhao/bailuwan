@@ -121,8 +121,8 @@ class IDU(
     val in  = Flipped(Decoupled(new IFUOut))
     val out = Decoupled(new IDUOut)
 
-    val regfile_in  = new IDURegfileIn
-    val regfile_out = new IDURegfileOut
+    val regfile_in  = Input(new IDURegfileIn)
+    val regfile_out = Output(new IDURegfileOut)
   })
 
   val inst = io.in.bits.inst
