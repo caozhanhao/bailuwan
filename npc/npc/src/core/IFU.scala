@@ -37,12 +37,12 @@ class IFU(
 
   Mem.io.write_enable := false.B
   Mem.io.write_mask   := 0.U
-  Mem.io.write_data   := false.B
+  Mem.io.write_data   := DontCare
 
   val NOP = 0x00000013.U(32.W)
   io.out.bits.inst := Mux(Mem.io.valid, Mem.io.data_out, NOP)
   io.out.bits.pc   := pc
 
   io.in.ready := state === s_idle
-  io.out.valid := Mem.io.valid
+  io.out.valid := Mem.io.valid && state === s_wait_ready
 }
