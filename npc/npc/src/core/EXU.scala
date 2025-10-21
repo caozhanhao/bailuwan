@@ -84,7 +84,7 @@ class EXU(
   lsu.io.lsu_op          := decoded.lsu_op
   lsu.io.addr            := alu.io.result
   lsu.io.write_data      := rs2_data
-  lsu.io.read_data.ready := io.out.ready
+  lsu.io.read_data.ready := true.B
 
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
