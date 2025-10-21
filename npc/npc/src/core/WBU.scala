@@ -47,8 +47,8 @@ class WBU(
     )
   )
 
-  io.out.bits.dnpc := dnpc
-  io.regfile_out   := rd_data
+  io.out.bits.dnpc       := dnpc
+  io.regfile_out.rd_data := rd_data
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
