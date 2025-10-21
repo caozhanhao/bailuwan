@@ -87,7 +87,7 @@ class EXU(
   lsu.io.read_data.ready := io.out.ready
 
   // FIXME: Write ready?
-  val is_ld     = MuxLookup(decoded.lsu_op, true.B)(
+  val is_ld = MuxLookup(decoded.lsu_op, true.B)(
     Seq(
       LSUOp.Nop -> false.B,
       LSUOp.SB  -> false.B,
