@@ -22,3 +22,9 @@ class EBreak extends HasBlackBoxInline {
       |""".stripMargin
   )
 }
+
+class TempEBreakForSTA extends Module {
+  val io = IO(new Bundle {
+    val en = Input(Bool())
+  })
+}
