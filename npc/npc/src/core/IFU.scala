@@ -29,6 +29,8 @@ class IFU(
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.valid, io.in.bits.dnpc, pc)
 
+  val inst_reg = RegInit(0.U(32.W))
+
   val Mem = Module(new DPICMem)
   // val Mem = Module(new TempMemForSTA)
 
@@ -39,9 +41,11 @@ class IFU(
   Mem.io.write_mask   := 0.U
   Mem.io.write_data   := DontCare
 
-  io.out.bits.inst := Mem.io.data_out
+  inst_reg := Mem.io.data_out
+
+  io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
 
   io.in.ready := state === s_idle
-  io.out.valid := Mem.io.valid
+  io.out.valid := Mem.io.valid && state === s_wait_ready
 }
