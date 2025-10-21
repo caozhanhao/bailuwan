@@ -18,7 +18,7 @@ class PMemReadDPICWrapper extends HasBlackBoxInline {
       |  output int out
       |);
       |  import "DPI-C" function int pmem_read(input int addr);
-      |  always @(*) begin
+      |  always @(posedge clock) begin
       |    if (en)
       |      out = pmem_read(addr);
       |    else
