@@ -165,6 +165,7 @@ uint32_t DUTMemory::read(uint32_t raddr)
         auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
         cpu.dump_registers(std::cerr);
+        sim_handle.cleanup();
         exit(-1);
     }
 
@@ -190,6 +191,7 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
         auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, waddr = 0x%08x\n", cpu.pc(), waddr);
         cpu.dump_registers(std::cerr);
+        sim_handle.cleanup();
         exit(-1);
     }
 
