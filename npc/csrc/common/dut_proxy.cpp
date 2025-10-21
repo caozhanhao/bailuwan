@@ -238,7 +238,6 @@ void SimHandle::cleanup_trace()
         delete tfp;
         tfp = nullptr;
     }
-    std::cout << "Count 1\n\n\n\n";
 #endif
 }
 

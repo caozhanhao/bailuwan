@@ -9,7 +9,6 @@ extern "C" {
 void ebreak_handler()
 {
     printf("ebreak after %lu cycles\n", sim_handle.get_cycles());
-    sim_handle.cleanup();
 
     auto a0 = sim_handle.get_cpu().reg(10);
     if (a0 == 0)
