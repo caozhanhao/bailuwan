@@ -55,6 +55,7 @@ class CPUProxy
     uint32_t* pc_binding;
     uint32_t* dnpc_binding;
     uint32_t* inst_binding;
+    uint8_t* difftest_ready;
     uint32_t* register_bindings[16];
     uint32_t* csr_bindings[4096];
 
