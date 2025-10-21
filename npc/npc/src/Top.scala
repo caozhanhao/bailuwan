@@ -17,12 +17,11 @@ class CSRBoring extends Bundle {
 
 class Top extends Module {
   val io = IO(new Bundle {
-    val registers      = Output(Vec(16, UInt(32.W)))
-    val pc             = Output(UInt(32.W))
-    val dnpc           = Output(UInt(32.W))
-    val inst           = Output(UInt(32.W))
-    val csrs           = Output(new CSRBoring)
-    val difftest_ready = Output(Bool())
+    val registers = Output(Vec(16, UInt(32.W)))
+    val pc        = Output(UInt(32.W))
+    val dnpc      = Output(UInt(32.W))
+    val inst      = Output(UInt(32.W))
+    val csrs      = Output(new CSRBoring)
   })
 
   implicit val p: CoreParams = CoreParams()
