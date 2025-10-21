@@ -78,7 +78,6 @@ bool CPUProxy::is_ready_for_difftest() const
     return *difftest_ready;
 }
 
-
 void CPUProxy::dump_registers(std::ostream& os)
 {
     for (int i = 0; i < 16; i++)
