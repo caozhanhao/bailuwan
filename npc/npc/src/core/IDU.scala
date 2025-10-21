@@ -125,8 +125,6 @@ class IDU(
     val regfile_out = Output(new IDURegfileOut)
   })
 
-  val s_idle :: s_decode :: s_wait_ready :: Nil = Enum(3)
-
   val NOP  = 0x00000013.U(32.W)
   val inst = Mux(io.in.valid, io.in.bits.inst, NOP)
 

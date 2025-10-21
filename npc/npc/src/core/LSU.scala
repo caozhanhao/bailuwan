@@ -21,6 +21,9 @@ class LSU(
 
   val mem = Module(new DPICMem())
 
+  val s_idle :: s_wait_ready :: Nil = Enum(2)
+  val state                         = RegInit(s_idle)
+
   val write_enable = io.write_data.valid && MuxLookup(io.lsu_op, false.B)(
     Seq(
       LSUOp.SB -> true.B,
@@ -28,7 +31,8 @@ class LSU(
       LSUOp.SW -> true.B
     )
   )
-  val read_enable  = MuxLookup(io.lsu_op, false.B)(
+
+  val read_enable = state === s_idle && MuxLookup(io.lsu_op, false.B)(
     Seq(
       LSUOp.LB  -> true.B,
       LSUOp.LH  -> true.B,
@@ -38,9 +42,6 @@ class LSU(
     )
   )
 
-  val s_idle :: s_wait_ready :: Nil = Enum(2)
-
-  val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle       -> Mux(read_enable && mem.io.read_valid, s_wait_ready, s_idle),
