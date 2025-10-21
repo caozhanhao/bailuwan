@@ -18,8 +18,8 @@ class LSU(
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
-  // val mem = Module(new DPICMem())
-  val mem = Module(new TempMemForSTA())
+  val mem = Module(new DPICMem())
+  // val mem = Module(new TempMemForSTA())
 
   val write_enable = MuxLookup(io.lsu_op, false.B)(
     Seq(

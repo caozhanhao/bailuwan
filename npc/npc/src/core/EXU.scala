@@ -132,7 +132,9 @@ class EXU(
   io.out.bits.br_target := br_target
 
   // EBreak
-  val ebreak = Module(new TempEBreakForSTA)
+  // val ebreak = Module(new TempEBreakForSTA)
+  val ebreak = Module(new EBreak)
+  
   ebreak.io.en := decoded.exec_type === ExecType.EBreak
 
   io.in.ready  := io.out.ready

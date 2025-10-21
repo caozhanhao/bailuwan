@@ -22,8 +22,8 @@ class IFU(
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.valid, io.in.bits.dnpc, pc)
 
-  // val Mem = Module(new DPICMem)
-  val Mem = Module(new TempMemForSTA)
+  val Mem = Module(new DPICMem)
+  // val Mem = Module(new TempMemForSTA)
 
   Mem.io.addr        := pc
   Mem.io.read_enable := true.B
