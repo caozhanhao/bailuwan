@@ -13,7 +13,8 @@ class LSU(
     val lsu_op     = Input(UInt(LSUOp.WIDTH))
     val addr       = Input(UInt(p.XLEN.W))
     val write_data = Input(UInt(p.XLEN.W))
-    val read_data  = Output(UInt(p.XLEN.W))
+
+    val read_data = Decoupled(UInt(p.XLEN.W))
   })
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
@@ -79,5 +80,6 @@ class LSU(
   mem.io.write_enable := write_enable
   mem.io.write_mask   := write_mask
   mem.io.write_data   := selected_store_data
-  io.read_data        := selected_loaded_data
+  io.read_data.valid  := mem.io.valid
+  io.read_data.bits   := selected_loaded_data
 }

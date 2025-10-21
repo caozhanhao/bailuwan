@@ -11,6 +11,7 @@ class EXUOut(
   implicit p: CoreParams)
     extends Bundle {
   val src_type = UInt(ExecType.WIDTH)
+  val rd_we    = Bool()
   val alu_out  = UInt(p.XLEN.W)
   val lsu_out  = UInt(p.XLEN.W)
 
@@ -122,9 +123,10 @@ class EXU(
 
   csr_file.io.write_data := csr_write_data
 
+  io.out.bits.rd_we    := decoded.rd_we
   io.out.bits.src_type := exec_type
   io.out.bits.alu_out  := alu.io.result
-  io.out.bits.lsu_out  := lsu.io.read_data
+  io.out.bits.lsu_out  := lsu.io.read_data.bits
   io.out.bits.csr_out  := csr_data
 
   io.out.bits.snpc      := decoded.pc + 4.U
@@ -138,5 +140,5 @@ class EXU(
   ebreak.io.en := decoded.exec_type === ExecType.EBreak
 
   io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid
+  io.out.valid := io.in.valid && lsu.io.read_data.valid
 }
