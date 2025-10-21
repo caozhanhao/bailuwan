@@ -31,7 +31,6 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     pc_binding = &this_dut->io_pc;
     dnpc_binding = &this_dut->io_dnpc;
     inst_binding = &this_dut->io_inst;
-    difftest_ready = &this_dut->io_difftest_ready;
 
 #define CSR_TABLE_ENTRY(name, idx) csr_bindings[idx] = &this_dut->io_csrs_##name;
     CSR_TABLE
@@ -75,7 +74,7 @@ bool CPUProxy::is_csr_valid(uint32_t idx) const
 
 bool CPUProxy::is_ready_for_difftest() const
 {
-    return *difftest_ready;
+    return pc() != dnpc();
 }
 
 
