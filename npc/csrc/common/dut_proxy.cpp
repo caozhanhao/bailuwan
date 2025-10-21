@@ -232,8 +232,11 @@ void SimHandle::init_trace()
 void SimHandle::cleanup_trace()
 {
 #ifdef TRACE
-    tfp->close();
-    delete tfp;
+    if (tfp)
+    {
+        tfp->close();
+        delete tfp;
+    }
 #endif
 }
 
