@@ -31,33 +31,34 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     pc_binding = &this_dut->io_pc;
     dnpc_binding = &this_dut->io_dnpc;
     inst_binding = &this_dut->io_inst;
+    difftest_ready = &this_dut->io_difftest_ready;
 
 #define CSR_TABLE_ENTRY(name, idx) csr_bindings[idx] = &this_dut->io_csrs_##name;
     CSR_TABLE
 #undef CSR_TABLE_ENTRY
 }
 
-uint32_t CPUProxy::curr_inst()
+uint32_t CPUProxy::curr_inst() const
 {
     return *inst_binding;
 }
 
-uint32_t CPUProxy::pc()
+uint32_t CPUProxy::pc() const
 {
     return *pc_binding;
 }
 
-uint32_t CPUProxy::dnpc()
+uint32_t CPUProxy::dnpc() const
 {
     return *dnpc_binding;
 }
 
-uint32_t CPUProxy::reg(uint32_t idx)
+uint32_t CPUProxy::reg(uint32_t idx) const
 {
     return *register_bindings[idx];
 }
 
-uint32_t CPUProxy::csr(uint32_t idx)
+uint32_t CPUProxy::csr(uint32_t idx) const
 {
     if (csr_bindings[idx] == nullptr)
     {
@@ -67,9 +68,14 @@ uint32_t CPUProxy::csr(uint32_t idx)
     return *csr_bindings[idx];
 }
 
-bool CPUProxy::is_csr_valid(uint32_t idx)
+bool CPUProxy::is_csr_valid(uint32_t idx) const
 {
     return csr_bindings[idx] != nullptr;
+}
+
+bool CPUProxy::is_ready_for_difftest() const
+{
+    return *difftest_ready;
 }
 
 

@@ -55,6 +55,7 @@ class CPUProxy
     uint32_t* pc_binding;
     uint32_t* dnpc_binding;
     uint32_t* inst_binding;
+    uint8_t* difftest_ready;
     uint32_t* register_bindings[16];
     uint32_t* csr_bindings[4096];
 
@@ -63,12 +64,13 @@ public:
 
     void bind(TOP_NAME* dut);
     void dump_registers(std::ostream& os);
-    uint32_t pc();
-    uint32_t dnpc();
-    uint32_t curr_inst();
-    uint32_t reg(uint32_t idx);
-    uint32_t csr(uint32_t idx);
-    bool is_csr_valid(uint32_t idx);
+    uint32_t pc() const;
+    uint32_t dnpc() const;
+    uint32_t curr_inst() const;
+    uint32_t reg(uint32_t idx) const;
+    uint32_t csr(uint32_t idx) const;
+    bool is_csr_valid(uint32_t idx) const;
+    bool is_ready_for_difftest() const;
 };
 
 #define PMEM_LEFT  ((uint32_t)CONFIG_MBASE)
@@ -120,5 +122,5 @@ public:
 
 extern TOP_NAME dut;
 extern SimHandle sim_handle;
-extern const char *csr_names[4096];
+extern const char* csr_names[4096];
 #endif
