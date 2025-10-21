@@ -51,6 +51,6 @@ class WBU(
   io.out.bits.dnpc       := dnpc
   io.regfile_out.rd_data := rd_data
   io.regfile_out.rd_we   := io.in.valid && exu_out.rd_we
-  io.in.ready            := io.out.ready
+  io.in.ready            := true.B
   io.out.valid           := io.in.valid
 }
