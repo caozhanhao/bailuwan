@@ -84,7 +84,15 @@ class EXU(
   lsu.io.lsu_op          := decoded.lsu_op
   lsu.io.addr            := alu.io.result
   lsu.io.write_data      := rs2_data
-  lsu.io.read_data.ready := true.B
+  lsu.io.read_data.ready := io.out.ready
+
+  // FIXME: Write ready?
+  val is_ld = MuxLookup(decoded.lsu_op, true.B)(Seq(
+    LSUOp.SB -> false.B,
+    LSUOp.SH  -> false.B,
+    LSUOp.SW  -> false.B,
+  ))
+  val lsu_valid = !is_ld || lsu.io.read_data.valid
 
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
@@ -141,5 +149,5 @@ class EXU(
   ebreak.io.en := decoded.exec_type === ExecType.EBreak
 
   io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid && (exec_type =/= ExecType.LSU || lsu.io.read_data.valid)
+  io.out.valid := io.in.valid && lsu_valid
 }
