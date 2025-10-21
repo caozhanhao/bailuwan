@@ -158,13 +158,13 @@ static bool should_skip_next()
 void difftest_step()
 {
     auto& cpu = sim_handle.get_cpu();
-    //
-    // if (!skip_this_one)
-    // {
-    //     sync_regs_to_ref();
-    //     skip_this_one = false;
-    //     return;
-    // }
+
+    if (!skip_this_one)
+    {
+        sync_regs_to_ref();
+        skip_this_one = false;
+        return;
+    }
 
     ref_difftest_exec(1);
     diff_context_t ref_r;
