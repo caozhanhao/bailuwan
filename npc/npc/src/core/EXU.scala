@@ -87,11 +87,14 @@ class EXU(
   lsu.io.read_data.ready := io.out.ready
 
   // FIXME: Write ready?
-  val is_ld = MuxLookup(decoded.lsu_op, true.B)(Seq(
-    LSUOp.SB -> false.B,
-    LSUOp.SH  -> false.B,
-    LSUOp.SW  -> false.B,
-  ))
+  val is_ld     = MuxLookup(decoded.lsu_op, true.B)(
+    Seq(
+      LSUOp.Nop -> false.B,
+      LSUOp.SB  -> false.B,
+      LSUOp.SH  -> false.B,
+      LSUOp.SW  -> false.B
+    )
+  )
   val lsu_valid = !is_ld || lsu.io.read_data.valid
 
   // Branch
