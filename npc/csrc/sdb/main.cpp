@@ -380,7 +380,7 @@ static int parse_args(int argc, char* argv[])
     return 0;
 }
 
-void signalHandler(int signum)
+void sig_handler(int signum)
 {
     std::cerr << "Interrupt signal (" << signum << ") received.\n";
     sim_handle.cleanup();
@@ -389,7 +389,7 @@ void signalHandler(int signum)
 
 int main(int argc, char* argv[])
 {
-    signal(SIGINT, signalHandler);
+    signal(SIGINT, sig_handler);
 
     init_regex();
     init_wp_pool();
