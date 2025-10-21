@@ -141,5 +141,5 @@ class EXU(
   ebreak.io.en := decoded.exec_type === ExecType.EBreak
 
   io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid && lsu.io.read_data.valid
+  io.out.valid := io.in.valid && (exec_type =/= ExecType.LSU || lsu.io.read_data.valid)
 }
