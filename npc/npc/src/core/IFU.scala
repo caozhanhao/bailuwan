@@ -38,7 +38,7 @@ class IFU(
   val inst_reg = RegInit(0.U(32.W))
 
   Mem.io.addr        := pc
-  Mem.io.read_enable := RegNext(io.in.valid)
+  Mem.io.read_enable := RegNext(io.in.valid, true.B)
 
   Mem.io.write_enable := false.B
   Mem.io.write_mask   := 0.U
