@@ -36,6 +36,7 @@ class IFU(
   io.out.bits.pc   := pc
 
   // io.in.ready := io.out.ready
+  // io.out.valid := io.in.valid
   io.in.ready := true.B
-  io.out.valid := io.in.valid
+  io.out.valid := true.B
 }
