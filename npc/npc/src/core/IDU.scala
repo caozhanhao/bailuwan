@@ -125,7 +125,7 @@ class IDU(
     val regfile_out = Output(new IDURegfileOut)
   })
 
-  val NOP = 0x00000013.U(32.W)
+  val NOP  = 0x00000013.U(32.W)
   val inst = Mux(io.in.valid, io.in.bits.inst, NOP)
 
   // Registers
@@ -188,9 +188,9 @@ class IDU(
   io.regfile_out.rs1_addr := rs1
   io.regfile_out.rs2_addr := rs2
   io.regfile_out.rd_addr  := rd
-  io.regfile_out.rd_we    := we
   io.out.bits.rs1_data    := io.regfile_in.rs1_data
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
+  io.out.bits.rd_we       := we
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
