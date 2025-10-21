@@ -20,7 +20,6 @@ class LSU(
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
   val mem = Module(new DPICMem())
-  // val mem = Module(new TempMemForSTA())
 
   val write_enable = MuxLookup(io.lsu_op, false.B)(
     Seq(
@@ -30,6 +29,13 @@ class LSU(
     )
   )
   val read_enable  = io.lsu_op =/= LSUOp.Nop && !write_enable
+
+  val s_idle :: s_wait_ready :: Nil = Enum(2)
+  val state = RegInit(s_idle)
+  state := MuxLookup(state, s_idle)(List(
+    s_idle       -> Mux(mem.io.valid && !read_enable, s_wait_ready, s_idle),
+    s_wait_ready -> Mux(io.read_data.ready, s_idle, s_wait_ready)
+  ))
 
   val write_mask = MuxLookup(io.lsu_op, 0.U(8.W))(
     Seq(
@@ -81,6 +87,6 @@ class LSU(
   mem.io.write_enable := write_enable
   mem.io.write_mask   := write_mask
   mem.io.write_data   := selected_store_data
-  io.read_data.valid  := mem.io.valid
+  io.read_data.valid  := state === s_wait_ready
   io.read_data.bits   := selected_loaded_data
 }
