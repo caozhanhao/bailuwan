@@ -74,7 +74,7 @@ bool CPUProxy::is_csr_valid(uint32_t idx) const
 
 bool CPUProxy::is_ready_for_difftest() const
 {
-    return pc() != dnpc();
+    return pc() == dnpc();
 }
 
 
