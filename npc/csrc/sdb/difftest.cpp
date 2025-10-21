@@ -166,7 +166,7 @@ void difftest_step()
         return;
     }
 
-    printf("Checked\n");
+    exit(-1);
 
     ref_difftest_exec(1);
     diff_context_t ref_r;
