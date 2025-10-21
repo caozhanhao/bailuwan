@@ -44,5 +44,5 @@ class IFU(
   io.out.bits.pc   := pc
 
   io.in.ready := state === s_idle
-  io.out.valid := Mem.io.valid && state === s_wait_ready
+  io.out.valid := Mem.io.valid
 }
