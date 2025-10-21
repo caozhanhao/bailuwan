@@ -27,18 +27,18 @@ class IFU(
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle       -> Mux(Mem.io.read_valid, s_wait_ready, s_idle),
+      s_idle       -> Mux(io.in.valid && Mem.io.read_valid, s_wait_ready, s_idle),
       s_wait_ready -> Mux(io.out.ready, s_idle, s_wait_ready)
     )
   )
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
-  pc := Mux(io.in.valid, io.in.bits.dnpc, pc)
+  pc := io.in.bits.dnpc
 
   val inst_reg = RegInit(0.U(32.W))
 
   Mem.io.addr        := pc
-  Mem.io.read_enable := true.B
+  Mem.io.read_enable := io.in.valid
 
   Mem.io.write_enable := false.B
   Mem.io.write_mask   := 0.U
