@@ -1,3 +1,4 @@
+#include <csignal>
 #include <VTop.h>
 
 #include <iostream>
@@ -73,7 +74,8 @@ static int cmd_si(char* args)
 
 
 // info [r/w/b]
-static int cmd_info(char *args) {
+static int cmd_info(char* args)
+{
     if (strcmp(args, "r") == 0)
         isa_reg_display();
     else if (strcmp(args, "w") == 0)
@@ -84,6 +86,7 @@ static int cmd_info(char *args) {
         printf("info: Unknown subcommand '%s'\n", args);
     return 0;
 }
+
 // x [n] [EXPR]
 static int cmd_x(char* args)
 {
@@ -168,15 +171,18 @@ static int cmd_w(char* args)
 }
 
 // d [N]
-static int cmd_d(char *args) {
-    if (args == nullptr) {
+static int cmd_d(char* args)
+{
+    if (args == nullptr)
+    {
         printf("d: Expected an index.\n");
         return 0;
     }
 
-    char *endptr;
+    char* endptr;
     int n = (int)strtoll(args, &endptr, 10);
-    if (endptr == args) {
+    if (endptr == args)
+    {
         printf("d: Expected a number.\n");
         return 0;
     }
@@ -191,18 +197,22 @@ static int cmd_d(char *args) {
     return 0;
 }
 
-static int cmd_b(char *args) {
-    if (args == nullptr) {
+static int cmd_b(char* args)
+{
+    if (args == nullptr)
+    {
         printf("b: Expected an address/function.\n");
         return 0;
     }
 
-    char *endptr;
+    char* endptr;
     int given_addr = (int)strtoll(args, &endptr, 16);
-    if (endptr == args) {
+    if (endptr == args)
+    {
         word_t addr = ftrace_get_address_of(args);
 
-        if (addr == 0) {
+        if (addr == 0)
+        {
             printf("b: Failed to find function '%s'.\n", args);
             return 0;
         }
@@ -370,8 +380,17 @@ static int parse_args(int argc, char* argv[])
     return 0;
 }
 
+void signalHandler(int signum)
+{
+    std::cerr << "Interrupt signal (" << signum << ") received.\n";
+    sim_handle.cleanup();
+    exit(signum);
+}
+
 int main(int argc, char* argv[])
 {
+    signal(SIGINT, signalHandler);
+
     init_regex();
     init_wp_pool();
     init_bp_pool();
