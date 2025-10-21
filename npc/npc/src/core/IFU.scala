@@ -33,7 +33,7 @@ class IFU(
   )
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
-  pc := io.in.bits.dnpc
+  pc := Mux(io.in.valid, io.in.bits.dnpc, pc)
 
   val inst_reg = RegInit(0.U(32.W))
 
