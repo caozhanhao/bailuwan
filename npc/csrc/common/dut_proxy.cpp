@@ -235,7 +235,8 @@ void SimHandle::cleanup_trace()
     if (tfp)
     {
         tfp->close();
-        // delete tfp;
+        delete tfp;
+        tfp = nullptr;
     }
 #endif
 }
