@@ -35,6 +35,7 @@ class IFU(
   io.out.bits.inst := Mux(Mem.io.valid, Mem.io.data_out, NOP)
   io.out.bits.pc   := pc
 
-  io.in.ready := io.out.ready
-  io.out.valid := Mem.io.valid
+  // io.in.ready := io.out.ready
+  io.in.ready := true.B
+  io.out.valid := io.in.valid
 }
