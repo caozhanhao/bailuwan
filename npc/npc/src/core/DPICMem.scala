@@ -100,11 +100,9 @@ class TempMemForSTA extends Module {
     val valid    = Output(Bool())
   })
 
-  val mem0 = RegInit(VecInit(Seq.fill(256)(0.U(32.W))))
-  val mem1 = RegInit(VecInit(Seq.fill(256)(0.U(32.W))))
+  val mem = RegInit(VecInit(Seq.fill(256)(0.U(32.W))))
 
-  val addr      = io.addr >> 2
-  val read_data = Mux(addr(8), mem1(addr(7, 0)), mem0(addr(7, 0)))
+  val addr = io.addr >> 2
 
   def apply_mask = (original_data: UInt, data: UInt, mask: UInt) => {
     val ori0 = original_data(7, 0)
@@ -120,18 +118,9 @@ class TempMemForSTA extends Module {
     Mux(mask(0), new0, ori0) ## Mux(mask(1), new1, ori1) ## Mux(mask(2), new2, ori2) ## Mux(mask(3), new3, ori3)
   }
 
-  mem1(addr(7, 0)) := Mux(
-    io.write_enable & addr(8),
-    apply_mask(mem1(addr(7, 0)), io.write_data, io.write_mask),
-    mem1(addr(7, 0))
-  )
+  val masked = apply_mask(mem(addr(7, 0)), io.write_data, io.write_mask)
+  mem(addr(7, 0)) := Mux(io.write_enable, masked, mem(addr(7, 0)))
 
-  mem0(addr(7, 0)) := Mux(
-    io.write_enable & !addr(8),
-    apply_mask(mem0(addr(7, 0)), io.write_data, io.write_mask),
-    mem0(addr(7, 0))
-  )
-
-  io.data_out := Mux(io.read_enable, read_data, 0.U)
+  io.data_out := Mux(io.read_enable, mem(addr(7, 0)), 0.U)
   io.valid    := io.read_enable
 }
