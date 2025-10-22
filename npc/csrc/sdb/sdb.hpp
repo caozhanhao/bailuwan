@@ -73,7 +73,6 @@ extern int sdb_halt_ret;
     if (!(cond)) { \
       fflush(stdout);\
       fprintf(stderr, ANSI_FMT(format, ANSI_FG_RED) "\n", ##  __VA_ARGS__); \
-      sim_handle.cleanup(); \
       assert(cond); \
     } \
   } while (0)
