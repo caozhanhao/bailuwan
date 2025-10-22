@@ -41,7 +41,7 @@ int sprintf(char* out, const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    int r = vsnprintf(out, (size_t)SIZE_MAX - 10, fmt, ap);
+    int r = vsnprintf(out, (size_t)SIZE_MAX, fmt, ap);
     va_end(ap);
     return r;
 }
@@ -63,9 +63,9 @@ int snprintf(char* out, size_t n, const char* fmt, ...)
 static void print_signed_integer(char* out, long long val, int zero_pad, int width, size_t* pos_ptr, size_t* cap_ptr,
                                  size_t* needed_ptr)
 {
-    int pos = *pos_ptr;
-    int cap = *cap_ptr;
-    int needed = *needed_ptr;
+    size_t pos = *pos_ptr;
+    size_t cap = *cap_ptr;
+    size_t needed = *needed_ptr;
 
     int negative = 0;
     unsigned long long u;
