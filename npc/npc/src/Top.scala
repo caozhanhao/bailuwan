@@ -46,7 +46,7 @@ class Top extends Module {
   // Difftest got ready after every pc advance (one instruction done),
   // which is just in.valid delayed one cycle.
   //               ___________
-  //              |          |
+  //   ready      |          |
   //              _____       _____
   //   clock     |     |_____|     |_____
   //              cycle 1        cycle 2

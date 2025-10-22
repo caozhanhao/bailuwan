@@ -165,10 +165,9 @@ static bool should_skip_next()
 //          difftest_step is called here
 void difftest_step()
 {
-    static int counter = 10;
     auto& cpu = sim_handle.get_cpu();
 
-    if (skip_this_one || !cpu.is_ready_for_difftest() || counter-- > 0)
+    if (skip_this_one || !cpu.is_ready_for_difftest())
     {
         sync_regs_to_ref();
         skip_this_one = false;
