@@ -126,10 +126,9 @@ static void checkregs(diff_context_t* ref)
 
 // Attention: trace_and_difftest runs after each cycle, which means curr_inst
 //            hasn't been executed yet. So it is `should_skip_next`.
-static bool skip_this_one = false;
-static bool should_skip()
+static int accessing_device = 0;
+static bool is_accessing_device()
 {
-    printf("Should skip?\n");
     auto& cpu = sim_handle.get_cpu();
     auto inst = cpu.curr_inst();
 
@@ -153,7 +152,7 @@ static bool should_skip()
     auto& mem = sim_handle.get_memory();
     if (!mem.in_pmem(addr))
     {
-        printf("Accessing device at addr: " FMT_WORD "\n", addr);
+        // printf("Accessing device at addr: " FMT_WORD "\n", addr);
         return true;
     }
 
@@ -170,7 +169,10 @@ static bool should_skip()
 //          difftest_step is called here
 void difftest_step()
 {
-    skip_this_one = should_skip();
+    if (is_accessing_device())
+        accessing_device++;
+    else
+        Assert(accessing_device == 0, "is_accessing_device() changed at one instruction?");
 
     // If this cycle is ready for difftest,
     // skip this cycle but do NOT sync registers.
@@ -178,10 +180,10 @@ void difftest_step()
     if (!cpu.is_ready_for_difftest())
         return;
 
-    if (skip_this_one)
+    if (accessing_device != 0)
     {
         sync_regs_to_ref();
-        skip_this_one = false;
+        accessing_device = 0;
         return;
     }
 
