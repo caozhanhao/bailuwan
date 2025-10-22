@@ -148,6 +148,7 @@ static bool should_skip()
 
     auto addr = src1 + imm;
 
+    printf("Store/Load at addr: " FMT_WORD "\n",  addr);
     // See if it is accessing devices.
     auto& mem = sim_handle.get_memory();
     if (!mem.in_pmem(addr))
