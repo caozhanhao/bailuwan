@@ -61,6 +61,7 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
 
 class DPICMem extends Module {
   val io = IO(new Bundle {
+    val req_valid    = Input(Bool())
     val addr         = Input(UInt(32.W))
     val read_enable  = Input(Bool())
     val write_enable = Input(Bool())
@@ -73,7 +74,7 @@ class DPICMem extends Module {
   })
 
   val read    = Module(new PMemReadDPICWrapper)
-  val read_en = io.read_enable && !reset.asBool
+  val read_en = io.req_valid && io.read_enable && !reset.asBool
 
   read.io.clock := clock
   read.io.en    := read_en
@@ -81,7 +82,7 @@ class DPICMem extends Module {
   io.data_out   := read.io.out
 
   val write    = Module(new PMemWriteDPICWrapper)
-  val write_en = io.write_enable && !reset.asBool
+  val write_en = io.req_valid && io.write_enable && !reset.asBool
 
   write.io.clock := clock
   write.io.addr  := io.addr
@@ -89,7 +90,7 @@ class DPICMem extends Module {
   write.io.data  := io.write_data
   write.io.mask  := io.write_mask
 
-  io.read_valid  := RegNext(read_en, false.B)
+  io.read_valid  := RegNext(io.req_valid, false.B)
   io.write_ready := true.B
 }
 
