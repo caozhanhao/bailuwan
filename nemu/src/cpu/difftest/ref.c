@@ -62,6 +62,11 @@ __EXPORT void difftest_exec(uint64_t n) { cpu_exec(n); }
 
 __EXPORT void difftest_raise_intr(word_t NO) { assert(0); }
 
+__EXPORT void difftest_sync_mcycle(uint64_t mcycle) {
+  cpu_csr(CSR_mcycle) = mcycle & 0xffffffff;
+  cpu_csr(CSR_mcycleh) = mcycle >> 32;
+}
+
 __EXPORT void difftest_init(int port) {
   void init_mem();
   init_mem();

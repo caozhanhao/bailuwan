@@ -9,6 +9,7 @@ using difftest_memcpy_t = void (*)(uint32_t addr, void* buf, size_t n, bool dire
 using difftest_regcpy_t = void (*)(void* dut, bool direction);
 using difftest_exec_t = void (*)(uint64_t n);
 using difftest_raise_intr_t = void (*)(uint64_t NO);
+using difftest_sync_mcycle = void (*)(uint64_t mcycle);
 
 difftest_memcpy_t ref_difftest_memcpy;
 difftest_regcpy_t ref_difftest_regcpy;
