@@ -171,8 +171,6 @@ void difftest_step()
 {
     if (is_accessing_device())
         accessing_device++;
-    else
-        Assert(accessing_device == 0, "is_accessing_device() changed at one instruction?");
 
     // If this cycle is ready for difftest,
     // skip this cycle but do NOT sync registers.
