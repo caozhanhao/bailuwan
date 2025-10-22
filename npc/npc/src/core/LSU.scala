@@ -68,8 +68,9 @@ class LSU(
     )
   )
 
-  val data_out = RegInit(0.U(p.XLEN.W))
-  data_out := mem.io.data_out
+//  val data_out = RegInit(0.U(p.XLEN.W))
+//  data_out := mem.io.data_out
+  val data_out = RegNext(mem.io.data_out)
 
   val lb_sel = MuxLookup(io.addr(1, 0), 0.U(8.W))(
     Seq(
