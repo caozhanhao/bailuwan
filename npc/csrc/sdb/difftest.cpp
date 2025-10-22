@@ -122,7 +122,7 @@ static void checkregs(diff_context_t* ref)
 
 // Attention: trace_and_difftest runs after each cycle, which means curr_inst
 //            hasn't been executed yet. So it is `should_skip_next`.
-static bool skip_this_one = true;
+static bool skip_this_one = false;
 static bool should_skip_next()
 {
     auto& cpu = sim_handle.get_cpu();
