@@ -5,7 +5,7 @@
 
 TOP_NAME dut;
 SimHandle sim_handle;
-const char *csr_names[4096];
+const char* csr_names[4096];
 
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
@@ -270,8 +270,6 @@ void SimHandle::cleanup()
 
 void SimHandle::single_cycle()
 {
-    IFDEF(TRACE, tfp->dump(sim_time++));
-
     dut.clock = 1;
     dut.eval();
 
@@ -280,6 +278,7 @@ void SimHandle::single_cycle()
     dut.clock = 0;
     dut.eval();
 
+    IFDEF(TRACE, tfp->dump(sim_time++));
     cycle_counter++;
 }
 
