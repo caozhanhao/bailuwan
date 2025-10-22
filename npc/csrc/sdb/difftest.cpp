@@ -9,12 +9,13 @@ using difftest_memcpy_t = void (*)(uint32_t addr, void* buf, size_t n, bool dire
 using difftest_regcpy_t = void (*)(void* dut, bool direction);
 using difftest_exec_t = void (*)(uint64_t n);
 using difftest_raise_intr_t = void (*)(uint64_t NO);
-using difftest_sync_mcycle = void (*)(uint64_t mcycle);
+using difftest_sync_mcycle_t = void (*)(uint64_t mcycle);
 
 difftest_memcpy_t ref_difftest_memcpy;
 difftest_regcpy_t ref_difftest_regcpy;
 difftest_exec_t ref_difftest_exec;
 difftest_raise_intr_t ref_difftest_raise_intr;
+difftest_sync_mcycle_t ref_difftest_sync_mcycle;
 
 struct diff_context_t
 {
@@ -96,10 +97,6 @@ static void checkregs(diff_context_t* ref)
 
     for (int i = 0; i < 4096; i++)
     {
-        // Don't check mcycle, since nemu executes every instruction in one cycle.
-        if (i == CSR_mcycle)
-            continue;
-
         if (cpu.is_csr_valid(i) && cpu.csr(i) != ref->csr[i])
         {
             Log("csr: addr=%d, name=%s, expected " FMT_WORD ", but got " FMT_WORD "\n", i,
@@ -173,9 +170,14 @@ void difftest_step()
     if (is_accessing_device())
         accessing_device = true;
 
+    auto& cpu = sim_handle.get_cpu();
+
+    uint64_t mcycle = cpu.csr(CSR_mcycle);
+    uint64_t mcycleh = cpu.csr(CSR_mcycleh);
+    ref_difftest_sync_mcycle(mcycle | (mcycleh << 32));
+
     // If this cycle is ready for difftest,
     // skip this cycle but do NOT sync registers.
-    auto& cpu = sim_handle.get_cpu();
     if (!cpu.is_ready_for_difftest())
         return;
 
