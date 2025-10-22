@@ -175,6 +175,8 @@ void difftest_step()
         return;
     }
 
+    printf("Difftest step\n");
+
     ref_difftest_exec(1);
     diff_context_t ref_r;
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
