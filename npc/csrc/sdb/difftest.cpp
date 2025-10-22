@@ -170,6 +170,8 @@ static bool should_skip()
 //          difftest_step is called here
 void difftest_step()
 {
+    skip_this_one = should_skip();
+
     // If this cycle is ready for difftest,
     // skip this cycle but do NOT sync registers.
     auto& cpu = sim_handle.get_cpu();
@@ -187,8 +189,6 @@ void difftest_step()
     diff_context_t ref_r;
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
     checkregs(&ref_r);
-
-    skip_this_one = should_skip();
 }
 #else
 void init_difftest()
