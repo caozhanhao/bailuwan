@@ -284,8 +284,15 @@ void SimHandle::single_cycle()
 
 void SimHandle::reset(int n)
 {
+    dut.clock = 0;
     dut.reset = 1;
     while (n-- > 0)
-        single_cycle();
+    {
+        dut.clock = 1;
+        dut.eval();
+
+        dut.clock = 0;
+        dut.eval();
+    }
     dut.reset = 0;
 }
