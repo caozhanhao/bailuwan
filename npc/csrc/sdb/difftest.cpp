@@ -152,7 +152,7 @@ static bool should_skip()
     auto& mem = sim_handle.get_memory();
     if (!mem.in_pmem(addr))
     {
-        // printf("Accessing device at addr: " FMT_WORD "\n", addr);
+        printf("Accessing device at addr: " FMT_WORD "\n", addr);
         return true;
     }
 
@@ -181,8 +181,6 @@ void difftest_step()
         skip_this_one = false;
         return;
     }
-
-    printf("Difftest step\n");
 
     ref_difftest_exec(1);
     diff_context_t ref_r;
