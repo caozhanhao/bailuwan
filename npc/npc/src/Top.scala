@@ -44,5 +44,5 @@ class Top extends Module {
   io.csrs.marchid   := core.EXU.csr_file.marchid
 
   // Difftest got ready before at every pc advance.
-  io.difftest_ready := RegNext(BoringUtils.bore(core.IFU.io.in.valid)) && BoringUtils.bore(core.IFU.io.out.ready)
+  io.difftest_ready := RegNext(BoringUtils.bore(core.IFU.io.in.valid))
 }
