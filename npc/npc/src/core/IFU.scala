@@ -32,6 +32,8 @@ class IFU(
     )
   )
 
+  mem.io.req_valid := state === s_idle
+
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.valid, io.in.bits.dnpc, pc)
 
