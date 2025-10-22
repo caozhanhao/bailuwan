@@ -123,7 +123,7 @@ static void checkregs(diff_context_t* ref)
 // Attention: trace_and_difftest runs after each cycle, which means curr_inst
 //            hasn't been executed yet. So it is `should_skip_next`.
 static bool skip_this_one = false;
-static bool should_skip_next()
+static bool should_skip()
 {
     auto& cpu = sim_handle.get_cpu();
     auto inst = cpu.curr_inst();
@@ -165,9 +165,13 @@ static bool should_skip_next()
 //          difftest_step is called here
 void difftest_step()
 {
+    // If this cycle is ready for difftest,
+    // skip this cycle but do NOT sync registers.
     auto& cpu = sim_handle.get_cpu();
+    if (!cpu.is_ready_for_difftest())
+        return;
 
-    if (should_skip_next() || !cpu.is_ready_for_difftest())
+    if (should_skip())
     {
         sync_regs_to_ref();
         skip_this_one = false;
