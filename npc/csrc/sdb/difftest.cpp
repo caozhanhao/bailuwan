@@ -197,7 +197,7 @@ void difftest_step()
 
     sync_mcycle(-1); // csrrw takes one cycle
     ref_difftest_exec(1);
-    // sync_mcycle(0);
+    sync_mcycle(0);
 
     diff_context_t ref_r;
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
