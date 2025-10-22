@@ -157,7 +157,8 @@ static bool should_skip_next()
 
 void difftest_step()
 {
-    if (skip_this_one)
+    static int counter = 10;
+    if (skip_this_one || counter-- > 0)
     {
         sync_regs_to_ref();
         skip_this_one = false;
