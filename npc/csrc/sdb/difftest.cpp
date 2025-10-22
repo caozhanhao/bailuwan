@@ -176,6 +176,8 @@ void difftest_step()
     if (!cpu.is_ready_for_difftest())
         return;
 
+    printf("Difftest at pc: " FMT_WORD "\n", cpu.pc());
+
     if (skip_this_one)
     {
         sync_regs_to_ref();
