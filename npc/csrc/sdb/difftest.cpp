@@ -161,12 +161,12 @@ static bool is_accessing_device()
     return false;
 }
 
-static void sync_mcycle()
+static void sync_mcycle(int delta)
 {
     auto& cpu = sim_handle.get_cpu();
     uint64_t mcycle = cpu.csr(CSR_mcycle);
     uint64_t mcycleh = cpu.csr(CSR_mcycleh);
-    ref_difftest_sync_mcycle(mcycle | (mcycleh << 32));
+    ref_difftest_sync_mcycle((mcycle | (mcycleh << 32)) + delta);
 }
 
 // Difftest happens after each cycle, and before the rising edge of the next cycle.
@@ -195,9 +195,9 @@ void difftest_step()
         return;
     }
 
-    sync_mcycle();
+    sync_mcycle(1);
     ref_difftest_exec(1);
-    sync_mcycle();
+    sync_mcycle(1);
 
     diff_context_t ref_r;
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
