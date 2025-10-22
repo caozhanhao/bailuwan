@@ -155,6 +155,14 @@ static bool should_skip_next()
     return false;
 }
 
+// Difftest happens after each cycle, and before the rising edge of the next cycle.
+//
+//              _____       _____
+//   clock     |     |_____|     |_____
+//              cycle 1        cycle 2
+//                     ^
+//                     |
+//          difftest_step is called here
 void difftest_step()
 {
     static int counter = 10;
