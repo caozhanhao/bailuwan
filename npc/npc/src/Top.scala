@@ -43,7 +43,6 @@ class Top extends Module {
   io.csrs.mvendorid := core.EXU.csr_file.mvendorid
   io.csrs.marchid   := core.EXU.csr_file.marchid
 
-  val difftest_ready = RegInit(false.B)
-  difftest_ready := BoringUtils.bore(core.IFU.io.in.valid)
-  io.difftest_ready := difftest_ready
+  // Difftest got ready before at every pc advance.
+  io.difftest_ready := RegNext(BoringUtils.bore(core.IFU.io.in.valid)) && BoringUtils.bore(core.IFU.io.out.ready)
 }
