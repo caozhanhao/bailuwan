@@ -126,7 +126,7 @@ static void checkregs(diff_context_t* ref)
 
 // Attention: trace_and_difftest runs after each cycle, which means curr_inst
 //            hasn't been executed yet. So it is `should_skip_next`.
-static int accessing_device = 0;
+static int accessing_device = false;
 static bool is_accessing_device()
 {
     auto& cpu = sim_handle.get_cpu();
@@ -170,7 +170,7 @@ static bool is_accessing_device()
 void difftest_step()
 {
     if (is_accessing_device())
-        accessing_device++;
+        accessing_device = true;
 
     // If this cycle is ready for difftest,
     // skip this cycle but do NOT sync registers.
@@ -178,10 +178,10 @@ void difftest_step()
     if (!cpu.is_ready_for_difftest())
         return;
 
-    if (accessing_device != 0)
+    if (accessing_device)
     {
         sync_regs_to_ref();
-        accessing_device = 0;
+        accessing_device = false;
         return;
     }
 
