@@ -187,7 +187,7 @@ void difftest_step()
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
     checkregs(&ref_r);
 
-    skip_this_one = should_skip_next();
+    skip_this_one = should_skip();
 }
 #else
 void init_difftest()
