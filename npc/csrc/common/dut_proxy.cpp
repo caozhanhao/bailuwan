@@ -272,12 +272,12 @@ void SimHandle::single_cycle()
 {
     IFDEF(TRACE, tfp->dump(sim_time++));
 
-    dut.clock = 0;
+    dut.clock = 1;
     dut.eval();
 
     IFDEF(TRACE, tfp->dump(sim_time++));
 
-    dut.clock = 1;
+    dut.clock = 0;
     dut.eval();
 
     cycle_counter++;
