@@ -43,7 +43,15 @@ class Top extends Module {
   io.csrs.mvendorid := core.EXU.csr_file.mvendorid
   io.csrs.marchid   := core.EXU.csr_file.marchid
 
-  // Difftest got ready at every pc advance,
+  // Difftest got ready after every pc advance (one instruction done),
   // which is just in.valid delayed one cycle.
+  //               ___________
+  //              |          |
+  //              _____       _____
+  //   clock     |     |_____|     |_____
+  //              cycle 1        cycle 2
+  //                     ^
+  //                     |
+  //          difftest_step is called here
   io.difftest_ready := RegNext(BoringUtils.bore(core.IFU.io.in.valid))
 }
