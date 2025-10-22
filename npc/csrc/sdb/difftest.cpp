@@ -175,7 +175,7 @@ void difftest_step()
     if (!cpu.is_ready_for_difftest())
         return;
 
-    if (should_skip())
+    if (skip_this_one)
     {
         sync_regs_to_ref();
         skip_this_one = false;
@@ -186,6 +186,8 @@ void difftest_step()
     diff_context_t ref_r;
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
     checkregs(&ref_r);
+
+    skip_this_one = should_skip_next();
 }
 #else
 void init_difftest()
