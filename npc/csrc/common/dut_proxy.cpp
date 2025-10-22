@@ -280,11 +280,6 @@ void SimHandle::single_cycle()
 
     IFDEF(TRACE, tfp->dump(sim_time++));
 
-    dut.clock = 1;
-    dut.eval();
-
-    IFDEF(TRACE, tfp->dump(sim_time++));
-
     cycle_counter++;
 }
 
