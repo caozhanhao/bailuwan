@@ -41,7 +41,7 @@ int sprintf(char* out, const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    int r = vsnprintf(out, (size_t)SIZE_MAX, fmt, ap);
+    int r = vsnprintf(out, 1024, fmt, ap);
     va_end(ap);
     return r;
 }
