@@ -195,9 +195,9 @@ void difftest_step()
         return;
     }
 
-    sync_mcycle(0);
-    ref_difftest_exec(1);
     sync_mcycle(1);
+    ref_difftest_exec(1);
+    sync_mcycle(0);
 
     diff_context_t ref_r;
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
