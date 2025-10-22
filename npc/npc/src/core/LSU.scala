@@ -39,13 +39,12 @@ class LSU(
     )
   )
 
-  val s_idle :: s_wait_res :: s_wait_ready :: Nil = Enum(3)
+  val s_idle :: s_wait_ready :: Nil = Enum(2)
 
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle       -> Mux(read_enable, s_wait_res, s_idle),
-      s_wait_res   -> Mux(mem.io.read_valid, s_wait_ready, s_wait_res),
+      s_idle       -> Mux(read_enable && mem.io.read_valid, s_wait_ready, s_idle),
       s_wait_ready -> Mux(io.read_data.ready, s_idle, s_wait_ready)
     )
   )
@@ -68,9 +67,8 @@ class LSU(
     )
   )
 
-//  val data_out = RegInit(0.U(p.XLEN.W))
-//  data_out := mem.io.data_out
-  val data_out = RegNext(mem.io.data_out)
+  val data_out = RegInit(0.U(p.XLEN.W))
+  data_out := mem.io.data_out
 
   val lb_sel = MuxLookup(io.addr(1, 0), 0.U(8.W))(
     Seq(
