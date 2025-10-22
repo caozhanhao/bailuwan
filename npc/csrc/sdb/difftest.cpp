@@ -129,6 +129,7 @@ static void checkregs(diff_context_t* ref)
 static bool skip_this_one = false;
 static bool should_skip()
 {
+    printf("Should skip?\n");
     auto& cpu = sim_handle.get_cpu();
     auto inst = cpu.curr_inst();
 
@@ -148,7 +149,6 @@ static bool should_skip()
 
     auto addr = src1 + imm;
 
-    printf("Store/Load at addr: " FMT_WORD "\n",  addr);
     // See if it is accessing devices.
     auto& mem = sim_handle.get_memory();
     if (!mem.in_pmem(addr))
@@ -175,8 +175,6 @@ void difftest_step()
     auto& cpu = sim_handle.get_cpu();
     if (!cpu.is_ready_for_difftest())
         return;
-
-    printf("Difftest at pc: " FMT_WORD "\n", cpu.pc());
 
     if (skip_this_one)
     {
