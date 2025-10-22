@@ -4,6 +4,8 @@
 
 #include "disasm.hpp"
 
+#include "dut_proxy.hpp"
+
 void Disassembler::init()
 {
     void *dl_handle;
@@ -30,7 +32,11 @@ std::string Disassembler::disassemble(uint32_t pc, uint32_t inst) {
     cs_insn *insn;
     uint8_t* code = reinterpret_cast<uint8_t *>(&inst);
     size_t count = cs_disasm_dl(handle, code, 4, pc, 0, &insn);
-    assert(count == 1);
+    if (count != 1)
+    {
+        sim_handle.cleanup();
+        assert(0 && "Disassembler error");
+    }
     int ret = snprintf(buffer, 128, "%s", insn->mnemonic);
     if (insn->op_str[0] != '\0')
         snprintf(buffer + ret, 128 - ret, "\t%s", insn->op_str);
