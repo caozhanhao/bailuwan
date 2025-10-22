@@ -195,7 +195,7 @@ void difftest_step()
         return;
     }
 
-    sync_mcycle(-1);
+    sync_mcycle(-1); // csrrw takes one cycle
     ref_difftest_exec(1);
     sync_mcycle(0);
 
