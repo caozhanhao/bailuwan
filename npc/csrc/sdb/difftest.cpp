@@ -95,6 +95,10 @@ static void checkregs(diff_context_t* ref)
 
     for (int i = 0; i < 4096; i++)
     {
+        // Don't check mcycle, since nemu executes every instruction in one cycle.
+        if (i == CSR_mcycle)
+            continue;
+
         if (cpu.is_csr_valid(i) && cpu.csr(i) != ref->csr[i])
         {
             Log("csr: addr=%d, name=%s, expected " FMT_WORD ", but got " FMT_WORD "\n", i,
