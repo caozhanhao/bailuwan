@@ -90,7 +90,7 @@ class DPICMem extends Module {
   write.io.mask  := io.write_mask
 
   io.read_valid  := RegNext(read_en, false.B)
-  io.write_ready := RegNext(write_en, false.B)
+  io.write_ready := true.B
 }
 
 //class TempMemForSTA extends Module {

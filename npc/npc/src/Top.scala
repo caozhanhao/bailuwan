@@ -17,11 +17,12 @@ class CSRBoring extends Bundle {
 
 class Top extends Module {
   val io = IO(new Bundle {
-    val registers = Output(Vec(16, UInt(32.W)))
-    val pc        = Output(UInt(32.W))
-    val dnpc      = Output(UInt(32.W))
-    val inst      = Output(UInt(32.W))
-    val csrs      = Output(new CSRBoring)
+    val registers      = Output(Vec(16, UInt(32.W)))
+    val pc             = Output(UInt(32.W))
+    val dnpc           = Output(UInt(32.W))
+    val inst           = Output(UInt(32.W))
+    val csrs           = Output(new CSRBoring)
+    val difftest_ready = Output(Bool())
   })
 
   implicit val p: CoreParams = CoreParams()
@@ -41,4 +42,16 @@ class Top extends Module {
   io.csrs.mcycleh   := BoringUtils.bore(core.EXU.csr_file.mcycle).asUInt(63, 32)
   io.csrs.mvendorid := core.EXU.csr_file.mvendorid
   io.csrs.marchid   := core.EXU.csr_file.marchid
+
+  // Difftest got ready after every pc advance (one instruction done),
+  // which is just in.valid delayed one cycle.
+  //               ___________
+  //   ready      |          |
+  //              _____       _____
+  //   clock     |     |_____|     |_____
+  //              cycle 1        cycle 2
+  //                     ^
+  //                     |
+  //          difftest_step is called here
+  io.difftest_ready := RegNext(BoringUtils.bore(core.IFU.io.in.valid))
 }
