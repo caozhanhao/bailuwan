@@ -65,6 +65,9 @@ void init_difftest(size_t img_size)
     ref_difftest_raise_intr = reinterpret_cast<difftest_raise_intr_t>(dlsym(handle, "difftest_raise_intr"));
     assert(ref_difftest_raise_intr);
 
+    ref_difftest_sync_mcycle = reinterpret_cast<difftest_raise_intr_t>(dlsym(handle, "difftest_sync_mcycle"));
+    assert(ref_difftest_sync_mcycle);
+
     using difftest_init_t = void (*)(int);
     auto ref_difftest_init = reinterpret_cast<difftest_init_t>(dlsym(handle, "difftest_init"));
     assert(ref_difftest_init);
