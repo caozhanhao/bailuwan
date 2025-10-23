@@ -46,7 +46,7 @@ class IFU(
   mem.io.write_mask   := 0.U
   mem.io.write_data   := DontCare
 
-  inst_reg := mem.io.data_out
+  inst_reg := Mux(mem.io.read_valid, mem.io.data_out, inst_reg)
 
   io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
