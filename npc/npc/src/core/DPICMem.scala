@@ -71,6 +71,34 @@ class LFSR extends Module {
   io.out := lfsr
 }
 
+object RandomDelay {
+  def apply(signal: Bool): Bool = {
+    val lfsr    = Module(new LFSR())
+    val counter = RegInit(0.U(5.W))
+    val pending = RegInit(false.B)
+    val out     = RegInit(false.B)
+
+    val prev  = RegNext(signal, false.B)
+    val start = signal && !prev
+
+    out := false.B
+
+    when(start && !pending) {
+      pending := true.B
+      counter := lfsr.io.out
+    }.elsewhen(pending) {
+      when(counter =/= 0.U) {
+        counter := counter - 1.U
+      }.otherwise {
+        out     := true.B
+        pending := false.B
+      }
+    }
+
+    out
+  }
+}
+
 class DPICMem extends Module {
   val io      = IO(new Bundle {
     val req_valid    = Input(Bool())
@@ -95,8 +123,7 @@ class DPICMem extends Module {
   read.io.addr  := io.addr
   io.data_out   := read_reg
 
-  val lfsr = Module(new LFSR)
-  io.read_valid := RegNext(io.req_valid, false.B) && lfsr.io.out(0).asBool
+  io.read_valid := RandomDelay(RegNext(io.req_valid, false.B))
 
   val write    = Module(new PMemWriteDPICWrapper)
   val write_en = io.req_valid && io.write_enable && !reset.asBool
