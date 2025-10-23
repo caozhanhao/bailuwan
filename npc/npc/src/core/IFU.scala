@@ -39,7 +39,7 @@ class IFU(
   pc := Mux(io.in.valid, io.in.bits.dnpc, pc)
 
   val inst_reg = RegInit(0.U(32.W))
-  inst_reg := Mux(mem.io.read_valid, mem.io.data_out, inst_reg)
+  inst_reg := Mux(mem.io.data_out =/= 0.U, mem.io.data_out, inst_reg)
 
   mem.io.addr        := pc
   mem.io.read_enable := true.B
