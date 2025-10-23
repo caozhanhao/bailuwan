@@ -83,7 +83,8 @@ class DPICMem extends Module {
   read.io.addr  := io.addr
   io.data_out   := read_reg
 
-  io.read_valid  := RegNext(RegNext(RegNext(RegNext(io.req_valid, false.B))))
+  val lfsr = random.FibonacciLFSR.maxPeriod(32).asBool
+  io.read_valid  := RegNext(io.req_valid, false.B) && lfsr
 
   val write    = Module(new PMemWriteDPICWrapper)
   val write_en = io.req_valid && io.write_enable && !reset.asBool
