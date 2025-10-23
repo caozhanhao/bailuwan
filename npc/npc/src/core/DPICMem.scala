@@ -1,7 +1,7 @@
 package core
 
 import chisel3._
-import chisel3.util.HasBlackBoxInline
+import chisel3.util._
 
 class PMemReadDPICWrapper extends HasBlackBoxInline {
   val io = IO(new Bundle {
@@ -72,7 +72,6 @@ class DPICMem extends Module {
     val read_valid  = Output(Bool())
     val write_ready = Output(Bool())
   })
-
   val read    = Module(new PMemReadDPICWrapper)
   val read_en = io.req_valid && io.read_enable && !reset.asBool
 
@@ -84,6 +83,9 @@ class DPICMem extends Module {
   read.io.addr  := io.addr
   io.data_out   := read_reg
 
+  val rnd1: Bool = random.GaloisLFSR.maxPeriod(3)(0).asBool
+  io.read_valid  := RegNext(io.req_valid, false.B) && rnd1
+
   val write    = Module(new PMemWriteDPICWrapper)
   val write_en = io.req_valid && io.write_enable && !reset.asBool
 
@@ -93,7 +95,6 @@ class DPICMem extends Module {
   write.io.data  := io.write_data
   write.io.mask  := io.write_mask
 
-  io.read_valid  := RegNext(io.req_valid, false.B)
   io.write_ready := true.B
 }
 
