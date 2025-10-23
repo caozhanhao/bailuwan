@@ -64,17 +64,9 @@ class LFSR extends Module {
     val out = Output(UInt(32.W))
   })
 
-  val lfsr = RegInit("hffffffff".U(32.W))
+  val lfsr = RegInit("b11111".U(5.W))
 
-  val bits = Wire(Vec(32, Bool()))
-
-  for (i <- 0 until 31)
-    bits(i) := lfsr(i + 1)
-  bits(31)  := lfsr(0)
-  bits(21)  := lfsr(22) ^ lfsr(0)
-  bits(1)   := lfsr(2) ^ lfsr(0)
-  bits(0)   := lfsr(1) ^ lfsr(0)
-  lfsr      := bits.asUInt
+  lfsr :=(0.U ^ lfsr(0)) ## lfsr(4) ## (lfsr(3) ^ lfsr(0)) ## lfsr(2) ## lfsr(1)
 
   io.out := lfsr
 }
