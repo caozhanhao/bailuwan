@@ -66,7 +66,7 @@ class LFSR extends Module {
 
   val lfsr = RegInit("b11111".U(5.W))
 
-  lfsr :=(0.U ^ lfsr(0)) ## lfsr(4) ## (lfsr(3) ^ lfsr(0)) ## lfsr(2) ## lfsr(1)
+  lfsr := (0.U ^ lfsr(0)) ## lfsr(4) ## (lfsr(3) ^ lfsr(0)) ## lfsr(2) ## lfsr(1)
 
   io.out := lfsr
 }
