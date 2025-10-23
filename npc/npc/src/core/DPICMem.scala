@@ -74,9 +74,10 @@ class DPICMem extends Module {
   })
 
   val read    = Module(new PMemReadDPICWrapper)
-  val read_reg = RegInit(0.U(32.W))
-  read_reg := read.io.out
   val read_en = io.req_valid && io.read_enable && !reset.asBool
+
+  val read_reg = RegInit(0.U(32.W))
+  read_reg := Mux(read_en, read.io.out, read_reg)
 
   read.io.clock := clock
   read.io.en    := read_en
