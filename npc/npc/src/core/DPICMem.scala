@@ -104,7 +104,7 @@ class DPICMem extends Module {
   io.data_out   := read_reg
 
   val lfsr = Module(new LFSR)
-  io.read_valid := RegNext(io.req_valid, false.B) && lfsr.io.out
+  io.read_valid := RegNext(io.req_valid, false.B) && lfsr.io.out(0).asBool
 
   val write    = Module(new PMemWriteDPICWrapper)
   val write_en = io.req_valid && io.write_enable && !reset.asBool
