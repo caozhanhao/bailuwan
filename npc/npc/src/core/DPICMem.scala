@@ -59,8 +59,28 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
   )
 }
 
-class DPICMem extends Module {
+class LFSR extends Module {
   val io = IO(new Bundle {
+    val out = Output(UInt(32.W))
+  })
+
+  val lfsr = Reg(UInt(32.W))
+
+  val bits = Wire(Vec(32, Bool()))
+
+  for (i <- 0 until 31)
+    bits(i) := lfsr(i + 1)
+  bits(31)  := lfsr(0)
+  bits(21)  := lfsr(22) ^ lfsr(0)
+  bits(1)   := lfsr(2) ^ lfsr(0)
+  bits(0)   := lfsr(1) ^ lfsr(0)
+  lfsr      := bits.asUInt
+
+  io.out := lfsr
+}
+
+class DPICMem extends Module {
+  val io      = IO(new Bundle {
     val req_valid    = Input(Bool())
     val addr         = Input(UInt(32.W))
     val read_enable  = Input(Bool())
@@ -83,8 +103,8 @@ class DPICMem extends Module {
   read.io.addr  := io.addr
   io.data_out   := read_reg
 
-  val lfsr = random.FibonacciLFSR.maxPeriod(32)(0).asBool
-  io.read_valid  := RegNext(io.req_valid, false.B) && lfsr
+  val lfsr = Module(new LFSR)
+  io.read_valid := RegNext(io.req_valid, false.B) && lfsr.io.out
 
   val write    = Module(new PMemWriteDPICWrapper)
   val write_en = io.req_valid && io.write_enable && !reset.asBool
