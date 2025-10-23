@@ -38,9 +38,6 @@ class IFU(
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.valid, io.in.bits.dnpc, pc)
 
-  val inst_reg = RegInit(0.U(32.W))
-  inst_reg := Mux(mem.io.data_out =/= 0.U, mem.io.data_out, inst_reg)
-
   mem.io.addr        := pc
   mem.io.read_enable := true.B
 
@@ -48,7 +45,7 @@ class IFU(
   mem.io.write_mask   := 0.U
   mem.io.write_data   := DontCare
 
-  io.out.bits.inst := inst_reg
+  io.out.bits.inst := mem.io.data_out
   io.out.bits.pc   := pc
 
   io.in.ready  := io.out.ready
