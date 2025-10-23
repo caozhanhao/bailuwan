@@ -39,12 +39,13 @@ class LSU(
     )
   )
 
-  val s_idle :: s_wait_ready :: Nil = Enum(2)
+  val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)
 
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle       -> Mux(read_enable && mem.io.read_valid, s_wait_ready, s_idle),
+      s_idle       -> Mux(read_enable, Mux(mem.io.read_valid, s_wait_ready, s_wait_mem), s_idle),
+      s_wait_mem  -> Mux(mem.io.read_valid, s_wait_ready, s_wait_mem),
       s_wait_ready -> Mux(io.read_data.ready, s_idle, s_wait_ready)
     )
   )
