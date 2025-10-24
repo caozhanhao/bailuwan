@@ -110,8 +110,6 @@ class DPICMem extends Module {
   io.b.valid     := w_state === w_wait_ready
   io.b.bits.resp := AXIResp.OKAY
 
-  printf(cf"aw fire: ${io.aw.fire}\n")
-
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
       w_idle       -> Mux(io.aw.fire, w_wait_mem, w_idle),

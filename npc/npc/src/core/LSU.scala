@@ -46,7 +46,7 @@ class LSU(
 
   mem.io.ar.bits.addr := io.addr
   mem.io.ar.bits.prot := 0.U
-  mem.io.ar.valid     := r_state === r_idle
+  mem.io.ar.valid     := read_enable && r_state === r_idle
 
   mem.io.r.ready := r_state === r_wait_mem
 
@@ -121,7 +121,7 @@ class LSU(
 
   mem.io.aw.bits.addr := io.addr
   mem.io.aw.bits.prot := 0.U
-  mem.io.aw.valid     := w_state === w_idle
+  mem.io.aw.valid     := write_enable && w_state === w_idle
   mem.io.w.bits.data  := selected_store_data
   mem.io.w.bits.strb  := write_mask
   mem.io.w.valid      := w_state === w_idle
