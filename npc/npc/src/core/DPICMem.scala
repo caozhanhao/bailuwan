@@ -97,7 +97,7 @@ class DPICMem extends Module {
   val mem_write = Module(new PMemWriteDPICWrapper)
   mem_write.io.clock := clock
 
-  val w_idle :: w_wait_mem :: w_wait_ready :: Nil = Enum(3)
+  val w_idle :: w_wait_ready :: Nil = Enum(3)
 
   val w_state        = RegInit(w_idle)
   val write_addr_reg = RegInit(0.U(32.W))
@@ -105,21 +105,18 @@ class DPICMem extends Module {
   val write_data_reg = RegInit(0.U(32.W))
   write_data_reg    := Mux(io.w.fire, io.w.bits.data, write_data_reg)
   mem_write.io.addr := write_addr_reg
-  mem_write.io.en   := w_state === w_wait_mem
+  mem_write.io.en   := w_state === w_wait_ready
   mem_write.io.data := write_data_reg
   mem_write.io.mask := io.w.bits.strb
-  io.w.ready        := w_state === w_wait_ready
-  io.aw.ready       := w_state =/= w_wait_mem
-
-  val write_valid = RegNext(mem_write.io.en)
+  io.w.ready        := w_state === w_idle
+  io.aw.ready       := w_state === w_idle
 
   io.b.valid     := w_state === w_wait_ready
   io.b.bits.resp := AXIResp.OKAY
 
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
-      w_idle       -> Mux(io.aw.fire, w_wait_mem, w_idle),
-      w_wait_mem   -> Mux(write_valid, w_wait_ready, w_wait_mem),
+      w_idle       -> Mux(io.aw.fire, w_wait_ready, w_idle),
       w_wait_ready -> Mux(io.w.fire, w_idle, w_wait_ready)
     )
   )
