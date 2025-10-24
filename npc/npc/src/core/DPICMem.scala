@@ -88,7 +88,7 @@ class DPICMem extends Module {
     Seq(
       r_idle       -> Mux(mem_read.io.en, r_wait_mem, r_idle),
       r_wait_mem   -> r_wait_ready, // read to register takes one cycle
-      r_wait_ready -> Mux(io.r.fire, r_idle, r_wait_ready)
+      r_wait_ready -> Mux(io.r.ready, r_idle, r_wait_ready)
     )
   )
 
@@ -113,7 +113,7 @@ class DPICMem extends Module {
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
       w_idle       -> Mux(mem_write.io.en, w_wait_ready, w_idle),
-      w_wait_ready -> Mux(io.b.fire, w_idle, w_wait_ready)
+      w_wait_ready -> Mux(io.b.ready, w_idle, w_wait_ready)
     )
   )
 }
