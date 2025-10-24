@@ -78,7 +78,7 @@ class DPICMem extends Module {
   mem_read.io.en   := r_state === r_wait_mem
   io.r.bits.data   := mem_read.io.out
   io.r.bits.resp   := AXIResp.OKAY
-  io.r.ready       := r_state === r_wait_ready
+  io.r.valid       := r_state === r_wait_ready
   io.ar.ready      := r_state =/= r_wait_mem
 
   val read_valid = RegNext(mem_read.io.en)
