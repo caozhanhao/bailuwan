@@ -97,7 +97,7 @@ class DPICMem extends Module {
   val mem_write = Module(new PMemWriteDPICWrapper)
   mem_write.io.clock := clock
 
-  val w_idle :: w_wait_ready :: Nil = Enum(3)
+  val w_idle :: w_wait_ready :: Nil = Enum(2)
 
   val w_state = RegInit(w_idle)
   mem_write.io.addr := io.aw.bits.addr
