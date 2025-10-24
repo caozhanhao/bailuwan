@@ -47,7 +47,7 @@ class AXI4LiteArbiter(
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
       r_idle -> Mux(any_read, r_busy, r_idle),
-      r_busy -> Mux(r_owner.r.ready, r_idle, r_busy)
+      r_busy -> Mux(r_owner.r.fire, r_idle, r_busy)
     )
   )
 
@@ -77,7 +77,7 @@ class AXI4LiteArbiter(
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
       w_idle -> Mux(any_write, w_busy, w_idle),
-      w_busy -> Mux(w_owner.b.ready, w_idle, w_busy)
+      w_busy -> Mux(w_owner.b.fire, w_idle, w_busy)
     )
   )
 
