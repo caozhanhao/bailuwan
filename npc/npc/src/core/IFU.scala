@@ -49,7 +49,8 @@ class IFU(
   mem.io.b.ready  := false.B
 
   val inst_reg = RegInit(0.U(32.W))
-  inst_reg := Mux(mem.io.r.fire, mem.io.r.bits.data, inst_reg)
+  // inst_reg := Mux(mem.io.r.fire, mem.io.r.bits.data, inst_reg)
+  inst_reg := mem.io.r.bits.data
 
   io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
