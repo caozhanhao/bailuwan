@@ -35,7 +35,8 @@ std::string Disassembler::disassemble(uint32_t pc, uint32_t inst) {
     if (count != 1)
     {
         sim_handle.cleanup();
-        assert(0 && "Disassembler error");
+        printf("Disasmbler error at inst: 0x%x", inst);
+        exit(-1);
     }
     int ret = snprintf(buffer, 128, "%s", insn->mnemonic);
     if (insn->op_str[0] != '\0')
