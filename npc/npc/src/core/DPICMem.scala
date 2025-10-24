@@ -60,8 +60,9 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
   )
 }
 
-class DPICMem extends Module {
-  implicit val axiprop: AXIProperty = AXIProperty()
+class DPICMem(
+  implicit axi_prop: AXIProperty)
+    extends Module {
   val io = IO(Flipped(new AXI4Lite))
 
   // Read

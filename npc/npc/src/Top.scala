@@ -3,6 +3,7 @@ package top
 import chisel3._
 import chisel3.util.experimental.BoringUtils
 import core._
+import amba._
 
 class CSRBoring extends Bundle {
   val mstatus   = UInt(32.W)
@@ -25,7 +26,8 @@ class Top extends Module {
     val difftest_ready = Output(Bool())
   })
 
-  implicit val p: CoreParams = CoreParams()
+  implicit val p:        CoreParams  = CoreParams()
+  implicit val axi_prop: AXIProperty = AXIProperty()
   val core = Module(new Core)
 
   // Bore some signals for debugging

@@ -2,10 +2,9 @@ package core
 
 import chisel3._
 import chisel3.util._
-
 import constants._
-
 import top.CoreParams
+import amba._
 
 class EXUOut(
   implicit p: CoreParams)
@@ -28,11 +27,14 @@ class EXUOut(
 }
 
 class EXU(
-  implicit p: CoreParams)
+  implicit p: CoreParams,
+  axi_prop:   AXIProperty)
     extends Module {
   val io = IO(new Bundle {
     val in  = Flipped(Decoupled(new IDUOut))
     val out = Decoupled(new EXUOut)
+
+    val mem = new AXI4Lite
   })
 
   val decoded   = io.in.bits
@@ -81,6 +83,7 @@ class EXU(
 
   // LSU
   val lsu = Module(new LSU)
+  lsu.io.mem <> io.mem
   lsu.io.lsu_op           := decoded.lsu_op
   lsu.io.addr             := alu.io.result
   lsu.io.write_data.bits  := rs2_data
@@ -97,7 +100,7 @@ class EXU(
     )
   )
 
-  val is_str = !is_ld && decoded.lsu_op =/= LSUOp.Nop
+  val is_str    = !is_ld && decoded.lsu_op =/= LSUOp.Nop
   val lsu_valid = (!is_ld || lsu.io.read_data.valid) && (!is_str || lsu.io.write_data.ready)
 
   // Branch
