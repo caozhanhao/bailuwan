@@ -56,5 +56,5 @@ class IFU(
   io.out.bits.pc   := pc
 
   io.in.ready  := io.out.ready
-  io.out.valid := state === s_wait_ready
+  io.out.valid := RegNext(state === s_wait_ready)
 }
