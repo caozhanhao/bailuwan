@@ -28,6 +28,7 @@ class Top extends Module {
 
   implicit val p:        CoreParams  = CoreParams()
   implicit val axi_prop: AXIProperty = AXIProperty()
+  implicit val axi_prop1: AXIProperty = AXIProperty()
   val core = Module(new Core)
 
   // Bore some signals for debugging
