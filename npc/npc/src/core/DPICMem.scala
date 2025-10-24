@@ -70,8 +70,7 @@ class DPICMem extends Module {
 
   val r_idle :: r_wait_mem :: r_wait_ready :: Nil = Enum(3)
 
-  val r_state    = RegInit(r_idle)
-  val read_valid = RegNext(mem_read.io.en)
+  val r_state = RegInit(r_idle)
 
   val read_addr_reg = RegInit(0.U(32.W))
   read_addr_reg    := Mux(io.ar.fire, io.ar.bits.addr, read_addr_reg)
@@ -79,13 +78,13 @@ class DPICMem extends Module {
   mem_read.io.en   := r_state === r_wait_mem
   io.r.bits.data   := mem_read.io.out
   io.r.bits.resp   := AXIResp.OKAY
-  io.r.valid       := read_valid
+  io.r.valid       := r_state === r_wait_ready
   io.ar.ready      := r_state =/= r_wait_mem
 
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
       r_idle       -> Mux(io.ar.fire, r_wait_mem, r_idle),
-      r_wait_mem   -> Mux(read_valid, r_wait_ready, r_wait_mem),
+      r_wait_mem   -> Mux(RegNext(mem_read.io.en), r_wait_ready, r_wait_mem),
       r_wait_ready -> Mux(io.r.ready, r_idle, r_wait_ready)
     )
   )

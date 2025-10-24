@@ -42,8 +42,11 @@ class IFU(
   mem.io.ar.bits.addr := pc
   mem.io.ar.bits.prot := 0.U
 
-  mem.io.w.valid := false.B
-  mem.io.w.bits  := DontCare
+  mem.io.aw.valid := false.B
+  mem.io.aw.bits  := DontCare
+  mem.io.w.valid  := false.B
+  mem.io.w.bits   := DontCare
+  mem.io.b.ready  := false.B
 
   val inst_reg = RegInit(0.U(32.W))
   inst_reg := Mux(mem.io.r.valid, mem.io.r.bits.data, inst_reg)
