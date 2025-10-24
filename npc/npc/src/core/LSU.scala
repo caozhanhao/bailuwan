@@ -23,8 +23,6 @@ class LSU(
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
-  val mem = Module(new DPICMem())
-
   // Read
 
   val read_enable = MuxLookup(io.lsu_op, false.B)(
