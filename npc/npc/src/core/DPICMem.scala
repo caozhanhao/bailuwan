@@ -72,10 +72,8 @@ class DPICMem extends Module {
 
   val r_state = RegInit(r_idle)
 
-  val read_addr_reg = RegInit(0.U(32.W))
-  read_addr_reg    := Mux(io.ar.fire, io.ar.bits.addr, read_addr_reg)
-  mem_read.io.addr := read_addr_reg
-  mem_read.io.en   := r_state === r_wait_mem
+  mem_read.io.addr := io.ar.fire
+  mem_read.io.en   := io.ar.fire && r_state === r_idle
 
   val read_data_reg = RegInit(0.U(32.W))
   read_data_reg := Mux(r_state === r_wait_mem, mem_read.io.out, read_data_reg)
@@ -87,8 +85,8 @@ class DPICMem extends Module {
 
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
-      r_idle       -> Mux(io.ar.fire, r_wait_mem, r_idle),
-      r_wait_mem   -> Mux(RegNext(mem_read.io.en), r_wait_ready, r_wait_mem),
+      r_idle       -> Mux(mem_read.io.en, r_wait_mem, r_idle),
+      r_wait_mem   -> r_wait_ready,
       r_wait_ready -> Mux(io.r.ready, r_idle, r_wait_ready)
     )
   )
@@ -101,7 +99,7 @@ class DPICMem extends Module {
 
   val w_state = RegInit(w_idle)
   mem_write.io.addr := io.aw.bits.addr
-  mem_write.io.en   := io.aw.fire && io.w.fire
+  mem_write.io.en   := io.aw.fire && io.w.fire && w_state === w_idle
   mem_write.io.data := io.w.bits.data
   mem_write.io.mask := io.w.bits.strb
   io.w.ready        := w_state === w_idle
