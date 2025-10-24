@@ -99,14 +99,10 @@ class DPICMem extends Module {
 
   val w_idle :: w_wait_ready :: Nil = Enum(3)
 
-  val w_state        = RegInit(w_idle)
-  val write_addr_reg = RegInit(0.U(32.W))
-  write_addr_reg := Mux(io.aw.fire, io.aw.bits.addr, write_addr_reg)
-  val write_data_reg = RegInit(0.U(32.W))
-  write_data_reg    := Mux(io.w.fire, io.w.bits.data, write_data_reg)
-  mem_write.io.addr := write_addr_reg
-  mem_write.io.en   := w_state === w_wait_ready
-  mem_write.io.data := write_data_reg
+  val w_state = RegInit(w_idle)
+  mem_write.io.addr := io.aw.bits.addr
+  mem_write.io.en   := io.aw.fire && io.w.fire
+  mem_write.io.data := io.w.bits.data
   mem_write.io.mask := io.w.bits.strb
   io.w.ready        := w_state === w_idle
   io.aw.ready       := w_state === w_idle
@@ -116,8 +112,8 @@ class DPICMem extends Module {
 
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
-      w_idle       -> Mux(io.aw.fire, w_wait_ready, w_idle),
-      w_wait_ready -> Mux(io.w.fire, w_idle, w_wait_ready)
+      w_idle       -> Mux(mem_write.io.en, w_wait_ready, w_idle),
+      w_wait_ready -> w_idle
     )
   )
 }
