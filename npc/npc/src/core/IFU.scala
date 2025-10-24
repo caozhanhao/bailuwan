@@ -51,9 +51,11 @@ class IFU(
   val inst_reg = RegInit(0.U(32.W))
   inst_reg := Mux(mem.io.r.fire, mem.io.r.bits.data, inst_reg)
 
+  printf(cf"inst: ${inst_reg}, fire: ${mem.io.r.fire}, rdata: ${mem.io.r.bits.data}, mux: ${Mux(mem.io.r.fire, mem.io.r.bits.data, inst_reg)}")
+
   io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
 
   io.in.ready  := io.out.ready
-  io.out.valid := RegNext(RegNext(state === s_wait_ready))
+  io.out.valid := state === s_wait_ready
 }
