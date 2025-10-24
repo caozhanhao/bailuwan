@@ -22,7 +22,7 @@ class Core(
 
   val RegFile = Module(new RegFile)
 
-  val Mem = Module(new TempMemForSTA)
+  val Mem = Module(new DPICMem)
 
   // Stage Connect
   StageConnect(IFU.io.out, IDU.io.in)
