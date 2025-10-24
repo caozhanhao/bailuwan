@@ -86,7 +86,7 @@ class DPICMem extends Module {
   read.io.addr  := io.addr
   io.data_out   := read_reg
 
-  val read_valid = utils.RandomDelay(RegNext(io.req_valid, false.B))
+  val read_valid = RegNext(io.req_valid, false.B)
 
   val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)
 
@@ -100,7 +100,7 @@ class DPICMem extends Module {
   )
 
   io.read_valid := read_valid
-  io.req_ready  := utils.RandomDelay(state === s_idle)
+  io.req_ready  := state === s_idle
 
   val write    = Module(new PMemWriteDPICWrapper)
   val write_en = io.req_valid && io.write_enable && !reset.asBool
