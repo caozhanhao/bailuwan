@@ -21,13 +21,7 @@ class LSU(
 
   val mem = Module(new DPICMem())
 
-  val write_enable = io.write_data.valid && MuxLookup(io.lsu_op, false.B)(
-    Seq(
-      LSUOp.SB -> true.B,
-      LSUOp.SH -> true.B,
-      LSUOp.SW -> true.B
-    )
-  )
+  // Read
 
   val read_enable = MuxLookup(io.lsu_op, false.B)(
     Seq(
@@ -39,25 +33,70 @@ class LSU(
     )
   )
 
-  val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)
+  val r_idle :: r_wait_mem :: r_wait_ready :: Nil = Enum(3)
 
-  val state = RegInit(s_idle)
-  state := MuxLookup(state, s_idle)(
+  val r_state = RegInit(r_idle)
+  r_state := MuxLookup(r_state, r_idle)(
     Seq(
-      s_idle       -> Mux(read_enable && mem.io.req_ready, s_wait_mem, s_idle),
-      s_wait_mem   -> Mux(mem.io.read_valid, s_wait_ready, s_wait_mem),
-      s_wait_ready -> Mux(io.read_data.ready, s_idle, s_wait_ready)
+      r_idle       -> Mux(read_enable && mem.io.ar.fire, r_wait_mem, r_idle),
+      r_wait_mem   -> Mux(mem.io.r.fire, r_wait_ready, r_wait_mem),
+      r_wait_ready -> Mux(io.read_data.fire, r_idle, r_wait_ready)
     )
   )
 
-  mem.io.req_valid  := (write_enable || (read_enable && state === s_idle)) && mem.io.req_ready
-  mem.io.resp_ready := io.read_data.ready
+  mem.io.ar.bits.addr := io.addr
+  mem.io.ar.bits.prot := 0.U
+  mem.io.ar.valid     := read_enable && mem.io.ar.ready && r_state === r_idle
 
-  val write_mask = MuxLookup(io.lsu_op, 0.U(8.W))(
+  mem.io.r.ready := r_state === r_wait_mem
+
+  val read_reg = Reg(UInt(32.W))
+  read_reg := Mux(mem.io.r.valid, mem.io.r.bits.data, read_reg)
+
+  val lb_sel = MuxLookup(io.addr(1, 0), 0.U(8.W))(
     Seq(
-      LSUOp.SB -> (0x1.U(8.W) << io.addr(1, 0)).asUInt,
-      LSUOp.SH -> (0x3.U(8.W) << io.addr(1, 0)).asUInt,
-      LSUOp.SW -> 0xf.U(8.W)
+      0.U -> read_reg(7, 0),
+      1.U -> read_reg(15, 8),
+      2.U -> read_reg(23, 16),
+      3.U -> read_reg(31, 24)
+    )
+  )
+
+  val lh_sel = MuxLookup(io.addr(1, 0), 0.U(16.W))(
+    Seq(
+      0.U -> read_reg(15, 0),
+      2.U -> read_reg(31, 16)
+    )
+  )
+
+  val selected_loaded_data = MuxLookup(io.lsu_op, 0.U(p.XLEN.W))(
+    Seq(
+      LSUOp.LB  -> sign_extend(lb_sel, p.XLEN),
+      LSUOp.LH  -> sign_extend(lh_sel, p.XLEN),
+      LSUOp.LW  -> read_reg,
+      LSUOp.LBU -> zero_extend(lb_sel, p.XLEN),
+      LSUOp.LHU -> zero_extend(lh_sel, p.XLEN)
+    )
+  )
+
+  io.read_data.valid := r_state === r_wait_ready
+  io.read_data.bits  := selected_loaded_data
+
+  // Write
+
+  val write_enable = io.write_data.valid && MuxLookup(io.lsu_op, false.B)(
+    Seq(
+      LSUOp.SB -> true.B,
+      LSUOp.SH -> true.B,
+      LSUOp.SW -> true.B
+    )
+  )
+
+  val write_mask = MuxLookup(io.lsu_op, 0.U(4.W))(
+    Seq(
+      LSUOp.SB -> (0x1.U(4.W) << io.addr(1, 0)).asUInt,
+      LSUOp.SH -> (0x3.U(4.W) << io.addr(1, 0)).asUInt,
+      LSUOp.SW -> 0xf.U(4.W)
     )
   )
 
@@ -69,42 +108,23 @@ class LSU(
     )
   )
 
-  val data_out = mem.io.data_out
+  val w_idle :: w_wait_mem :: Nil = Enum(2)
 
-  val lb_sel = MuxLookup(io.addr(1, 0), 0.U(8.W))(
+  val w_state = RegInit(w_idle)
+
+  w_state := MuxLookup(w_state, w_idle)(
     Seq(
-      0.U -> data_out(7, 0),
-      1.U -> data_out(15, 8),
-      2.U -> data_out(23, 16),
-      3.U -> data_out(31, 24)
+      w_idle     -> Mux(write_enable && mem.io.aw.fire, w_wait_mem, w_idle),
+      w_wait_mem -> Mux(mem.io.b.fire, w_idle, w_wait_mem)
     )
   )
 
-  val lh_sel = MuxLookup(io.addr(1, 0), 0.U(16.W))(
-    Seq(
-      0.U -> data_out(15, 0),
-      2.U -> data_out(31, 16)
-    )
-  )
-
-  val selected_loaded_data = MuxLookup(io.lsu_op, 0.U(p.XLEN.W))(
-    Seq(
-      LSUOp.LB  -> sign_extend(lb_sel, p.XLEN),
-      LSUOp.LH  -> sign_extend(lh_sel, p.XLEN),
-      LSUOp.LW  -> data_out,
-      LSUOp.LBU -> zero_extend(lb_sel, p.XLEN),
-      LSUOp.LHU -> zero_extend(lh_sel, p.XLEN)
-    )
-  )
-
-  mem.io.addr         := io.addr
-  mem.io.read_enable  := read_enable
-  mem.io.write_enable := write_enable
-  mem.io.write_mask   := write_mask
-  mem.io.write_data   := selected_store_data
-
-  io.read_data.valid := state === s_wait_ready
-  io.read_data.bits  := selected_loaded_data
-
-  io.write_data.ready := mem.io.write_ready
+  mem.io.aw.bits.addr := io.addr
+  mem.io.aw.bits.prot := 0.U
+  mem.io.aw.valid     := write_enable && w_state === w_idle
+  mem.io.w.bits.data  := selected_store_data
+  mem.io.w.bits.strb  := write_mask
+  mem.io.w.valid      := w_state === w_idle
+  mem.io.b.ready      := w_state === w_wait_mem
+  io.write_data.ready := mem.io.b.valid
 }
