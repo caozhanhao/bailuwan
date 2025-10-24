@@ -78,12 +78,12 @@ class DPICMem extends Module {
   mem_read.io.en   := r_state === r_wait_mem
 
   val read_data_reg = RegInit(0.U(32.W))
-  read_data_reg    := Mux(r_state === r_wait_mem, mem_read.io.out, read_data_reg)
+  read_data_reg := Mux(r_state === r_wait_mem, mem_read.io.out, read_data_reg)
 
-  io.r.bits.data   := read_data_reg
-  io.r.bits.resp   := AXIResp.OKAY
-  io.r.valid       := r_state === r_wait_ready
-  io.ar.ready      := r_state =/= r_wait_mem
+  io.r.bits.data := read_data_reg
+  io.r.bits.resp := AXIResp.OKAY
+  io.r.valid     := r_state === r_wait_ready
+  io.ar.ready    := r_state =/= r_wait_mem
 
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
@@ -101,9 +101,9 @@ class DPICMem extends Module {
 
   val w_state        = RegInit(w_idle)
   val write_addr_reg = RegInit(0.U(32.W))
-  write_addr_reg    := Mux(io.aw.fire, io.aw.bits.addr, write_addr_reg)
+  write_addr_reg := Mux(io.aw.fire, io.aw.bits.addr, write_addr_reg)
   val write_data_reg = RegInit(0.U(32.W))
-  write_data_reg   := Mux(io.w.fire, io.w.bits.data, write_data_reg)
+  write_data_reg    := Mux(io.w.fire, io.w.bits.data, write_data_reg)
   mem_write.io.addr := write_addr_reg
   mem_write.io.en   := w_state === w_wait_mem
   mem_write.io.data := write_data_reg

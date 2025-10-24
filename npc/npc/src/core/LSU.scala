@@ -46,7 +46,7 @@ class LSU(
 
   mem.io.ar.bits.addr := io.addr
   mem.io.ar.bits.prot := 0.U
-  mem.io.ar.valid     := read_enable && r_state === r_idle
+  mem.io.ar.valid     := read_enable && mem.io.ar.ready && r_state === r_idle
 
   mem.io.r.ready := r_state === r_wait_mem
 
