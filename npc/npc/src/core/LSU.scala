@@ -115,7 +115,7 @@ class LSU(
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
       w_idle     -> Mux(write_enable && mem.io.aw.ready, w_wait_mem, w_idle),
-      w_wait_mem -> Mux(mem.io.w.ready, w_idle, w_wait_mem)
+      w_wait_mem -> Mux(mem.io.b.valid, w_idle, w_wait_mem)
     )
   )
 
