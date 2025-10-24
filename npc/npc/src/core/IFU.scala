@@ -28,7 +28,7 @@ class IFU(
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle       -> Mux(mem.io.read_valid, s_wait_ready, s_wait_mem),
-      s_wait_mem   -> Mux(mem.io.read_valid && mem.io.req_ready, s_wait_ready, s_wait_mem),
+      s_wait_mem   -> Mux(mem.io.read_valid, s_wait_ready, s_wait_mem),
       s_wait_ready -> Mux(io.out.ready, s_idle, s_wait_ready)
     )
   )
