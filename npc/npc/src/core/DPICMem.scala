@@ -81,6 +81,7 @@ class DPICMem extends Module {
   io.r.bits.data := read_data_reg
   io.r.bits.resp := AXIResp.OKAY
   io.r.valid     := utils.RandomDelay(r_state === r_wait_ready)
+  // io.r.valid     := r_state === r_wait_ready
   io.ar.ready    := r_state === r_idle
 
   r_state := MuxLookup(r_state, r_idle)(
@@ -105,7 +106,7 @@ class DPICMem extends Module {
   io.w.ready        := w_state === w_idle
   io.aw.ready       := w_state === w_idle
 
-  io.b.valid     := w_state === w_wait_ready
+  io.b.valid     := utils.RandomDelay(w_state === w_wait_ready)
   io.b.bits.resp := AXIResp.OKAY
 
   w_state := MuxLookup(w_state, w_idle)(
