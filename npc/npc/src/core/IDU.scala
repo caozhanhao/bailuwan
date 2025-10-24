@@ -127,6 +127,7 @@ class IDU(
 
   val NOP  = 0x00000013.U(32.W)
   val inst = Mux(io.in.valid, io.in.bits.inst, NOP)
+  printf("[IDU] inst: %x\n", inst);
 
   // Registers
   val rd  = inst(11, 7)
