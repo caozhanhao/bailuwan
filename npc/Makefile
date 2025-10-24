@@ -89,6 +89,7 @@ endif
 ## 5. Compilation Rules
 
 $(VERILOG_STAMP): $(SCALASRCS)
+	@rm -rf $(BUILD_DIR)/*.sv
 	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
 	@touch $@
 
