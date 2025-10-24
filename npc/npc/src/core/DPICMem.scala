@@ -1,7 +1,7 @@
 package core
 
 import chisel3._
-import chisel3.util.HasBlackBoxInline
+import chisel3.util._
 
 class PMemReadDPICWrapper extends HasBlackBoxInline {
   val io = IO(new Bundle {
@@ -61,6 +61,9 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
 
 class DPICMem extends Module {
   val io = IO(new Bundle {
+    val req_valid    = Input(Bool())
+    val req_ready    = Output(Bool())
+    val resp_ready   = Input(Bool())
     val addr         = Input(UInt(32.W))
     val read_enable  = Input(Bool())
     val write_enable = Input(Bool())
@@ -73,15 +76,34 @@ class DPICMem extends Module {
   })
 
   val read    = Module(new PMemReadDPICWrapper)
-  val read_en = io.read_enable && !reset.asBool
+  val read_en = io.req_valid && io.read_enable && !reset.asBool
+
+  val read_reg = RegInit(0.U(32.W))
+  read_reg := Mux(read_en, read.io.out, read_reg)
 
   read.io.clock := clock
   read.io.en    := read_en
   read.io.addr  := io.addr
-  io.data_out   := read.io.out
+  io.data_out   := read_reg
+
+  val read_valid = RegNext(io.req_valid, false.B)
+
+  val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)
+
+  val state = RegInit(s_idle)
+  state := MuxLookup(state, s_idle)(
+    Seq(
+      s_idle       -> Mux(read_en, s_wait_mem, s_idle),
+      s_wait_mem   -> Mux(read_valid, s_wait_ready, s_wait_mem),
+      s_wait_ready -> Mux(io.resp_ready, s_idle, s_wait_ready)
+    )
+  )
+
+  io.read_valid := read_valid
+  io.req_ready  := state === s_idle
 
   val write    = Module(new PMemWriteDPICWrapper)
-  val write_en = io.write_enable && !reset.asBool
+  val write_en = io.req_valid && io.write_enable && !reset.asBool
 
   write.io.clock := clock
   write.io.addr  := io.addr
@@ -89,7 +111,6 @@ class DPICMem extends Module {
   write.io.data  := io.write_data
   write.io.mask  := io.write_mask
 
-  io.read_valid  := RegNext(read_en, false.B)
   io.write_ready := true.B
 }
 
