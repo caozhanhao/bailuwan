@@ -73,7 +73,7 @@ class DPICMem extends Module {
   val r_state = RegInit(r_idle)
 
   mem_read.io.addr := io.ar.bits.addr
-  mem_read.io.en   := io.ar.fire && r_state === r_idle
+  mem_read.io.en   := io.ar.fire && r_state === r_idle && !reset.asBool
 
   val read_data_reg = RegInit(0.U(32.W))
   read_data_reg := Mux(r_state === r_wait_mem, mem_read.io.out, read_data_reg)
@@ -99,7 +99,7 @@ class DPICMem extends Module {
 
   val w_state = RegInit(w_idle)
   mem_write.io.addr := io.aw.bits.addr
-  mem_write.io.en   := io.aw.fire && io.w.fire && w_state === w_idle
+  mem_write.io.en   := io.aw.fire && io.w.fire && w_state === w_idle && !reset.asBool
   mem_write.io.data := io.w.bits.data
   mem_write.io.mask := io.w.bits.strb
   io.w.ready        := w_state === w_idle
