@@ -51,6 +51,7 @@ class LSU(
   )
 
   mem.io.req_valid := (write_enable || (read_enable && state === s_idle))
+  mem.io.resp_ready := io.read_data.ready
 
   val write_mask = MuxLookup(io.lsu_op, 0.U(8.W))(
     Seq(
