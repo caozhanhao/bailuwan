@@ -27,9 +27,9 @@ class IFU(
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle       -> Mux(mem.io.ar.ready, s_wait_mem, s_idle),
-      s_wait_mem   -> Mux(mem.io.r.valid, s_wait_ready, s_wait_mem),
-      s_wait_ready -> Mux(io.out.ready, s_idle, s_wait_ready)
+      s_idle       -> Mux(mem.io.ar.fire, s_wait_mem, s_idle),
+      s_wait_mem   -> Mux(mem.io.r.fire, s_wait_ready, s_wait_mem),
+      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
   )
 

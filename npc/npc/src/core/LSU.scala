@@ -38,9 +38,9 @@ class LSU(
   val r_state = RegInit(r_idle)
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
-      r_idle       -> Mux(read_enable && mem.io.ar.ready, r_wait_mem, r_idle),
-      r_wait_mem   -> Mux(mem.io.r.valid, r_wait_ready, r_wait_mem),
-      r_wait_ready -> Mux(io.read_data.ready, r_idle, r_wait_ready)
+      r_idle       -> Mux(read_enable && mem.io.ar.fire, r_wait_mem, r_idle),
+      r_wait_mem   -> Mux(mem.io.r.fire, r_wait_ready, r_wait_mem),
+      r_wait_ready -> Mux(io.read_data.fire, r_idle, r_wait_ready)
     )
   )
 
@@ -114,7 +114,7 @@ class LSU(
 
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
-      w_idle     -> Mux(write_enable && mem.io.aw.ready, w_wait_mem, w_idle),
+      w_idle     -> Mux(write_enable && mem.io.aw.fire, w_wait_mem, w_idle),
       w_wait_mem -> Mux(mem.io.b.fire, w_idle, w_wait_mem)
     )
   )
