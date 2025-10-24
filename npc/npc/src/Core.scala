@@ -20,7 +20,9 @@ class Core(
   val WBU = Module(new WBU)
 
   val RegFile = Module(new RegFile)
-  val Mem     = Module(new DPICMem)
+
+  implicit val axi_prop: AXIProperty = AXIProperty()
+  val Mem = Module(new DPICMem)
 
   // Stage Connect
   StageConnect(IFU.io.out, IDU.io.in)
@@ -38,7 +40,6 @@ class Core(
   RegFile.io.rd_data         := WBU.io.regfile_out.rd_data
 
   // Memory
-  implicit val axi_prop: AXIProperty = AXIProperty()
   val arbiter = Module(new AXI4LiteArbiter(2))
   arbiter.io.masters(0) <> IFU.io.mem
   arbiter.io.masters(1) <> EXU.io.mem
