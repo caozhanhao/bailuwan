@@ -100,6 +100,7 @@ class DPICMem extends Module {
   write_addr_reg    := Mux(io.aw.fire, io.aw.bits.addr, write_addr_reg)
   mem_write.io.addr := write_addr_reg
   mem_write.io.en   := w_state === w_wait_mem
+  printf(cf"write enable: ${mem_write.io.en}\n")
   mem_write.io.data := io.w.bits.data
   mem_write.io.mask := io.w.bits.strb
   io.w.ready        := w_state === w_wait_ready
