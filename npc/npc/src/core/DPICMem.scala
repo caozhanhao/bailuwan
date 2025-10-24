@@ -60,10 +60,10 @@ class PMemWriteDPICWrapper extends HasBlackBoxInline {
 }
 
 class DPICMem extends Module {
-  val io      = IO(new Bundle {
+  val io = IO(new Bundle {
     val req_valid    = Input(Bool())
     val req_ready    = Output(Bool())
-    val resp_ready = Input(Bool())
+    val resp_ready   = Input(Bool())
     val addr         = Input(UInt(32.W))
     val read_enable  = Input(Bool())
     val write_enable = Input(Bool())
@@ -100,7 +100,7 @@ class DPICMem extends Module {
   )
 
   io.read_valid := read_valid
-  io.req_ready := state === s_idle
+  io.req_ready  := state === s_idle
 
   val write    = Module(new PMemWriteDPICWrapper)
   val write_en = io.req_valid && io.write_enable && !reset.asBool

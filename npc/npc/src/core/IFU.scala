@@ -33,7 +33,7 @@ class IFU(
     )
   )
 
-  mem.io.req_valid := state === s_idle
+  mem.io.req_valid := (state === s_idle) && mem.io.req_ready
 
   mem.io.resp_ready := io.out.ready
 
