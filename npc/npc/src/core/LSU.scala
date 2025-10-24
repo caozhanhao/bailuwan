@@ -125,6 +125,6 @@ class LSU(
   mem.io.w.bits.data  := selected_store_data
   mem.io.w.bits.strb  := write_mask
   mem.io.w.valid      := w_state === w_idle
-  mem.io.b.ready      := w_state === w_idle
+  mem.io.b.ready      := w_state === w_wait_mem
   io.write_data.ready := mem.io.b.valid
 }
