@@ -9,8 +9,8 @@ class AXI4LiteArbiter(
   implicit p: AXIProperty)
     extends Module {
   val io = IO(new Bundle {
-    val masters = Vec(n, new AXI4Lite)
-    val slave   = Flipped(new AXI4Lite)
+    val masters = Vec(n, Flipped(new AXI4Lite))
+    val slave   = new AXI4Lite
   })
 
   assert(n > 1, "Arbiter what?")
