@@ -5,9 +5,11 @@ import chisel3.util._
 import constants._
 import top.CoreParams
 import utils.Utils._
+import amba._
 
 class LSU(
-  implicit p: CoreParams)
+  implicit p: CoreParams,
+  axi_prop:   AXIProperty)
     extends Module {
   val io = IO(new Bundle {
     val lsu_op = Input(UInt(LSUOp.WIDTH))
@@ -15,6 +17,8 @@ class LSU(
 
     val write_data = Flipped(Decoupled(UInt(p.XLEN.W)))
     val read_data  = Decoupled(UInt(p.XLEN.W))
+
+    val mem = new AXI4Lite()
   })
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
@@ -38,20 +42,20 @@ class LSU(
   val r_state = RegInit(r_idle)
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
-      r_idle       -> Mux(read_enable && mem.io.ar.fire, r_wait_mem, r_idle),
-      r_wait_mem   -> Mux(mem.io.r.fire, r_wait_ready, r_wait_mem),
+      r_idle       -> Mux(read_enable && io.mem.ar.fire, r_wait_mem, r_idle),
+      r_wait_mem   -> Mux(io.mem.r.fire, r_wait_ready, r_wait_mem),
       r_wait_ready -> Mux(io.read_data.fire, r_idle, r_wait_ready)
     )
   )
 
-  mem.io.ar.bits.addr := io.addr
-  mem.io.ar.bits.prot := 0.U
-  mem.io.ar.valid     := read_enable && mem.io.ar.ready && r_state === r_idle
+  io.mem.ar.bits.addr := io.addr
+  io.mem.ar.bits.prot := 0.U
+  io.mem.ar.valid     := read_enable && io.mem.ar.ready && r_state === r_idle
 
-  mem.io.r.ready := r_state === r_wait_mem
+  io.mem.r.ready := r_state === r_wait_mem
 
   val read_reg = Reg(UInt(32.W))
-  read_reg := Mux(mem.io.r.valid, mem.io.r.bits.data, read_reg)
+  read_reg := Mux(io.mem.r.valid, io.mem.r.bits.data, read_reg)
 
   val lb_sel = MuxLookup(io.addr(1, 0), 0.U(8.W))(
     Seq(
@@ -114,17 +118,17 @@ class LSU(
 
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
-      w_idle     -> Mux(write_enable && mem.io.aw.fire, w_wait_mem, w_idle),
-      w_wait_mem -> Mux(mem.io.b.fire, w_idle, w_wait_mem)
+      w_idle     -> Mux(write_enable && io.mem.aw.fire, w_wait_mem, w_idle),
+      w_wait_mem -> Mux(io.mem.b.fire, w_idle, w_wait_mem)
     )
   )
 
-  mem.io.aw.bits.addr := io.addr
-  mem.io.aw.bits.prot := 0.U
-  mem.io.aw.valid     := write_enable && w_state === w_idle
-  mem.io.w.bits.data  := selected_store_data
-  mem.io.w.bits.strb  := write_mask
-  mem.io.w.valid      := w_state === w_idle
-  mem.io.b.ready      := w_state === w_wait_mem
-  io.write_data.ready := mem.io.b.valid
+  io.mem.aw.bits.addr := io.addr
+  io.mem.aw.bits.prot := 0.U
+  io.mem.aw.valid     := write_enable && w_state === w_idle
+  io.mem.w.bits.data  := selected_store_data
+  io.mem.w.bits.strb  := write_mask
+  io.mem.w.valid      := w_state === w_idle
+  io.mem.b.ready      := w_state === w_wait_mem
+  io.write_data.ready := io.mem.b.valid
 }
