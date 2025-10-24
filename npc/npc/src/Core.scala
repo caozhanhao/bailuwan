@@ -14,10 +14,11 @@ object StageConnect {
 class Core(
   implicit p: CoreParams)
     extends Module {
-  implicit val axi_prop: AXIProperty = AXIProperty()
 
   val IFU = Module(new IFU)
+  implicit val axi_prop: AXIProperty = AXIProperty()
   val EXU = Module(new EXU)
+
   val IDU = Module(new IDU)
   val WBU = Module(new WBU)
 
