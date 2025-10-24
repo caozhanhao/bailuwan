@@ -51,7 +51,7 @@ class IFU(
   val inst_reg = RegInit(0.U(32.W))
   inst_reg := Mux(mem.io.r.fire, mem.io.r.bits.data, inst_reg)
 
-  printf(cf"inst: ${inst_reg}, fire: ${mem.io.r.fire}, rdata: ${mem.io.r.bits.data}")
+  printf(cf"inst: ${inst_reg}, fire: ${mem.io.r.fire}, rdata: ${mem.io.r.bits.data}, mux: ${Mux(mem.io.r.fire, mem.io.r.bits.data, inst_reg)}")
 
   io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
