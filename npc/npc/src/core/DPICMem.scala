@@ -2,7 +2,6 @@ package core
 
 import chisel3._
 import chisel3.util._
-import utils.RandomDelay
 
 class PMemReadDPICWrapper extends HasBlackBoxInline {
   val io = IO(new Bundle {
@@ -101,7 +100,7 @@ class DPICMem extends Module {
   )
 
   io.read_valid := read_valid
-  io.req_ready  := RandomDelay(state === s_idle)
+  io.req_ready  := RegNext(RegNext(RegNext(state === s_idle)))
 
   val write    = Module(new PMemWriteDPICWrapper)
   val write_en = io.req_valid && io.write_enable && !reset.asBool
