@@ -119,39 +119,69 @@ class DPICMem(
   )
 }
 
-//class TempMemForSTA extends Module {
-//  val io = IO(new Bundle {
-//    val addr         = Input(UInt(32.W))
-//    val read_enable  = Input(Bool())
-//    val write_enable = Input(Bool())
-//    val write_mask   = Input(UInt(8.W))
-//    val write_data   = Input(UInt(32.W))
-//
-//    val data_out = Output(UInt(32.W))
-//    val valid    = Output(Bool())
-//  })
-//
-//  val mem = RegInit(VecInit(Seq.fill(256)(0.U(32.W))))
-//
-//  val addr = io.addr >> 2
-//
-//  def apply_mask = (original_data: UInt, data: UInt, mask: UInt) => {
-//    val ori0 = original_data(7, 0)
-//    val ori1 = original_data(15, 8)
-//    val ori2 = original_data(23, 16)
-//    val ori3 = original_data(31, 24)
-//
-//    val new0 = data(7, 0)
-//    val new1 = data(15, 8)
-//    val new2 = data(23, 16)
-//    val new3 = data(31, 24)
-//
-//    Mux(mask(0), new0, ori0) ## Mux(mask(1), new1, ori1) ## Mux(mask(2), new2, ori2) ## Mux(mask(3), new3, ori3)
-//  }
-//
-//  val masked = apply_mask(mem(addr(7, 0)), io.write_data, io.write_mask)
-//  mem(addr(7, 0)) := Mux(io.write_enable, masked, mem(addr(7, 0)))
-//
-//  io.data_out := Mux(io.read_enable, mem(addr(7, 0)), 0.U)
-//  io.valid    := io.read_enable
-//}
+class TempMemForSTA(
+  implicit axi_prop: AXIProperty)
+    extends Module {
+  val io = IO(Flipped(new AXI4Lite))
+
+  val mem = RegInit(VecInit(Seq.fill(256)(0.U(32.W))))
+
+  // Read
+  val r_idle :: r_wait_mem :: r_wait_ready :: Nil = Enum(3)
+
+  val r_state = RegInit(r_idle)
+
+  val raddr = (io.ar.bits.addr >> 2)(7, 0)
+
+  val read_data_reg = RegInit(0.U(32.W))
+  read_data_reg := Mux(r_state === r_wait_mem, mem(raddr), read_data_reg)
+
+  io.r.bits.data := read_data_reg
+  io.r.bits.resp := AXIResp.OKAY
+  io.r.valid     := r_state === r_wait_ready
+  io.ar.ready    := r_state === r_idle
+
+  r_state := MuxLookup(r_state, r_idle)(
+    Seq(
+      r_idle       -> Mux(io.ar.fire, r_wait_mem, r_idle),
+      r_wait_mem   -> r_wait_ready,
+      r_wait_ready -> Mux(io.r.fire, r_idle, r_wait_ready)
+    )
+  )
+
+  // Write
+  val w_idle :: w_wait_ready :: Nil = Enum(2)
+
+  val w_state = RegInit(w_idle)
+  val waddr   = (io.aw.bits.addr >> 2)(7, 0)
+  val wen     = io.aw.fire && io.w.fire && w_state === w_idle && !reset.asBool
+
+  io.w.ready     := w_state === w_idle
+  io.aw.ready    := w_state === w_idle
+  io.b.valid     := w_state === w_wait_ready
+  io.b.bits.resp := AXIResp.OKAY
+
+  def apply_mask = (original_data: UInt, data: UInt, mask: UInt) => {
+    val ori0 = original_data(7, 0)
+    val ori1 = original_data(15, 8)
+    val ori2 = original_data(23, 16)
+    val ori3 = original_data(31, 24)
+
+    val new0 = data(7, 0)
+    val new1 = data(15, 8)
+    val new2 = data(23, 16)
+    val new3 = data(31, 24)
+
+    Mux(mask(0), new0, ori0) ## Mux(mask(1), new1, ori1) ## Mux(mask(2), new2, ori2) ## Mux(mask(3), new3, ori3)
+  }
+
+  val masked = apply_mask(mem(waddr), io.w.bits.data, io.w.bits.strb)
+  mem(waddr) := Mux(wen, masked, mem(waddr))
+
+  w_state := MuxLookup(w_state, w_idle)(
+    Seq(
+      w_idle       -> Mux(wen, w_wait_ready, w_idle),
+      w_wait_ready -> Mux(io.b.fire, w_idle, w_wait_ready)
+    )
+  )
+}
