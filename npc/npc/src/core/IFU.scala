@@ -27,27 +27,28 @@ class IFU(
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle       -> Mux(mem.io.req_ready, s_wait_mem, s_idle),
-      s_wait_mem   -> Mux(mem.io.read_valid, s_wait_ready, s_wait_mem),
+      s_idle       -> Mux(mem.io.ar.ready, s_wait_mem, s_idle),
+      s_wait_mem   -> Mux(mem.io.r.valid, s_wait_ready, s_wait_mem),
       s_wait_ready -> Mux(io.out.ready, s_idle, s_wait_ready)
     )
   )
 
-  mem.io.req_valid := (state === s_idle) && mem.io.req_ready
-
-  mem.io.resp_ready := io.out.ready
+  mem.io.ar.valid := state === s_idle
+  mem.io.r.ready  := state === s_wait_mem
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.valid, io.in.bits.dnpc, pc)
 
-  mem.io.addr        := pc
-  mem.io.read_enable := true.B
+  mem.io.ar.bits.addr := pc
+  mem.io.ar.bits.prot := 0.U
 
-  mem.io.write_enable := false.B
-  mem.io.write_mask   := 0.U
-  mem.io.write_data   := DontCare
+  mem.io.w.valid := false.B
+  mem.io.w.bits  := DontCare
 
-  io.out.bits.inst := mem.io.data_out
+  val inst_reg = RegInit(0.U(32.W))
+  inst_reg := Mux(mem.io.r.valid, mem.io.r.bits.data, inst_reg)
+
+  io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
 
   io.in.ready  := io.out.ready
