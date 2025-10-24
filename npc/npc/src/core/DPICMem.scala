@@ -80,13 +80,13 @@ class DPICMem extends Module {
 
   io.r.bits.data := read_data_reg
   io.r.bits.resp := AXIResp.OKAY
-  io.r.valid     := r_state =/= r_idle
+  io.r.valid     := r_state === r_wait_ready
   io.ar.ready    := r_state === r_idle
 
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
       r_idle       -> Mux(mem_read.io.en, r_wait_mem, r_idle),
-      r_wait_mem   -> r_wait_ready, // read takes one cycle
+      r_wait_mem   -> r_wait_ready, // read to register takes one cycle
       r_wait_ready -> Mux(io.r.ready, r_idle, r_wait_ready)
     )
   )
