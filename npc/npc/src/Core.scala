@@ -47,8 +47,8 @@ class Core(
     new AXI4LiteCrossBar(
       Seq(
         (Seq((0x1000_0000L, 0x1000_0fffL))),                              // Simulation Console
-        (Seq((0x8000_0000L, 0x87ff_ffffL), (0xa000_004cL, 0xa000_006c))), // DPI-C Memory + System Clock
-        (Seq((0xa000_0048L, 0xa000_004cL)))                               // MTime
+        (Seq((0x8000_0000L, 0x87ff_ffffL), (0xa000_0050, 0xa000_006c))), // DPI-C Memory + System Clock
+        (Seq((0xa000_0048L, 0xa000_0050)))                               // MTime
       )
     )
   )
