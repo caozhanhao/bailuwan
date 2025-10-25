@@ -9,9 +9,10 @@ class SimConsoleOutput(
     extends Module {
   val io = IO(Flipped(new AXI4Lite))
 
-  io.ar.ready := false.B
-  io.r.valid  := false.B
-  io.r.bits   := 0.U
+  io.ar.ready    := false.B
+  io.r.valid     := false.B
+  io.r.bits.data := 0.U
+  io.r.bits.resp := AXIResp.SLVERR
 
   val write_enable = io.aw.fire && io.w.fire
   val char         = io.w.bits.data(8, 0)
