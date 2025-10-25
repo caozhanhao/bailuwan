@@ -182,13 +182,14 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
     auto uaddr = static_cast<uint32_t>(waddr);
     uaddr &= ~0x3u;
 
-    // Serial port
-    if (uaddr == SERIAL_PORT_MMIO && wmask == 1)
-    {
-        putchar(wdata);
-        fflush(stdout);
-        return;
-    }
+    // Implemented in NPC with XBar.
+    // // Serial port
+    // if (uaddr == SERIAL_PORT_MMIO && wmask == 1)
+    // {
+    //     putchar(wdata);
+    //     fflush(stdout);
+    //     return;
+    // }
 
     // Memory
     if (!in_pmem(uaddr))
