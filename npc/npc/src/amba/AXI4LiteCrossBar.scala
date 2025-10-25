@@ -47,7 +47,7 @@ class AXI4LiteCrossBar(
   })
 
   val dec_err_rbits = Wire(new ReadDataChannel)
-  dec_err_rbits.data := 0.U
+  dec_err_rbits.data := 0x25100251.U
   dec_err_rbits.resp := AXIResp.DECERR
 
   val dec_err_bbits = Wire(new WriteResponseChannel)
@@ -71,6 +71,7 @@ class AXI4LiteCrossBar(
     )
   )
 
+  // r_busy -> addr valid ? connected : decerr
   def if_rbusy[T <: Data](x: T)(err: T = 0.U.asTypeOf(x)) =
     Mux(r_state === r_busy, Mux(r_owner_id =/= err_idx, x, err), 0.U.asTypeOf(x))
 
@@ -104,6 +105,7 @@ class AXI4LiteCrossBar(
     )
   )
 
+  // w_busy -> addr valid ? connected : decerr
   def if_wbusy[T <: Data](x: T)(err: T = 0.U.asTypeOf(x)) =
     Mux(w_state === w_busy, Mux(w_owner_id =/= err_idx, x, err), 0.U.asTypeOf(x))
 
