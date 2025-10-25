@@ -9,6 +9,7 @@ extern "C" {
 void ebreak_handler()
 {
     printf("ebreak after %lu cycles\n", sim_handle.get_cycles());
+    printf("elasped time: %lu us\n", sim_handle.elapsed_time());
 
     auto a0 = sim_handle.get_cpu().reg(10);
     if (a0 == 0)
