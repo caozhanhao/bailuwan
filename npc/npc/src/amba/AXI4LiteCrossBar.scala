@@ -138,9 +138,9 @@ class AXI4LiteCrossBar(
   master.w.ready  := if_wbusy(w_owner.w.ready)
 
   // Connect b
-  master.b.bits   := if_rbusy(w_owner.b.bits)
-  master.b.valid  := if_rbusy(w_owner.b.valid)
-  w_owner.b.ready := if_rbusy(master.b.ready)
+  master.b.bits   := if_wbusy(w_owner.b.bits)
+  master.b.valid  := if_wbusy(w_owner.b.valid)
+  w_owner.b.ready := if_wbusy(master.b.ready)
 
   // Connect DecErr
   def if_werr[T <: Data](x: T) = Mux(w_state === w_busy && w_owner_id === err_idx, x, 0.U.asTypeOf(x))
