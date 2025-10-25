@@ -32,17 +32,20 @@ class AXI4LiteCrossBar(
 
   assert(slaves_map.nonEmpty, "Crossbar for what?")
 
-  val n          = slaves_map.size
-  val idx_width  = math.max(1, log2Ceil(n + 1)) // reserve 1 for err
-  val real_width = math.max(1, log2Ceil(n))
-  val err_idx    = n.U
-  val master     = io.master
-  val slaves     = io.slaves
+  val n         = slaves_map.size
+  val idx_width = math.max(1, log2Ceil(n + 1)) // reserve 1 for err
+  val err_idx   = n.U
+  val master    = io.master
 
   val dec_err_slave = Module(new DecErrorSlave)
+  val slaves        = Vec(n + 1, new AXI4Lite)
+  for (i <- 0 until n) {
+    slaves(i) <> io.slaves(i)
+  }
+  slaves(err_idx) <> dec_err_slave.io
 
   // First block all slaves
-  for (i <- 0 until n) {
+  for (i <- 0 until n + 1) {
     val s = slaves(i)
     s.ar.valid := false.B
     s.ar.bits  := 0.U.asTypeOf(s.ar.bits)
@@ -75,9 +78,7 @@ class AXI4LiteCrossBar(
 
   val r_owner_id = RegInit(0.U(idx_width.W))
   r_owner_id := Mux(r_state === r_idle, r_candidate, r_owner_id)
-
-  val r_owner = Wire(new AXI4Lite)
-  r_owner := Mux(r_owner_id === err_idx, dec_err_slave.io, slaves(r_owner_id(real_width - 1, 0)))
+  val r_owner = slaves(r_owner_id)
 
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
@@ -107,9 +108,7 @@ class AXI4LiteCrossBar(
 
   val w_owner_id = RegInit(0.U(idx_width.W))
   w_owner_id := Mux(w_state === w_idle, w_candidate, w_owner_id)
-
-  val w_owner = Wire(new AXI4Lite)
-  w_owner := Mux(w_owner_id === err_idx, dec_err_slave.io, slaves(w_owner_id(real_width - 1, 0)))
+  val w_owner = slaves(w_owner_id)
 
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
