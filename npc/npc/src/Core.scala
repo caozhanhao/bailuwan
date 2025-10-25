@@ -47,7 +47,8 @@ class Core(
     new AXI4LiteCrossBar(
       Seq(
         (0x1000_0000L, 0x1000_0fffL), // Simulation Console
-        (0x8000_0000L, 0x87ff_ffffL)  // DPI-C Memory
+        (0x8000_0000L, 0x87ff_ffffL), // DPI-C Memory
+        (0xa000_0048L, 0xa000_004cL)  // MTime
       )
     )
   )
@@ -55,7 +56,9 @@ class Core(
 
   val mem     = Module(new DPICMem)
   val console = Module(new SimConsoleOutput)
+  val mtime   = Module(new MTime)
 
   xbar.io.slaves(0) <> console.io
   xbar.io.slaves(1) <> mem.io
+  xbar.io.slaves(2) <> mtime.io
 }
