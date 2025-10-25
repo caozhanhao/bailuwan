@@ -12,7 +12,7 @@ class MTime(
   val mtime = RegInit(0.U(64.W))
   mtime := mtime + 1.U
 
-  val r_idle :: r_wait_ready :: Nil = Enum(3)
+  val r_idle :: r_wait_ready :: Nil = Enum(2)
 
   val r_state = RegInit(r_idle)
 
