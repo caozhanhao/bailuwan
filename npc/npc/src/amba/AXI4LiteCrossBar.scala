@@ -144,13 +144,13 @@ class AXI4LiteCrossBar(
 
   // Connect DecErr
   def if_werr[T <: Data](x: T) = Mux(w_state === w_busy && w_owner_id === err_idx, x, 0.U.asTypeOf(x))
-  dec_err_slave.io.aw.valid := if_wbusy(true.B)
-  dec_err_slave.io.aw.bits  := if_wbusy(master.aw.bits)
-  master.aw.ready           := if_wbusy(dec_err_slave.io.aw.ready)
-  dec_err_slave.io.w.valid  := if_wbusy(master.w.valid)
-  dec_err_slave.io.w.bits   := if_wbusy(master.w.bits)
-  master.w.ready            := if_wbusy(dec_err_slave.io.w.ready)
-  master.b.bits             := if_rbusy(dec_err_slave.io.b.bits)
-  master.b.valid            := if_rbusy(dec_err_slave.io.b.valid)
-  dec_err_slave.io.b.ready  := if_rbusy(master.b.ready)
+  dec_err_slave.io.aw.valid := if_werr(true.B)
+  dec_err_slave.io.aw.bits  := if_werr(master.aw.bits)
+  master.aw.ready           := if_werr(dec_err_slave.io.aw.ready)
+  dec_err_slave.io.w.valid  := if_werr(master.w.valid)
+  dec_err_slave.io.w.bits   := if_werr(master.w.bits)
+  master.w.ready            := if_werr(dec_err_slave.io.w.ready)
+  master.b.bits             := if_werr(dec_err_slave.io.b.bits)
+  master.b.valid            := if_werr(dec_err_slave.io.b.valid)
+  dec_err_slave.io.b.ready  := if_werr(master.b.ready)
 }
