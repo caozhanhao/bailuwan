@@ -24,6 +24,6 @@ class SimConsoleOutput(
   io.b.bits.resp := AXIResp.OKAY
 
   when(write_enable) {
-    printf(cf"${char}")
+    printf("%c", char)
   }
 }
