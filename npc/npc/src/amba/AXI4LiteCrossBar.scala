@@ -8,7 +8,7 @@ class DecErrorSlave(
     extends Module {
   val io = Flipped(new AXI4Lite)
 
-  io.r.valid     := true.B
+  // io.r.valid     := true.B
   io.r.bits.resp := AXIResp.DECERR
   io.r.bits.data := 0.U
 
