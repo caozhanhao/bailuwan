@@ -15,7 +15,7 @@ class SimConsoleOutput(
   io.r.bits.resp := AXIResp.SLVERR
 
   val write_enable = io.aw.valid && io.w.valid
-  val char         = io.w.bits.data(8, 0)
+  val char         = io.w.bits.data(7, 0)
 
   io.aw.ready := write_enable
   io.w.ready  := write_enable
