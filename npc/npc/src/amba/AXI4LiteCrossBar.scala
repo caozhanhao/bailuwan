@@ -80,7 +80,7 @@ class AXI4LiteCrossBar(
   r_owner.ar.bits  := if_rbusy(master.ar.bits)()
   master.ar.ready  := if_rbusy(r_owner.ar.ready)(true.B)
 
-  printf(cf"Connected: ${r_owner_id}, ar valid: ${r_owner.ar.valid}, ar bits: ${r_owner.ar.bits.addr}\n")
+  // printf(cf"Connected: ${r_owner_id}, ar valid: ${r_owner.ar.valid}, ar bits: ${r_owner.ar.bits.addr}\n")
 
   // Connect r
   master.r.bits   := if_rbusy(r_owner.r.bits)(dec_err_rbits)

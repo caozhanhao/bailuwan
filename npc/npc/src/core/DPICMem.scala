@@ -76,7 +76,7 @@ class DPICMem(
   mem_read.io.addr := io.ar.bits.addr
   mem_read.io.en   := io.ar.fire && r_state === r_idle && !reset.asBool
 
-  printf(cf"dpi-c, ar bits: ${io.ar.bits.addr}")
+  // printf(cf"dpi-c, ar bits: ${io.ar.bits.addr}\n")
 
   val read_data_reg = RegInit(0.U(32.W))
   read_data_reg := Mux(r_state === r_wait_mem, mem_read.io.out, read_data_reg)
