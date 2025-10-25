@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class AXI4LiteCrossBar(
-  val slaves_map: Seq[(Int, Int)]
+  val slaves_map: Seq[(Long, Long)]
 )(
   implicit p:     AXIProperty)
     extends Module {

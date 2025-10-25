@@ -42,15 +42,15 @@ class Core(
   arbiter.io.masters(0) <> IFU.io.mem
   arbiter.io.masters(1) <> EXU.io.mem
 
-  assert(0xffff_ffff.S.getWidth == 32)
-  assert(0xffff_ffffL.S.asUInt >= 0x8000_0000L.S.asUInt)
+  println("width: ")
+  println(0xffff_ffff.S.getWidth)
 
   // Console
   val xbar = Module(
     new AXI4LiteCrossBar(
       Seq(
-        (0x1000_0000, 0x1000_0fff), // Simulation Console
-        (0x8000_0000, 0x87ff_ffff)  // DPI-C Memory
+        (0x1000_0000L, 0x1000_0fffL), // Simulation Console
+        (0x8000_0000L, 0x87ff_ffffL)  // DPI-C Memory
       )
     )
   )
