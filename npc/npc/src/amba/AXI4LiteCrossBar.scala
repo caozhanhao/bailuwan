@@ -62,8 +62,7 @@ class AXI4LiteCrossBar(
 
   val r_owner_id = RegInit(0.U(idx_width.W))
   r_owner_id := Mux(r_state === r_idle, r_candidate, r_owner_id)
-  val r_owner = Wire(new AXI4Lite)
-  r_owner := slaves(r_owner_id(real_width - 1, 0))
+  val r_owner = slaves(r_owner_id(real_width - 1, 0))
 
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
@@ -96,8 +95,7 @@ class AXI4LiteCrossBar(
 
   val w_owner_id = RegInit(0.U(idx_width.W))
   w_owner_id := Mux(w_state === w_idle, w_candidate, w_owner_id)
-  val w_owner = Wire(new AXI4Lite)
-  w_owner := slaves(w_owner_id(real_width - 1, 0))
+  val w_owner = slaves(w_owner_id(real_width - 1, 0))
 
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
