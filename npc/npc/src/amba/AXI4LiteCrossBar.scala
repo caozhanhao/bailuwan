@@ -61,7 +61,7 @@ class AXI4LiteCrossBar(
     val (lo, hi) = x._1
     val idx      = x._2.asUInt
 
-    val matched = lo.asUInt <= addr && addr < hi.asUInt
+    val matched = lo.asSInt.asUInt <= addr && addr < hi.asSInt.asUInt
     matched -> idx
   })
 
