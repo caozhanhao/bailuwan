@@ -23,7 +23,7 @@ class MTime(
     )
   )
 
-  val addr = RegInit(0.U(axi_prop.ADDR_WIDTH))
+  val addr = RegInit(0.U(axi_prop.ADDR_WIDTH.W))
   addr := Mux(r_state === r_idle, io.ar.bits.addr, addr)
 
   io.ar.ready    := r_state === r_idle
