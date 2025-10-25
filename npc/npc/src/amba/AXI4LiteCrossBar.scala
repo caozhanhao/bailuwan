@@ -3,23 +3,6 @@ package amba
 import chisel3._
 import chisel3.util._
 
-class DecErrorSlave(
-  implicit p: AXIProperty)
-    extends Module {
-  val io = IO(Flipped(new AXI4Lite))
-
-  io.r.valid     := true.B
-  io.r.bits.resp := AXIResp.DECERR
-  io.r.bits.data := 0.U
-
-  io.b.valid     := true.B
-  io.b.bits.resp := AXIResp.DECERR
-
-  io.ar.ready := true.B
-  io.aw.ready := true.B
-  io.w.ready  := true.B
-}
-
 class AXI4LiteCrossBar(
   val slaves_map: Seq[(Int, Int)]
 )(
@@ -38,8 +21,6 @@ class AXI4LiteCrossBar(
   val err_idx    = n.U
   val master     = io.master
   val slaves     = io.slaves
-
-  val dec_err_slave = Module(new DecErrorSlave)
 
   // First block all slaves
   for (i <- 0 until n) {
@@ -62,9 +43,16 @@ class AXI4LiteCrossBar(
     val (lo, hi) = x._1
     val idx      = x._2.asUInt
 
-    val matched = lo.asSInt.asUInt <= addr && addr < hi.asSInt.asUInt
+    val matched = lo.S.asUInt <= addr && addr < hi.S.asUInt
     matched -> idx
   })
+
+  val dec_err_rbits = Wire(new ReadDataChannel)
+  dec_err_rbits.data := 0.U
+  dec_err_rbits.resp := AXIResp.DECERR
+
+  val dec_err_bbits = Wire(new WriteResponseChannel)
+  dec_err_bbits.resp := AXIResp.DECERR
 
   // Read Crossbar
   val r_idle :: r_busy :: Nil = Enum(2)
@@ -85,33 +73,25 @@ class AXI4LiteCrossBar(
     )
   )
 
-  def if_rbusy[T <: Data](x: T) = Mux(r_state === r_busy && r_owner_id =/= err_idx, x, 0.U.asTypeOf(x))
+  def if_rbusy[T <: Data](x: T)(err: T = 0.U.asTypeOf(x)) =
+    Mux(r_state === r_busy, Mux(r_owner_id =/= err_idx, x, err), 0.U.asTypeOf(x))
 
   // Connect ar
-  r_owner.ar.valid := if_rbusy(true.B)
-  r_owner.ar.bits  := if_rbusy(master.ar.bits)
-  master.ar.ready  := if_rbusy(r_owner.ar.ready)
+  r_owner.ar.valid := if_rbusy(true.B)()
+  r_owner.ar.bits  := if_rbusy(master.ar.bits)()
+  master.ar.ready  := if_rbusy(r_owner.ar.ready)(true.B)
 
   // Connect r
-  master.r.bits   := if_rbusy(r_owner.r.bits)
-  master.r.valid  := if_rbusy(r_owner.r.valid)
-  r_owner.r.ready := if_rbusy(master.r.ready)
-
-  // Connect DecErr
-  def if_rerr[T <: Data](x: T) = Mux(r_state === r_busy && r_owner_id === err_idx, x, 0.U.asTypeOf(x))
-  dec_err_slave.io.ar.valid := if_rerr(true.B)
-  dec_err_slave.io.ar.bits  := if_rerr(master.ar.bits)
-  master.ar.ready           := if_rerr(dec_err_slave.io.ar.ready)
-  master.r.bits             := if_rerr(dec_err_slave.io.r.bits)
-  master.r.valid            := if_rerr(dec_err_slave.io.r.valid)
-  dec_err_slave.io.r.ready  := if_rerr(master.r.ready)
+  master.r.bits   := if_rbusy(r_owner.r.bits)(dec_err_rbits)
+  master.r.valid  := if_rbusy(r_owner.r.valid)(true.B)
+  r_owner.r.ready := if_rbusy(master.r.ready)()
 
   // Write Crossbar
   val w_idle :: w_busy :: Nil = Enum(2)
 
   val w_state = RegInit(w_idle)
 
-  val w_candidate = MuxCase(0.U, addr_mux_map(master.aw.bits.addr))
+  val w_candidate = MuxCase(err_idx, addr_mux_map(master.aw.bits.addr))
 
   val w_owner_id = RegInit(0.U(idx_width.W))
   w_owner_id := Mux(w_state === w_idle, w_candidate, w_owner_id)
@@ -125,32 +105,21 @@ class AXI4LiteCrossBar(
     )
   )
 
-  def if_wbusy[T <: Data](x: T) = Mux(w_state === w_busy && w_owner_id =/= err_idx, x, 0.U.asTypeOf(x))
+  def if_wbusy[T <: Data](x: T)(err: T = 0.U.asTypeOf(x)) =
+    Mux(w_state === w_busy, Mux(w_owner_id =/= err_idx, x, err), 0.U.asTypeOf(x))
 
   // Connect aw
-  w_owner.aw.valid := if_wbusy(true.B)
-  w_owner.aw.bits  := if_wbusy(master.aw.bits)
-  master.aw.ready  := if_wbusy(w_owner.aw.ready)
+  w_owner.aw.valid := if_wbusy(true.B)()
+  w_owner.aw.bits  := if_wbusy(master.aw.bits)()
+  master.aw.ready  := if_wbusy(w_owner.aw.ready)(true.B)
 
   // Connect w
-  w_owner.w.valid := if_wbusy(master.w.valid)
-  w_owner.w.bits  := if_wbusy(master.w.bits)
-  master.w.ready  := if_wbusy(w_owner.w.ready)
+  w_owner.w.valid := if_wbusy(master.w.valid)()
+  w_owner.w.bits  := if_wbusy(master.w.bits)()
+  master.w.ready  := if_wbusy(w_owner.w.ready)(true.B)
 
   // Connect b
-  master.b.bits   := if_wbusy(w_owner.b.bits)
-  master.b.valid  := if_wbusy(w_owner.b.valid)
-  w_owner.b.ready := if_wbusy(master.b.ready)
-
-  // Connect DecErr
-  def if_werr[T <: Data](x: T) = Mux(w_state === w_busy && w_owner_id === err_idx, x, 0.U.asTypeOf(x))
-  dec_err_slave.io.aw.valid := if_werr(true.B)
-  dec_err_slave.io.aw.bits  := if_werr(master.aw.bits)
-  master.aw.ready           := if_werr(dec_err_slave.io.aw.ready)
-  dec_err_slave.io.w.valid  := if_werr(master.w.valid)
-  dec_err_slave.io.w.bits   := if_werr(master.w.bits)
-  master.w.ready            := if_werr(dec_err_slave.io.w.ready)
-  master.b.bits             := if_werr(dec_err_slave.io.b.bits)
-  master.b.valid            := if_werr(dec_err_slave.io.b.valid)
-  dec_err_slave.io.b.ready  := if_werr(master.b.ready)
+  master.b.bits   := if_wbusy(w_owner.b.bits)(dec_err_bbits)
+  master.b.valid  := if_wbusy(w_owner.b.valid)(true.B)
+  w_owner.b.ready := if_wbusy(master.b.ready)()
 }
