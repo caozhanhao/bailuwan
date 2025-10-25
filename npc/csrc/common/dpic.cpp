@@ -8,7 +8,14 @@
 extern "C" {
 void ebreak_handler()
 {
-    printf("ebreak after %lu cycles\n", sim_handle.get_cycles());
+    auto cycles = sim_handle.get_cycles();
+    auto elasped_time = sim_handle.elapsed_time();
+
+    printf("ebreak after %lu cycles\n", cycles);
+    printf("elasped time: %lu us\n", elasped_time);
+
+    double cycle_per_us = static_cast<double>(elasped_time) / static_cast<double>(cycles);
+    printf("cycle per us: %f\n", cycle_per_us);
 
     auto a0 = sim_handle.get_cpu().reg(10);
     if (a0 == 0)

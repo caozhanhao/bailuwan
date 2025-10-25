@@ -118,6 +118,12 @@ public:
     CPUProxy& get_cpu() { return cpu; }
     DUTMemory& get_memory() { return memory; }
     const auto& get_boot_time() const { return boot_time; }
+    uint64_t elapsed_time() const
+    {
+        return std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::high_resolution_clock::now() - boot_time)
+            .count();
+    }
 };
 
 extern TOP_NAME dut;

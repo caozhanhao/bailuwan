@@ -22,8 +22,6 @@ class Core(
 
   val RegFile = Module(new RegFile)
 
-  val Mem = Module(new DPICMem)
-
   // Stage Connect
   StageConnect(IFU.io.out, IDU.io.in)
   StageConnect(IDU.io.out, EXU.io.in)
@@ -44,5 +42,23 @@ class Core(
   arbiter.io.masters(0) <> IFU.io.mem
   arbiter.io.masters(1) <> EXU.io.mem
 
-  arbiter.io.slave <> Mem.io
+  // Console
+  val xbar = Module(
+    new AXI4LiteCrossBar(
+      Seq(
+        (Seq((0x1000_0000L, 0x1000_0fffL))),                              // Simulation Console
+        (Seq((0x8000_0000L, 0x87ff_ffffL), (0xa000_0050, 0xa000_006c))), // DPI-C Memory + System Clock
+        (Seq((0xa000_0048L, 0xa000_0050)))                               // MTime
+      )
+    )
+  )
+  arbiter.io.slave <> xbar.io.master
+
+  val mem     = Module(new DPICMem)
+  val console = Module(new SimConsoleOutput)
+  val mtime   = Module(new MTime)
+
+  xbar.io.slaves(0) <> console.io
+  xbar.io.slaves(1) <> mem.io
+  xbar.io.slaves(2) <> mtime.io
 }

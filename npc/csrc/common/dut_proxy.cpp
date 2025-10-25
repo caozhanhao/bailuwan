@@ -132,15 +132,17 @@ uint32_t DUTMemory::read(uint32_t raddr)
     uaddr &= ~0x3u;
 
     // Clock
-    if (uaddr == RTC_MMIO || uaddr == RTC_MMIO + 4)
-    {
-        auto now = std::chrono::high_resolution_clock::now();
-        auto delta = now - sim_handle.get_boot_time();
-        auto sec = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(delta).count());
-        if (uaddr == RTC_MMIO)
-            return sec & 0xffffffff;
-        return sec >> 32;
-    }
+
+    // Implemented in NPC with XBar.
+    // if (uaddr == RTC_MMIO || uaddr == RTC_MMIO + 4)
+    // {
+    //     auto now = std::chrono::high_resolution_clock::now();
+    //     auto delta = now - sim_handle.get_boot_time();
+    //     auto sec = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(delta).count());
+    //     if (uaddr == RTC_MMIO)
+    //         return sec & 0xffffffff;
+    //     return sec >> 32;
+    // }
     if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
     {
         std::time_t t = std::time(nullptr);
@@ -182,13 +184,14 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
     auto uaddr = static_cast<uint32_t>(waddr);
     uaddr &= ~0x3u;
 
-    // Serial port
-    if (uaddr == SERIAL_PORT_MMIO && wmask == 1)
-    {
-        putchar(wdata);
-        fflush(stdout);
-        return;
-    }
+    // Implemented in NPC with XBar.
+    // // Serial port
+    // if (uaddr == SERIAL_PORT_MMIO && wmask == 1)
+    // {
+    //     putchar(wdata);
+    //     fflush(stdout);
+    //     return;
+    // }
 
     // Memory
     if (!in_pmem(uaddr))
