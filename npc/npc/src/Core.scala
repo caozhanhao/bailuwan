@@ -42,12 +42,15 @@ class Core(
   arbiter.io.masters(0) <> IFU.io.mem
   arbiter.io.masters(1) <> EXU.io.mem
 
+
+  assert(0xffff_ffff.S.asUInt > 0.U)
+
   // Console
   val xbar = Module(
     new AXI4LiteCrossBar(
       Seq(
         (0x1000_0000, 0x1000_0fff), // Simulation Console
-        (0x8000_0000, 0xffff_ffff)  // DPI-C Memory
+        (0x8000_0000, 0x87ff_ffff)  // DPI-C Memory
       )
     )
   )
