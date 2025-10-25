@@ -38,7 +38,7 @@ class AXI4LiteCrossBar(
   val master    = io.master
 
   val dec_err_slave = Module(new DecErrorSlave)
-  val slaves        = Vec(n + 1, new AXI4Lite)
+  val slaves        = Vec(n + 1, IO(new AXI4Lite))
   for (i <- 0 until n) {
     slaves(i) <> io.slaves(i)
   }
