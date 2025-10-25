@@ -13,7 +13,7 @@ class AXI4LiteArbiter(
     val slave   = new AXI4Lite
   })
 
-  assert(n > 1, "Arbiter what?")
+  assert(n > 0, "Arbiter what?")
 
   val idx_width = math.max(1, log2Ceil(n))
   val masters   = io.masters
