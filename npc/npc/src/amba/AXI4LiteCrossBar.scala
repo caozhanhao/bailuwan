@@ -8,11 +8,10 @@ class AXI4LiteCrossBar(
 )(
   implicit p:     AXIProperty)
     extends Module {
-  val io = IO(new Bundle {
+  val io     = IO(new Bundle {
     val master = Flipped(new AXI4Lite)
     val slaves = Vec(slaves_map.size, new AXI4Lite)
   })
-
   assert(slaves_map.nonEmpty, "Crossbar for what?")
 
   val n          = slaves_map.size
@@ -69,7 +68,7 @@ class AXI4LiteCrossBar(
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
       r_idle -> Mux(master.ar.valid, r_busy, r_idle),
-      r_busy -> Mux(r_owner.r.fire, r_idle, r_busy)
+      r_busy -> Mux(r_owner_id === err_idx || r_owner.r.fire, r_idle, r_busy)
     )
   )
 
@@ -101,7 +100,7 @@ class AXI4LiteCrossBar(
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
       w_idle -> Mux(master.aw.valid, w_busy, w_idle),
-      w_busy -> Mux(w_owner.b.fire, w_idle, w_busy)
+      w_busy -> Mux(w_owner_id === err_idx || w_owner.b.fire, w_idle, w_busy)
     )
   )
 
