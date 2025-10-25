@@ -8,7 +8,7 @@ class AXI4LiteCrossBar(
 )(
   implicit p:     AXIProperty)
     extends Module {
-  val io     = IO(new Bundle {
+  val io = IO(new Bundle {
     val master = Flipped(new AXI4Lite)
     val slaves = Vec(slaves_map.size, new AXI4Lite)
   })

@@ -47,7 +47,7 @@ class Core(
     new AXI4LiteCrossBar(
       Seq(
         (0x1000_0000, 0x1000_0fff), // Simulation Console
-        (0x8000_0000, 0x80ff_ffff)  // DPI-C Memory
+        (0x8000_0000, 0xffff_ffff)  // DPI-C Memory
       )
     )
   )
