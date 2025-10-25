@@ -6,9 +6,9 @@ import chisel3.util._
 class DecErrorSlave(
   implicit p: AXIProperty)
     extends Module {
-  val io = Flipped(new AXI4Lite)
+  val io = IO(Flipped(new AXI4Lite))
 
-  // io.r.valid     := true.B
+  io.r.valid     := true.B
   io.r.bits.resp := AXIResp.DECERR
   io.r.bits.data := 0.U
 
