@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class AXI4LiteCrossBar(
-  val slaves_map: Seq[(Long, Long)]
+  val slaves_map: Seq[Seq[(Long, Long)]]
 )(
   implicit p:     AXIProperty)
     extends Module {
@@ -39,11 +39,15 @@ class AXI4LiteCrossBar(
 
   // Address Mux
   def addr_mux_map(addr: UInt) = slaves_map.zipWithIndex.map(x => {
-    val (lo, hi) = x._1
-    val idx      = x._2.asUInt
+    val ranges = x._1
+    val idx    = x._2.asUInt
 
-    val matched = lo.S.asUInt <= addr && addr < hi.S.asUInt
-    matched -> idx
+    val matches = VecInit(ranges.map(rng => {
+      val (lo, hi) = rng
+      lo.S.asUInt <= addr && addr < hi.S.asUInt
+    })).asUInt
+
+    matches.orR -> idx
   })
 
   val dec_err_rbits = Wire(new ReadDataChannel)
