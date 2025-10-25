@@ -20,7 +20,7 @@ class SimConsoleOutput(
   io.aw.ready := write_enable
   io.w.ready  := write_enable
 
-  io.b.valid     := true.B
+  io.b.valid     := RegNext(write_enable, false.B)
   io.b.bits.resp := AXIResp.OKAY
 
   when(write_enable) {
