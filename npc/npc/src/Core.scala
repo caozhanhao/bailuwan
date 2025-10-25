@@ -42,8 +42,7 @@ class Core(
   arbiter.io.masters(0) <> IFU.io.mem
   arbiter.io.masters(1) <> EXU.io.mem
 
-
-  assert(0xffff_ffff.S.asUInt >= 0x8000_0000.S.asUInt)
+  assert(0xffff_ffffL.S.asUInt >= 0x8000_0000L.S.asUInt)
 
   // Console
   val xbar = Module(
