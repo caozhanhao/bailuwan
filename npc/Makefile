@@ -55,9 +55,10 @@ VERILOG_STAMP := $(BUILD_DIR)/verilog.timestamp
 ### Collect the files to be built and linked
 LINKAGE ?=
 CSRCS ?=
-SOC_VSRCS ?=
 INC_PATH ?=
-SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
+SOC_VSRCS ?=
+SOC_VINC_PATH ?=
+CHISEL_SRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 
 
 
@@ -68,12 +69,13 @@ VERILATOR = verilator
 
 ### Compilation flags
 INC_PATH += $(abspath ./csrc/common/)
-INC_PATH += $(abspath ../ysyxSoC/perip/uart16550/rtl)
-INC_PATH += $(abspath ../ysyxSoC/perip/spi/rtl)
 CSRCS += $(shell find $(abspath ./csrc/common) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 HEADERS := $(sort $(shell find $(INC_PATH) -type f \( -name '*.h' -o -name '*.hpp' \) 2>/dev/null))
 
 SOC_VSRCS += $(shell find $(YSYXSOC_HOME)/perip -type f -name '*.v' 2>/dev/null)
+SOC_VINC_PATH += $(abspath $(YSYXSOC_HOME)/perip/uart16550/rtl)
+SOC_VINC_PATH += $(abspath $(YSYXSOC_HOME)/perip/spi/rtl)
+SOC_VINC_FLAGS += $(addprefix +incdir+, $(SOC_VINC_PATH))
 
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
@@ -94,7 +96,7 @@ endif
 
 ## 5. Compilation Rules
 
-$(VERILOG_STAMP): $(SCALASRCS)
+$(VERILOG_STAMP): $(CHISEL_SRCS)
 	@rm -rf $(BUILD_DIR)/*.sv
 	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
 	@touch $@
@@ -102,7 +104,7 @@ $(VERILOG_STAMP): $(SCALASRCS)
 
 $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
 	@rm -rf $(OBJ_DIR)
-	$(VERILATOR) $(VERILATOR_CFLAGS) \
+	$(VERILATOR) $(VERILATOR_CFLAGS) $(SOC_VINC_FLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(SOC_VSRCS) $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) --timescale "1ns/1ns" --no-timing
