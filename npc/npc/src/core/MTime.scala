@@ -9,6 +9,11 @@ class MTime(
     extends Module {
   val io = IO(Flipped(new AXI4))
 
+  // AXI4-Lite
+  io.r.bits.last := true.B
+  io.r.bits.id   := 0.U
+  io.b.bits.id   := 0.U
+
   val mtime = RegInit(0.U(64.W))
   mtime := mtime + 1.U
 
