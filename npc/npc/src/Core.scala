@@ -21,6 +21,15 @@ class Core(
     val interrupt = Input(Bool())
   })
 
+  io.bus.aw.valid := false.B
+  io.bus.aw.bits := 0.U
+  io.bus.w.valid := false.B
+  io.bus.w.bits := 0.U
+  io.bus.b.ready := false.B
+  io.bus.ar.valid := false.B
+  io.bus.ar.bits := 0.U
+  io.bus.r.ready := false.B
+
   val IFU = Module(new IFU)
   val EXU = Module(new EXU)
   val IDU = Module(new IDU)
