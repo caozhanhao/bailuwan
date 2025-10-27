@@ -34,6 +34,8 @@ class IFU(
   io.mem.aw.bits.size := 32.U
   io.mem.aw.bits.burst := 1.U
 
+  io.mem.w.bits.last := true.B
+
   val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)
 
   val state = RegInit(s_idle)

@@ -32,6 +32,8 @@ class LSU(
   io.mem.aw.bits.size := 32.U
   io.mem.aw.bits.burst := 1.U
 
+  io.mem.w.bits.last := true.B
+
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
   // Read
