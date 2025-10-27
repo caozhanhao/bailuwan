@@ -55,7 +55,7 @@ class AXI4Arbiter(
 
   // Connection
   slave.ar.ready := if_rbusy(r_owner.ar.ready)
-  slave.ar.valid := if_rbusy(r_owner.ar.valid)
+  slave.ar.valid <> if_rbusy(r_owner.ar.valid)
   slave.ar.bits <> if_rbusy(r_owner.ar.bits)
   slave.r <> if_rbusy(r_owner.r)
 
