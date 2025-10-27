@@ -21,6 +21,17 @@ class LSU(
     val mem = new AXI4()
   })
 
+  // AXI4-Lite
+  io.mem.ar.bits.id := 0.U
+  io.mem.ar.bits.len := 1.U
+  io.mem.ar.bits.size := 32.U
+  io.mem.ar.bits.burst := 1.U
+
+  io.mem.aw.bits.id := 0.U
+  io.mem.aw.bits.len := 1.U
+  io.mem.aw.bits.size := 32.U
+  io.mem.aw.bits.burst := 1.U
+
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
   // Read

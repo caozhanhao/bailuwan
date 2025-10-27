@@ -23,6 +23,17 @@ class IFU(
     val mem = new AXI4()
   })
 
+  // AXI4-Lite
+  io.mem.ar.bits.id := 0.U
+  io.mem.ar.bits.len := 1.U
+  io.mem.ar.bits.size := 32.U
+  io.mem.ar.bits.burst := 1.U
+
+  io.mem.aw.bits.id := 0.U
+  io.mem.aw.bits.len := 1.U
+  io.mem.aw.bits.size := 32.U
+  io.mem.aw.bits.burst := 1.U
+
   val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)
 
   val state = RegInit(s_idle)
