@@ -41,7 +41,6 @@ class IFU(
   pc := Mux(io.in.fire, io.in.bits.dnpc, pc)
 
   io.mem.ar.bits.addr := pc
-  io.mem.ar.bits.prot := 0.U
 
   io.mem.aw.valid := false.B
   io.mem.aw.bits  := DontCare
