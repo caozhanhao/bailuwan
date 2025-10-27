@@ -53,9 +53,12 @@ class AXI4CrossBar(
   val dec_err_rbits = Wire(new ReadDataChannel)
   dec_err_rbits.data := 0x25100251.U
   dec_err_rbits.resp := AXIResp.DECERR
+  dec_err_rbits.last := true.B
+  dec_err_rbits.id := 0.U
 
   val dec_err_bbits = Wire(new WriteResponseChannel)
   dec_err_bbits.resp := AXIResp.DECERR
+  dec_err_bbits.id := 0.U
 
   // Read Crossbar
   val r_idle :: r_busy :: Nil = Enum(2)
