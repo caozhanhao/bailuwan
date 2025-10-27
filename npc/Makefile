@@ -9,7 +9,7 @@ html:
 
 ### Project Info
 PRJ = npc
-TOPNAME = Top
+TOPNAME = ysyxSoCFull
 TRACE ?= notrace
 CYCLES ?= -1
 IMG ?=
@@ -67,8 +67,11 @@ VERILATOR = verilator
 
 ### Compilation flags
 INC_PATH += $(abspath ./csrc/common/)
+INC_PATH += $(abspath ../ysyxSoC/perip/uart16550/rtl)
+INC_PATH += $(abspath ../ysyxSoC/perip/spi/rtl)
 CSRCS += $(shell find $(abspath ./csrc/common) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-HEADERS += $(shell find $(abspath ./csrc/common) -name "*.h" -or -name "*.hpp")
+HEADERS := $(sort $(shell find $(INC_PATH) -type f \( -name '*.h' -o -name '*.hpp' \) 2>/dev/null))
+
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
 INCFLAGS = $(addprefix -I, $(INC_PATH))
@@ -97,9 +100,9 @@ $(VERILOG_STAMP): $(SCALASRCS)
 $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
-		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(LINKAGE) \
+		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv ../ysyxSoC/perip/*.v $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) --timescale "1ns/1ns" --no-timing
 
 
 ## 6. Miscellaneous

@@ -7,7 +7,7 @@ import amba._
 class MTime(
   implicit val axi_prop: AXIProperty)
     extends Module {
-  val io = IO(Flipped(new AXI4Lite))
+  val io = IO(Flipped(new AXI4))
 
   val mtime = RegInit(0.U(64.W))
   mtime := mtime + 1.U

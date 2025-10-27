@@ -7,7 +7,7 @@ import amba._
 class SimConsoleOutput(
   implicit val axi_prop: AXIProperty)
     extends Module {
-  val io = IO(Flipped(new AXI4Lite))
+  val io = IO(Flipped(new AXI4))
 
   io.ar.ready    := false.B
   io.r.valid     := false.B

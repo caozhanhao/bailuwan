@@ -389,6 +389,8 @@ void sig_handler(int signum)
 
 int main(int argc, char* argv[])
 {
+    Verilated::commandArgs(argc, argv);
+
     signal(SIGINT, sig_handler);
 
     init_regex();

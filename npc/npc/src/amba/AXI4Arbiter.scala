@@ -3,14 +3,14 @@ package amba
 import chisel3._
 import chisel3.util._
 
-class AXI4LiteArbiter(
+class AXI4Arbiter(
   val n:      Int
 )(
   implicit p: AXIProperty)
     extends Module {
   val io = IO(new Bundle {
-    val masters = Vec(n, Flipped(new AXI4Lite))
-    val slave   = new AXI4Lite
+    val masters = Vec(n, Flipped(new AXI4))
+    val slave   = new AXI4
   })
 
   assert(n > 0, "Arbiter what?")
@@ -53,15 +53,9 @@ class AXI4LiteArbiter(
 
   def if_rbusy[T <: Data](x: T) = Mux(r_state === r_busy, x, 0.U.asTypeOf(x))
 
-  // Connect ar
-  slave.ar.valid   := if_rbusy(true.B)
-  slave.ar.bits    := if_rbusy(r_owner.ar.bits)
-  r_owner.ar.ready := if_rbusy(slave.ar.ready)
-
-  // Connect r
-  r_owner.r.bits  := if_rbusy(slave.r.bits)
-  r_owner.r.valid := if_rbusy(slave.r.valid)
-  slave.r.ready   := if_rbusy(r_owner.r.ready)
+  // Connection
+  slave.ar <> if_rbusy(r_owner.ar)
+  slave.r <> if_rbusy(r_owner.r)
 
   // Write Arbiter
   val w_idle :: w_busy :: Nil = Enum(2)
@@ -83,18 +77,8 @@ class AXI4LiteArbiter(
 
   def if_wbusy[T <: Data](x: T) = Mux(w_state === w_busy, x, 0.U.asTypeOf(x))
 
-  // Connect aw
-  slave.aw.valid   := if_wbusy(true.B)
-  slave.aw.bits    := if_wbusy(w_owner.aw.bits)
-  w_owner.aw.ready := if_wbusy(slave.aw.ready)
-
-  // Connect w
-  slave.w.bits    := if_wbusy(w_owner.w.bits)
-  slave.w.valid   := if_wbusy(w_owner.w.valid)
-  w_owner.w.ready := if_wbusy(slave.w.ready)
-
-  // Connect b
-  w_owner.b.bits  := if_wbusy(slave.b.bits)
-  w_owner.b.valid := if_wbusy(slave.b.valid)
-  slave.b.ready   := if_wbusy(w_owner.b.ready)
+  // Connection
+  slave.aw <> if_wbusy(w_owner.aw)
+  slave.w <> if_wbusy(w_owner.w)
+  slave.b <> if_wbusy(w_owner.b)
 }

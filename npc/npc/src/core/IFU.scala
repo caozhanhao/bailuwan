@@ -20,7 +20,7 @@ class IFU(
     val in  = Flipped(Decoupled(new WBUOut))
     val out = Decoupled(new IFUOut)
 
-    val mem = new AXI4Lite()
+    val mem = new AXI4()
   })
 
   val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)

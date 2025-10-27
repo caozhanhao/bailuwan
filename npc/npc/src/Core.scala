@@ -15,6 +15,12 @@ class Core(
   implicit p: CoreParams,
   axi_prop:   AXIProperty)
     extends Module {
+
+  val io = IO(new Bundle {
+    val bus       = new AXI4
+    val interrupt = Input(Bool())
+  })
+
   val IFU = Module(new IFU)
   val EXU = Module(new EXU)
   val IDU = Module(new IDU)
@@ -38,15 +44,15 @@ class Core(
   RegFile.io.rd_data         := WBU.io.regfile_out.rd_data
 
   // Memory
-  val arbiter = Module(new AXI4LiteArbiter(2))
+  val arbiter = Module(new AXI4Arbiter(2))
   arbiter.io.masters(0) <> IFU.io.mem
   arbiter.io.masters(1) <> EXU.io.mem
 
   // Console
   val xbar = Module(
-    new AXI4LiteCrossBar(
+    new AXI4CrossBar(
       Seq(
-        (Seq((0x1000_0000L, 0x1000_0fffL))),                              // Simulation Console
+        (Seq((0x1000_0000L, 0x1000_0fffL))),                             // Simulation Console
         (Seq((0x8000_0000L, 0x87ff_ffffL), (0xa000_0050, 0xa000_006c))), // DPI-C Memory + System Clock
         (Seq((0xa000_0048L, 0xa000_0050)))                               // MTime
       )

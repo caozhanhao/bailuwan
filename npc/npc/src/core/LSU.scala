@@ -18,7 +18,7 @@ class LSU(
     val write_data = Flipped(Decoupled(UInt(p.XLEN.W)))
     val read_data  = Decoupled(UInt(p.XLEN.W))
 
-    val mem = new AXI4Lite()
+    val mem = new AXI4()
   })
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");

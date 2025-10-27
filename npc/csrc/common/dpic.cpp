@@ -6,15 +6,18 @@
 #include "dut_proxy.hpp"
 
 extern "C" {
+void flash_read(int32_t addr, int32_t* data) { assert(0); }
+void mrom_read(int32_t addr, int32_t* data) { assert(0); }
+
 void ebreak_handler()
 {
     auto cycles = sim_handle.get_cycles();
-    auto elasped_time = sim_handle.elapsed_time();
+    auto elapsed_time = sim_handle.elapsed_time();
 
     printf("ebreak after %lu cycles\n", cycles);
-    printf("elasped time: %lu us\n", elasped_time);
+    printf("elapsed time: %lu us\n", elapsed_time);
 
-    double cycle_per_us = static_cast<double>(elasped_time) / static_cast<double>(cycles);
+    double cycle_per_us = static_cast<double>(elapsed_time) / static_cast<double>(cycles);
     printf("cycle per us: %f\n", cycle_per_us);
 
     auto a0 = sim_handle.get_cpu().reg(10);

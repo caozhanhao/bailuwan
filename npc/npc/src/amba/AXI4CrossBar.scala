@@ -3,14 +3,14 @@ package amba
 import chisel3._
 import chisel3.util._
 
-class AXI4LiteCrossBar(
+class AXI4CrossBar(
   val slaves_map: Seq[Seq[(Long, Long)]]
 )(
   implicit p:     AXIProperty)
     extends Module {
   val io = IO(new Bundle {
-    val master = Flipped(new AXI4Lite)
-    val slaves = Vec(slaves_map.size, new AXI4Lite)
+    val master = Flipped(new AXI4)
+    val slaves = Vec(slaves_map.size, new AXI4)
   })
   assert(slaves_map.nonEmpty, "Crossbar for what?")
 
@@ -50,12 +50,13 @@ class AXI4LiteCrossBar(
     matches.orR -> idx
   })
 
-  val dec_err_rbits = Wire(new ReadDataChannel)
-  dec_err_rbits.data := 0x25100251.U
-  dec_err_rbits.resp := AXIResp.DECERR
-
-  val dec_err_bbits = Wire(new WriteResponseChannel)
-  dec_err_bbits.resp := AXIResp.DECERR
+  val dec_err = Wire(new AXI4())
+  dec_err             := 0.U.asTypeOf(dec_err)
+  dec_err.r.bits.data := 0x25100251.U
+  dec_err.r.bits.resp := AXIResp.DECERR
+  dec_err.r.valid     := true.B
+  dec_err.b.bits.resp := AXIResp.DECERR
+  dec_err.b.valid     := true.B
 
   // Read Crossbar
   val r_idle :: r_busy :: Nil = Enum(2)
@@ -76,20 +77,12 @@ class AXI4LiteCrossBar(
   )
 
   // r_busy -> addr valid ? connected : decerr
-  def if_rbusy[T <: Data](x: T)(err: T = 0.U.asTypeOf(x)) =
+  def if_rbusy[T <: Data](x: T, err: T) =
     Mux(r_state === r_busy, Mux(r_owner_id =/= err_idx, x, err), 0.U.asTypeOf(x))
 
-  // Connect ar
-  r_owner.ar.valid := if_rbusy(true.B)()
-  r_owner.ar.bits  := if_rbusy(master.ar.bits)()
-  master.ar.ready  := if_rbusy(r_owner.ar.ready)(true.B)
-
-  // printf(cf"Connected: ${r_owner_id}, ar valid: ${r_owner.ar.valid}, ar bits: ${r_owner.ar.bits.addr}\n")
-
-  // Connect r
-  master.r.bits   := if_rbusy(r_owner.r.bits)(dec_err_rbits)
-  master.r.valid  := if_rbusy(r_owner.r.valid)(true.B)
-  r_owner.r.ready := if_rbusy(master.r.ready)()
+  // Connection
+  master.ar <> if_rbusy(r_owner.ar, dec_err.ar)
+  master.r <> if_rbusy(r_owner.r, dec_err.r)
 
   // Write Crossbar
   val w_idle :: w_busy :: Nil = Enum(2)
@@ -110,21 +103,11 @@ class AXI4LiteCrossBar(
   )
 
   // w_busy -> addr valid ? connected : decerr
-  def if_wbusy[T <: Data](x: T)(err: T = 0.U.asTypeOf(x)) =
+  def if_wbusy[T <: Data](x: T, err: T) =
     Mux(w_state === w_busy, Mux(w_owner_id =/= err_idx, x, err), 0.U.asTypeOf(x))
 
-  // Connect aw
-  w_owner.aw.valid := if_wbusy(true.B)()
-  w_owner.aw.bits  := if_wbusy(master.aw.bits)()
-  master.aw.ready  := if_wbusy(w_owner.aw.ready)(true.B)
-
-  // Connect w
-  w_owner.w.valid := if_wbusy(master.w.valid)()
-  w_owner.w.bits  := if_wbusy(master.w.bits)()
-  master.w.ready  := if_wbusy(w_owner.w.ready)(true.B)
-
-  // Connect b
-  master.b.bits   := if_wbusy(w_owner.b.bits)(dec_err_bbits)
-  master.b.valid  := if_wbusy(w_owner.b.valid)(true.B)
-  w_owner.b.ready := if_wbusy(master.b.ready)()
+  // Connection
+  master.aw <> if_wbusy(w_owner.aw, dec_err.aw)
+  master.w <> if_wbusy(w_owner.w, dec_err.w)
+  master.b <> if_wbusy(w_owner.b, dec_err.b)
 }
