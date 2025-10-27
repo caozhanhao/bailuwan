@@ -22,12 +22,12 @@ class Core(
   })
 
   io.bus.aw.valid := false.B
-  io.bus.aw.bits := 0.U
+  io.bus.aw.bits := 0.U.asTypeOf(io.bus.aw.bits)
   io.bus.w.valid := false.B
-  io.bus.w.bits := 0.U
+  io.bus.w.bits := 0.U.asTypeOf(io.bus.w.bits)
   io.bus.b.ready := false.B
   io.bus.ar.valid := false.B
-  io.bus.ar.bits := 0.U
+  io.bus.ar.bits := 0.U.asTypeOf(io.bus.ar.bits)
   io.bus.r.ready := false.B
 
   val IFU = Module(new IFU)
