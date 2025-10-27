@@ -55,6 +55,7 @@ VERILOG_STAMP := $(BUILD_DIR)/verilog.timestamp
 ### Collect the files to be built and linked
 LINKAGE ?=
 CSRCS ?=
+SOC_VSRCS ?=
 INC_PATH ?=
 SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 
@@ -71,6 +72,8 @@ INC_PATH += $(abspath ../ysyxSoC/perip/uart16550/rtl)
 INC_PATH += $(abspath ../ysyxSoC/perip/spi/rtl)
 CSRCS += $(shell find $(abspath ./csrc/common) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 HEADERS := $(sort $(shell find $(INC_PATH) -type f \( -name '*.h' -o -name '*.hpp' \) 2>/dev/null))
+
+SOC_VSRCS += $(shell find $(YSYXSOC_HOME)/perip -type f -name '*.v' 2>/dev/null)
 
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
