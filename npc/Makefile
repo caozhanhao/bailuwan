@@ -100,7 +100,7 @@ $(VERILOG_STAMP): $(SCALASRCS)
 $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
-		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv ../ysyxSoC/perip/*.v $(CSRCS) $(LINKAGE) \
+		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(YSYXSOC_HOME)/perip/*.v $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) --timescale "1ns/1ns" --no-timing
 
