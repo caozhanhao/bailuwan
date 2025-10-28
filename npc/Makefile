@@ -73,6 +73,7 @@ CSRCS += $(shell find $(abspath ./csrc/common) -name "*.c" -or -name "*.cc" -or 
 HEADERS := $(sort $(shell find $(INC_PATH) -type f \( -name '*.h' -o -name '*.hpp' \) 2>/dev/null))
 
 SOC_VSRCS += $(shell find $(YSYXSOC_HOME)/perip -type f -name '*.v' 2>/dev/null)
+SOC_VSRCS += $(YSYXSOC_HOME)/build/ysyxSoCFull.v
 SOC_VINC_PATH += $(abspath $(YSYXSOC_HOME)/perip/uart16550/rtl)
 SOC_VINC_PATH += $(abspath $(YSYXSOC_HOME)/perip/spi/rtl)
 SOC_VINC_FLAGS += $(addprefix +incdir+, $(SOC_VINC_PATH))
