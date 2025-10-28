@@ -22,6 +22,4 @@ class ysyx_25100251 extends Module {
   core.io.bus.b.valid  := false.B
   core.io.bus.r.bits   := 0.U.asTypeOf(core.io.bus.r.bits)
   core.io.bus.b.bits   := 0.U.asTypeOf(core.io.bus.b.bits)
-
-  io <> core.io
 }
