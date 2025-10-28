@@ -14,5 +14,14 @@ class ysyx_25100251 extends Module {
   implicit val axi_prop: AXIProperty = AXIProperty()
   val core = Module(new Core)
 
+  core.io.interrupt    := false.B
+  core.io.bus.ar.ready := false.B
+  core.io.bus.aw.ready := false.B
+  core.io.bus.w.ready  := false.B
+  core.io.bus.r.valid  := false.B
+  core.io.bus.b.valid  := false.B
+  core.io.bus.r.bits   := 0.U.asTypeOf(core.io.bus.r.bits)
+  core.io.bus.b.bits   := 0.U.asTypeOf(core.io.bus.b.bits)
+
   io <> core.io
 }
