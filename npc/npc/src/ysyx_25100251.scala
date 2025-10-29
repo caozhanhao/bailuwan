@@ -15,5 +15,5 @@ class ysyx_25100251 extends Module {
   val core = Module(new Core)
 
   core.io.interrupt := io.interrupt
-  core.io.bus <> io.bus
+  core.io.bus <> io.master
 }
