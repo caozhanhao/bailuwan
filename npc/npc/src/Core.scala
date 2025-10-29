@@ -31,6 +31,13 @@ class Core(
   io.master.ar.bits  := 0.U.asTypeOf(io.master.ar.bits)
   io.master.r.ready  := false.B
 
+  io.slave.ar.ready := false.B
+  io.slave.aw.ready := false.B
+  io.slave.w.ready  := false.B
+  io.slave.r.valid  := false.B
+  io.slave.b.valid  := false.B
+  io.slave.r.bits   := 0.U.asTypeOf(io.slave.r.bits)
+  io.slave.b.bits   := 0.U.asTypeOf(io.slave.b.bits)
 
   val IFU = Module(new IFU)
   val EXU = Module(new EXU)
