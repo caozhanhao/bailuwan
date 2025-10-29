@@ -8,7 +8,7 @@ class ysyx_25100251 extends Module {
   implicit val axi_prop: AXIProperty = AXIProperty()
 
   val io = IO(new Bundle {
-    val bus       = new AXI4
+    val master       = new AXI4
     val interrupt = Input(Bool())
   })
 
