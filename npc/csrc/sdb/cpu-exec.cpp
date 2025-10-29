@@ -1,5 +1,3 @@
-#include <VTop.h>
-
 #include "sdb.hpp"
 #include "dut_proxy.hpp"
 #include "utils/disasm.hpp"
