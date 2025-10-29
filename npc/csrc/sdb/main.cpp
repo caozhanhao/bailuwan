@@ -1,6 +1,4 @@
 #include <csignal>
-#include <VTop.h>
-
 #include <iostream>
 
 #include <getopt.h>
