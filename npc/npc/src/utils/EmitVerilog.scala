@@ -1,7 +1,5 @@
 package utils
 
-import top.ysyx_25100251
-
 object CommonEmitVerilogOptions {
   val firtool = Array(
     "--lowering-options=" + List(
@@ -15,7 +13,7 @@ object CommonEmitVerilogOptions {
 }
 
 object EmitVerilog extends App {
-  circt.stage.ChiselStage.emitSystemVerilogFile(new TopForSoc(), args, CommonEmitVerilogOptions.firtool)
+  circt.stage.ChiselStage.emitSystemVerilogFile(new top.TopForSoC(), args, CommonEmitVerilogOptions.firtool)
 }
 
 object Emit4BitALUVerilog extends App {
