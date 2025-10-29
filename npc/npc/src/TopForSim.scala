@@ -5,6 +5,17 @@ import chisel3.util.experimental.BoringUtils
 import core._
 import amba._
 
+class CSRBoring extends Bundle {
+  val mstatus   = UInt(32.W)
+  val mtvec     = UInt(32.W)
+  val mepc      = UInt(32.W)
+  val mcause    = UInt(32.W)
+  val mcycle    = UInt(32.W)
+  val mcycleh   = UInt(32.W)
+  val mvendorid = UInt(32.W)
+  val marchid   = UInt(32.W)
+}
+
 class TopForSim extends Module {
   val io = IO(new Bundle {
     val registers      = Output(Vec(16, UInt(32.W)))
