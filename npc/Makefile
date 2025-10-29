@@ -101,7 +101,7 @@ $(VERILOG_STAMP): $(CHISEL_SRCS)
 	@rm -rf $(BUILD_DIR)/*.sv
 	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
 	# rename some ports to connect ysyxSoC
-	sed -i -e 's/_\(aw\|ar\|w\|r\|b\)_\(\|bits_\)/_\1/g' $@
+	sed -i -e 's/_\(aw\|ar\|w\|r\|b\)_\(\|bits_\)/_\1/g' $(BUILD_DIR)/*.sv
 	@touch $@
 
 
