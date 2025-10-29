@@ -17,18 +17,20 @@ class Core(
     extends Module {
 
   val io = IO(new Bundle {
-    val bus       = new AXI4
+    val master    = new AXI4
+    val slave     = Flipped(new AXI4)
     val interrupt = Input(Bool())
   })
 
-  io.bus.aw.valid := false.B
-  io.bus.aw.bits := 0.U.asTypeOf(io.bus.aw.bits)
-  io.bus.w.valid := false.B
-  io.bus.w.bits := 0.U.asTypeOf(io.bus.w.bits)
-  io.bus.b.ready := false.B
-  io.bus.ar.valid := false.B
-  io.bus.ar.bits := 0.U.asTypeOf(io.bus.ar.bits)
-  io.bus.r.ready := false.B
+  io.master.aw.valid := false.B
+  io.master.aw.bits  := 0.U.asTypeOf(io.master.aw.bits)
+  io.master.w.valid  := false.B
+  io.master.w.bits   := 0.U.asTypeOf(io.master.w.bits)
+  io.master.b.ready  := false.B
+  io.master.ar.valid := false.B
+  io.master.ar.bits  := 0.U.asTypeOf(io.master.ar.bits)
+  io.master.r.ready  := false.B
+
 
   val IFU = Module(new IFU)
   val EXU = Module(new EXU)

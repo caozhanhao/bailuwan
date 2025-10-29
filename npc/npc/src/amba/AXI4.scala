@@ -81,9 +81,9 @@ class ReadDataChannel(
 class AXI4(
   implicit p: AXIProperty)
     extends Bundle {
-  val aw = Decoupled(new WriteAddressChannel)
-  val w  = Decoupled(new WriteDataChannel)
-  val b  = Flipped(Decoupled(new WriteResponseChannel))
-  val ar = Decoupled(new ReadAddressChannel)
-  val r  = Flipped(Decoupled(new ReadDataChannel))
+  val aw = Irrevocable(new WriteAddressChannel)
+  val w  = Irrevocable(new WriteDataChannel)
+  val b  = Flipped(Irrevocable(new WriteResponseChannel))
+  val ar = Irrevocable(new ReadAddressChannel)
+  val r  = Flipped(Irrevocable(new ReadDataChannel))
 }

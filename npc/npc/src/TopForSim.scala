@@ -16,7 +16,7 @@ class CSRBoring extends Bundle {
   val marchid   = UInt(32.W)
 }
 
-class Top extends Module {
+class TopForSim extends Module {
   val io = IO(new Bundle {
     val registers      = Output(Vec(16, UInt(32.W)))
     val pc             = Output(UInt(32.W))
