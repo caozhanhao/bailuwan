@@ -24,6 +24,7 @@ void ebreak_handler()
     double cycle_per_us = static_cast<double>(elapsed_time) / static_cast<double>(cycles);
     printf("cycle per us: %f\n", cycle_per_us);
 
+    auto a0 = 0;
     // auto a0 = sim_handle.get_cpu().reg(10);
     // if (a0 == 0)
     //     printf("\33[1;32mHIT GOOD TRAP\33[0m\n");
