@@ -17,6 +17,7 @@ void mrom_read(int32_t addr, int32_t* data)
         FILE* file = fopen("/home/caozhanhao/ysyx/workspace/tmp/chartest.bin", "rb");
         fread(mrom_data, sizeof(mrom_data), 1, file);
     }
+
     *data = mrom_data[(addr - 0x20000000) / 4];
 }
 
