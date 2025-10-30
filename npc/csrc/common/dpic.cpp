@@ -8,17 +8,16 @@
 extern "C" {
 void flash_read(int32_t addr, int32_t* data) { assert(0); }
 
+static uint32_t mrom_data[1024];
 void mrom_read(int32_t addr, int32_t* data)
 {
-    unsigned char chartest_bin[] = {
-        0x41, 0x11, 0x06, 0xe4, 0x22, 0xe0, 0x00, 0x08, 0xb7, 0x07, 0x00, 0x10,
-        0x13, 0x07, 0x10, 0x04, 0x23, 0x80, 0xe7, 0x00, 0xb7, 0x07, 0x00, 0x10,
-        0x29, 0x47, 0x23, 0x80, 0xe7, 0x00, 0x01, 0xa0
-      };
-    unsigned int chartest_bin_len = 32;
-
-    assert(addr >= 0x20000000 && (addr - 0x20000000) < chartest_bin_len);
-    *data = reinterpret_cast<uint32_t*>(chartest_bin)[(addr - 0x20000000) / 4];
+    static bool inited = false;
+    if (!inited) {
+        inited = true;
+        FILE* file = fopen("/home/caozhanhao/ysyx/workspace/tmp/chartest.bin", "rb");
+        fread(mrom_data, sizeof(mrom_data), 1, file);
+    }
+    *data = mrom_data[(addr - 0x20000000) / 4];
 }
 
 void ebreak_handler()
