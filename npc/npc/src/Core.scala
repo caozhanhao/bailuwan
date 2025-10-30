@@ -70,19 +70,15 @@ class Core(
   val xbar = Module(
     new AXI4CrossBar(
       Seq(
-        (Seq((0x1000_0000L, 0x1000_0fffL))),                             // Simulation Console
-        (Seq((0x8000_0000L, 0x87ff_ffffL), (0xa000_0050, 0xa000_006c))), // DPI-C Memory + System Clock
-        (Seq((0xa000_0048L, 0xa000_0050)))                               // MTime
+        (Seq((0x0000_0000L, 0xa000_0048L), (0xa000_0050L, 0xffff_ffffL))), // SoC
+        (Seq((0xa000_0048L, 0xa000_0050L)))                                // MTime
       )
     )
   )
   arbiter.io.slave <> xbar.io.master
 
-  val mem     = Module(new DPICMem)
-  val console = Module(new SimConsoleOutput)
   val mtime   = Module(new MTime)
 
-  xbar.io.slaves(0) <> console.io
-  xbar.io.slaves(1) <> mem.io
-  xbar.io.slaves(2) <> mtime.io
+  xbar.io.slaves(0) <> io.master
+  xbar.io.slaves(1) <> mtime.io
 }
