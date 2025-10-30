@@ -17,7 +17,7 @@ void mrom_read(int32_t addr, int32_t* data)
       };
     unsigned int chartest_bin_len = 32;
 
-    *data = chartest_bin[addr / 4];
+    *data = chartest_bin[(addr - 0x20000000) / 4];
 }
 
 void ebreak_handler()
