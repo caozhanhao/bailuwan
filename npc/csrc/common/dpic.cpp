@@ -17,6 +17,7 @@ void mrom_read(int32_t addr, int32_t* data)
       };
     unsigned int chartest_bin_len = 32;
 
+    assert(addr >= 0x20000000 && (addr - 0x20000000) / 4 < chartest_bin_len);
     *data = chartest_bin[(addr - 0x20000000) / 4];
 }
 
