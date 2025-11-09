@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <csignal>
 #include <cassert>
 
 #include "utils/macro.hpp"
