@@ -69,4 +69,17 @@ class IFU(
 
   io.in.ready  := io.out.ready
   io.out.valid := state === s_wait_ready
+
+
+  // Difftest got ready after every pc advance (one instruction done),
+  // which is just in.valid delayed one cycle.
+  //               ___________
+  //   ready      |          |
+  //              _____       _____
+  //   clock     |     |_____|     |_____
+  //              cycle 1        cycle 2
+  //                     ^
+  //                     |
+  //          difftest_step is called here
+  val difftest_ready = RegNext(io.in.valid)
 }
