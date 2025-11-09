@@ -275,7 +275,7 @@ void SimHandle::single_cycle()
 {
     dut.clock = 1;
 
-    IFDEF(TRACE, tfp->dump(sim_time += 2));
+    IFDEF(TRACE, tfp->dump(sim_time += 5));
 
     dut.eval();
 
@@ -283,7 +283,7 @@ void SimHandle::single_cycle()
 
     dut.clock = 0;
 
-    IFDEF(TRACE, tfp->dump(sim_time += 2));
+    IFDEF(TRACE, tfp->dump(sim_time += 5));
 
     dut.eval();
 
