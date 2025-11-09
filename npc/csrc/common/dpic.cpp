@@ -11,7 +11,7 @@ void flash_read(int32_t addr, int32_t* data) { assert(0); }
 static uint32_t mrom_data[1024];
 void mrom_read(int32_t addr, int32_t* data)
 {
-    printf("read addr = 0x%08x, data = 0x%08x\n", addr, sim_handle.get_memory().read(addr));
+    // printf("read addr = 0x%08x, data = 0x%08x\n", addr, sim_handle.get_memory().read(addr));
     *data = sim_handle.get_memory().read(addr);
 }
 
