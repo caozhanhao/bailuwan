@@ -20,7 +20,7 @@ void mrom_read(int32_t addr, int32_t* data)
 
     *data = mrom_data[(addr - 0x20000000) / 4];
 
-    printf("mrom_read: addr = 0x%08x, data = 0x%08x\n", addr, *data);
+    // printf("mrom_read: addr = 0x%08x, data = 0x%08x\n", addr, *data);
 }
 
 void ebreak_handler()
