@@ -66,19 +66,20 @@ class Core(
   arbiter.io.masters(0) <> IFU.io.mem
   arbiter.io.masters(1) <> EXU.io.mem
 
-  // Console
-  val xbar = Module(
-    new AXI4CrossBar(
-      Seq(
-        (Seq((0x0000_0000L, 0xa000_0048L), (0xa000_0050L, 0xffff_ffffL))), // SoC
-        (Seq((0xa000_0048L, 0xa000_0050L)))                                // MTime
-      )
-    )
-  )
-  arbiter.io.slave <> xbar.io.master
+  arbiter.io.slave <> io.master
 
-  val mtime   = Module(new MTime)
-
-  xbar.io.slaves(0) <> io.master
-  xbar.io.slaves(1) <> mtime.io
+//  val xbar = Module(
+//    new AXI4CrossBar(
+//      Seq(
+//        (Seq((0x0000_0000L, 0xa000_0048L), (0xa000_0050L, 0xffff_ffffL))), // SoC
+//        (Seq((0xa000_0048L, 0xa000_0050L)))                                // MTime
+//      )
+//    )
+//  )
+//  arbiter.io.slave <> xbar.io.master
+//
+//  val mtime   = Module(new MTime)
+//
+//  xbar.io.slaves(0) <> io.master
+//  xbar.io.slaves(1) <> mtime.io
 }
