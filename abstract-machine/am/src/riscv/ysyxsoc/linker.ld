@@ -20,6 +20,7 @@ SECTIONS {
   .rodata : ALIGN(8) {
     *(.rodata*)
   } > MROM
+
   .data : {
     *(.data*)
   } : data
