@@ -17,7 +17,5 @@ class Top extends Module {
   })
 
   val core = Module(new Core)
-  core.io.master <> io.master
-  core.io.slave <> io.slave
-  core.io.interrupt := io.interrupt
+  core.io <> io
 }

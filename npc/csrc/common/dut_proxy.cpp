@@ -9,6 +9,7 @@ const char* csr_names[4096];
 
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
+    this_dut->io_
 #define BIND(reg) register_bindings[reg] = &this_dut->io_dbg_registers_##reg;
     BIND(0)
     BIND(1)
