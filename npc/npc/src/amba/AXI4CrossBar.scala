@@ -3,14 +3,14 @@ package amba
 import chisel3._
 import chisel3.util._
 
-class AXI4LiteCrossBar(
+class AXI4CrossBar(
   val slaves_map: Seq[Seq[(Long, Long)]]
 )(
   implicit p:     AXIProperty)
     extends Module {
   val io = IO(new Bundle {
-    val master = Flipped(new AXI4Lite)
-    val slaves = Vec(slaves_map.size, new AXI4Lite)
+    val master = Flipped(new AXI4)
+    val slaves = Vec(slaves_map.size, new AXI4)
   })
   assert(slaves_map.nonEmpty, "Crossbar for what?")
 
@@ -53,9 +53,12 @@ class AXI4LiteCrossBar(
   val dec_err_rbits = Wire(new ReadDataChannel)
   dec_err_rbits.data := 0x25100251.U
   dec_err_rbits.resp := AXIResp.DECERR
+  dec_err_rbits.last := true.B
+  dec_err_rbits.id := 0.U
 
   val dec_err_bbits = Wire(new WriteResponseChannel)
   dec_err_bbits.resp := AXIResp.DECERR
+  dec_err_bbits.id := 0.U
 
   // Read Crossbar
   val r_idle :: r_busy :: Nil = Enum(2)
@@ -80,7 +83,7 @@ class AXI4LiteCrossBar(
     Mux(r_state === r_busy, Mux(r_owner_id =/= err_idx, x, err), 0.U.asTypeOf(x))
 
   // Connect ar
-  r_owner.ar.valid := if_rbusy(true.B)()
+  r_owner.ar.valid := if_rbusy(master.ar.valid)()
   r_owner.ar.bits  := if_rbusy(master.ar.bits)()
   master.ar.ready  := if_rbusy(r_owner.ar.ready)(true.B)
 
@@ -114,7 +117,7 @@ class AXI4LiteCrossBar(
     Mux(w_state === w_busy, Mux(w_owner_id =/= err_idx, x, err), 0.U.asTypeOf(x))
 
   // Connect aw
-  w_owner.aw.valid := if_wbusy(true.B)()
+  w_owner.aw.valid := if_wbusy(master.aw.valid)()
   w_owner.aw.bits  := if_wbusy(master.aw.bits)()
   master.aw.ready  := if_wbusy(w_owner.aw.ready)(true.B)
 

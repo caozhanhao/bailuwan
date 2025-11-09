@@ -145,7 +145,7 @@ class IDU(
   val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: csr_op :: exec_type :: Nil =
     ListLookup(inst, InstDecodeTable.default, InstDecodeTable.table)
 
-  assert(fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: ${inst})")
+  assert(fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: 0x$inst%x)")
 
   // Choose immediate
   val imm = MuxLookup(fmt, 0.U)(

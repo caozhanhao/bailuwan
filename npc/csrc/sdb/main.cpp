@@ -1,6 +1,4 @@
 #include <csignal>
-#include <VTop.h>
-
 #include <iostream>
 
 #include <getopt.h>
@@ -13,6 +11,8 @@
 SDBState sdb_state;
 int sdb_halt_ret;
 bool is_batch_mode;
+
+volatile sig_atomic_t sim_stop_requested = 0;
 
 static char* rl_gets()
 {
@@ -382,13 +382,17 @@ static int parse_args(int argc, char* argv[])
 
 void sig_handler(int signum)
 {
-    std::cerr << "Interrupt signal (" << signum << ") received.\n";
-    sim_handle.cleanup();
-    exit(signum);
+    // Attention: Aware of signal safety.
+    //   https://man7.org/linux/man-pages/man7/signal-safety.7.html
+    const char* msg = "SIGINT received, requesting stop\n";
+    write(STDERR_FILENO, msg, strlen(msg));
+    sim_stop_requested = 1;
 }
 
 int main(int argc, char* argv[])
 {
+    Verilated::commandArgs(argc, argv);
+
     signal(SIGINT, sig_handler);
 
     init_regex();

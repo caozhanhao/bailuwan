@@ -13,7 +13,7 @@ object CommonEmitVerilogOptions {
 }
 
 object EmitVerilog extends App {
-  circt.stage.ChiselStage.emitSystemVerilogFile(new top.Top(), args, CommonEmitVerilogOptions.firtool)
+  circt.stage.ChiselStage.emitSystemVerilogFile(new top.TopForSoC(), args, CommonEmitVerilogOptions.firtool)
 }
 
 object Emit4BitALUVerilog extends App {

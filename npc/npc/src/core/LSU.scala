@@ -18,8 +18,21 @@ class LSU(
     val write_data = Flipped(Decoupled(UInt(p.XLEN.W)))
     val read_data  = Decoupled(UInt(p.XLEN.W))
 
-    val mem = new AXI4Lite()
+    val mem = new AXI4()
   })
+
+  // AXI4-Lite
+  io.mem.ar.bits.id := 0.U
+  io.mem.ar.bits.len := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.ar.bits.size := 2.U // 2^2 = 4 bytes
+  io.mem.ar.bits.burst := 0.U
+
+  io.mem.aw.bits.id := 0.U
+  io.mem.aw.bits.len := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.aw.bits.size := 2.U // 2^2 = 4 bytes
+  io.mem.aw.bits.burst := 0.U
+
+  io.mem.w.bits.last := true.B
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
@@ -47,7 +60,6 @@ class LSU(
   )
 
   io.mem.ar.bits.addr := io.addr
-  io.mem.ar.bits.prot := 0.U
   io.mem.ar.valid     := read_enable && r_state === r_idle
 
   io.mem.r.ready := r_state === r_wait_mem
@@ -122,7 +134,6 @@ class LSU(
   )
 
   io.mem.aw.bits.addr := io.addr
-  io.mem.aw.bits.prot := 0.U
   io.mem.aw.valid     := write_enable && w_state === w_idle
   io.mem.w.bits.data  := selected_store_data
   io.mem.w.bits.strb  := write_mask

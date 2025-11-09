@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <csignal>
 #include <cassert>
 
 #include "utils/macro.hpp"
@@ -63,6 +64,8 @@ enum class SDBState
 
 extern SDBState sdb_state;
 extern int sdb_halt_ret;
+
+extern volatile sig_atomic_t sim_stop_requested;
 
 #define Log(format, ...) \
     printf(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", \

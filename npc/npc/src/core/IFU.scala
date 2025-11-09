@@ -20,8 +20,21 @@ class IFU(
     val in  = Flipped(Decoupled(new WBUOut))
     val out = Decoupled(new IFUOut)
 
-    val mem = new AXI4Lite()
+    val mem = new AXI4()
   })
+
+  // AXI4-Lite
+  io.mem.ar.bits.id    := 0.U
+  io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
+  io.mem.ar.bits.burst := 0.U
+
+  io.mem.aw.bits.id    := 0.U
+  io.mem.aw.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.aw.bits.size  := 2.U // 2^2 = 4 bytes
+  io.mem.aw.bits.burst := 0.U
+
+  io.mem.w.bits.last := true.B
 
   val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)
 
@@ -41,7 +54,6 @@ class IFU(
   pc := Mux(io.in.fire, io.in.bits.dnpc, pc)
 
   io.mem.ar.bits.addr := pc
-  io.mem.ar.bits.prot := 0.U
 
   io.mem.aw.valid := false.B
   io.mem.aw.bits  := DontCare

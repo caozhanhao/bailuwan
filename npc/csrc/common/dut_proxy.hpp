@@ -1,7 +1,7 @@
 #ifndef COMMON_DUT_PROXY_HPP
 #define COMMON_DUT_PROXY_HPP
 
-#include "VTop.h"
+#include "VysyxSoCFull.h"
 #include "utils/macro.hpp"
 
 #ifdef TRACE_fst

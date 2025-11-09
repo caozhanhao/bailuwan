@@ -16,7 +16,7 @@ class CSRBoring extends Bundle {
   val marchid   = UInt(32.W)
 }
 
-class Top extends Module {
+class TopForSim extends Module {
   val io = IO(new Bundle {
     val registers      = Output(Vec(16, UInt(32.W)))
     val pc             = Output(UInt(32.W))
@@ -29,6 +29,24 @@ class Top extends Module {
   implicit val p:        CoreParams  = CoreParams()
   implicit val axi_prop: AXIProperty = AXIProperty()
   val core = Module(new Core)
+
+  core.io.interrupt    := false.B
+  core.io.master.ar.ready := false.B
+  core.io.master.aw.ready := false.B
+  core.io.master.w.ready  := false.B
+  core.io.master.r.valid  := false.B
+  core.io.master.b.valid  := false.B
+  core.io.master.r.bits   := 0.U.asTypeOf(core.io.master.r.bits)
+  core.io.master.b.bits   := 0.U.asTypeOf(core.io.master.b.bits)
+
+  core.io.slave.aw.valid := false.B
+  core.io.slave.aw.bits  := 0.U.asTypeOf(core.io.slave.aw.bits)
+  core.io.slave.w.valid  := false.B
+  core.io.slave.w.bits   := 0.U.asTypeOf(core.io.slave.w.bits)
+  core.io.slave.b.ready  := false.B
+  core.io.slave.ar.valid := false.B
+  core.io.slave.ar.bits  := 0.U.asTypeOf(core.io.slave.ar.bits)
+  core.io.slave.r.ready  := false.B
 
   // Bore some signals for debugging
   io.registers := BoringUtils.bore(core.RegFile.regs)

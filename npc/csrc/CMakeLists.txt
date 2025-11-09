@@ -9,7 +9,7 @@ include_directories(../build/obj_dir)
 include_directories(common)
 include_directories($ENV{VERILATOR_HOME}/include)
 
-add_compile_definitions(TOP_NAME=VTop TRACE TRACE_fst)
+add_compile_definitions(TOP_NAME=VysyxSoCFull TRACE TRACE_fst)
 
 add_executable(debug debug/main.cpp)
 add_executable(nvboard nvboard/main.cpp)

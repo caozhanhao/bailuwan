@@ -9,7 +9,7 @@ html:
 
 ### Project Info
 PRJ = npc
-TOPNAME = Top
+TOPNAME = ysyxSoCFull
 TRACE ?= notrace
 CYCLES ?= -1
 IMG ?=
@@ -56,7 +56,9 @@ VERILOG_STAMP := $(BUILD_DIR)/verilog.timestamp
 LINKAGE ?=
 CSRCS ?=
 INC_PATH ?=
-SCALASRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
+SOC_VSRCS ?=
+SOC_VINC_PATH ?=
+CHISEL_SRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 
 
 
@@ -68,7 +70,14 @@ VERILATOR = verilator
 ### Compilation flags
 INC_PATH += $(abspath ./csrc/common/)
 CSRCS += $(shell find $(abspath ./csrc/common) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-HEADERS += $(shell find $(abspath ./csrc/common) -name "*.h" -or -name "*.hpp")
+HEADERS := $(sort $(shell find $(INC_PATH) -type f \( -name '*.h' -o -name '*.hpp' \) 2>/dev/null))
+
+SOC_VSRCS += $(shell find $(YSYXSOC_HOME)/perip -type f -name '*.v' 2>/dev/null)
+SOC_VSRCS += $(YSYXSOC_HOME)/build/ysyxSoCFull.v
+SOC_VINC_PATH += $(abspath $(YSYXSOC_HOME)/perip/uart16550/rtl)
+SOC_VINC_PATH += $(abspath $(YSYXSOC_HOME)/perip/spi/rtl)
+SOC_VINC_FLAGS += $(addprefix +incdir+, $(SOC_VINC_PATH))
+
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
 INCFLAGS = $(addprefix -I, $(INC_PATH))
@@ -88,18 +97,20 @@ endif
 
 ## 5. Compilation Rules
 
-$(VERILOG_STAMP): $(SCALASRCS)
+$(VERILOG_STAMP): $(CHISEL_SRCS)
 	@rm -rf $(BUILD_DIR)/*.sv
 	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
+	# rename some ports to connect ysyxSoC
+	sed -i -e 's/_\(aw\|ar\|w\|r\|b\)_\(\|bits_\)/_\1/g' $(BUILD_DIR)/*.sv
 	@touch $@
 
 
 $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
 	@rm -rf $(OBJ_DIR)
-	$(VERILATOR) $(VERILATOR_CFLAGS) \
-		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(CSRCS) $(LINKAGE) \
+	$(VERILATOR) $(VERILATOR_CFLAGS) $(SOC_VINC_FLAGS) \
+		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(SOC_VSRCS) $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) --autoflush --timescale "1ns/1ns" --no-timing
 
 
 ## 6. Miscellaneous

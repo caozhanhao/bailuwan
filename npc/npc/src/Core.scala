@@ -15,6 +15,30 @@ class Core(
   implicit p: CoreParams,
   axi_prop:   AXIProperty)
     extends Module {
+
+  val io = IO(new Bundle {
+    val master    = new AXI4
+    val slave     = Flipped(new AXI4)
+    val interrupt = Input(Bool())
+  })
+
+  io.master.aw.valid := false.B
+  io.master.aw.bits  := 0.U.asTypeOf(io.master.aw.bits)
+  io.master.w.valid  := false.B
+  io.master.w.bits   := 0.U.asTypeOf(io.master.w.bits)
+  io.master.b.ready  := false.B
+  io.master.ar.valid := false.B
+  io.master.ar.bits  := 0.U.asTypeOf(io.master.ar.bits)
+  io.master.r.ready  := false.B
+
+  io.slave.ar.ready := false.B
+  io.slave.aw.ready := false.B
+  io.slave.w.ready  := false.B
+  io.slave.r.valid  := false.B
+  io.slave.b.valid  := false.B
+  io.slave.r.bits   := 0.U.asTypeOf(io.slave.r.bits)
+  io.slave.b.bits   := 0.U.asTypeOf(io.slave.b.bits)
+
   val IFU = Module(new IFU)
   val EXU = Module(new EXU)
   val IDU = Module(new IDU)
@@ -38,27 +62,24 @@ class Core(
   RegFile.io.rd_data         := WBU.io.regfile_out.rd_data
 
   // Memory
-  val arbiter = Module(new AXI4LiteArbiter(2))
+  val arbiter = Module(new AXI4Arbiter(2))
   arbiter.io.masters(0) <> IFU.io.mem
   arbiter.io.masters(1) <> EXU.io.mem
 
-  // Console
+  arbiter.io.slave <> io.master
+
   val xbar = Module(
-    new AXI4LiteCrossBar(
+    new AXI4CrossBar(
       Seq(
-        (Seq((0x1000_0000L, 0x1000_0fffL))),                              // Simulation Console
-        (Seq((0x8000_0000L, 0x87ff_ffffL), (0xa000_0050, 0xa000_006c))), // DPI-C Memory + System Clock
-        (Seq((0xa000_0048L, 0xa000_0050)))                               // MTime
+        (Seq((0x0000_0000L, 0xa000_0048L), (0xa000_0050L, 0xffff_ffffL))), // SoC
+        (Seq((0xa000_0048L, 0xa000_0050L)))                                // MTime
       )
     )
   )
   arbiter.io.slave <> xbar.io.master
 
-  val mem     = Module(new DPICMem)
-  val console = Module(new SimConsoleOutput)
   val mtime   = Module(new MTime)
 
-  xbar.io.slaves(0) <> console.io
-  xbar.io.slaves(1) <> mem.io
-  xbar.io.slaves(2) <> mtime.io
+  xbar.io.slaves(0) <> io.master
+  xbar.io.slaves(1) <> mtime.io
 }

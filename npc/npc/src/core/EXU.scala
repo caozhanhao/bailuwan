@@ -34,7 +34,7 @@ class EXU(
     val in  = Flipped(Decoupled(new IDUOut))
     val out = Decoupled(new EXUOut)
 
-    val mem = new AXI4Lite
+    val mem = new AXI4
   })
 
   val decoded   = io.in.bits
