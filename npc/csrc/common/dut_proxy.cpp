@@ -30,13 +30,48 @@ void CPUProxy::bind(TOP_NAME* this_dut)
 #undef BIND
 
     pc_binding = CORE(IFU__DOT__pc);
-    dnpc_binding = &this_dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__core__DOT___WBU_io_out_bits_dnpc;
+    dnpc_binding = CORE(_WBU_io_out_bits_dnpc);
     inst_binding = CORE(IDU__DOT__inst);
-    difftest_ready = CORE(IFU__DOT__)
+    difftest_ready = CORE(IFU__DOT__difftest_ready);
 
-#define CSR_TABLE_ENTRY(name, idx) csr_bindings[idx] = &this_dut->io_dbg_csrs_##name;
+    // CSR_TABLE_ENTRY(mstatus, 0x300)
+    // CSR_TABLE_ENTRY(mtvec, 0x305)
+    // CSR_TABLE_ENTRY(mepc, 0x341)
+    // CSR_TABLE_ENTRY(mcause, 0x342)
+    // CSR_TABLE_ENTRY(mcycle, 0xb00)
+    // CSR_TABLE_ENTRY(mcycleh, 0xb80)
+    // CSR_TABLE_ENTRY(mvendorid, 0xf11)
+    // CSR_TABLE_ENTRY(marchid, 0xf12)
+
+    // We can't use CSR_TABLE_ENTRY here because some csr needs special handling
+#define BIND(name) csr_bindings[CSR_##name] = CORE(EXU__DOT__csr_file__DOT__##name);
+
+    BIND(mstatus)
+    BIND(mtvec)
+    BIND(mepc)
+    BIND(mcause)
+
+#undef BIND
+    auto mcycle = CORE(EXU__DOT__csr_file__DOT__mcycle);
+    static uint32_t mvendorid = 0x79737978;
+    static uint32_t marchid = 25100251;
+
+    csr_bindings[CSR_mcycle] = reinterpret_cast<uint32_t*>(mcycle);
+    csr_bindings[CSR_mcycleh] = reinterpret_cast<uint32_t*>(mcycle + 4);
+    csr_bindings[CSR_mvendorid] = &mvendorid;
+    csr_bindings[CSR_marchid] = &marchid;
+
+    // Safety checks
+#define CSR(x) TOSTRING(x)
+    // It will be expanded to
+    //     (static_cast<bool>(csr_bindings[0x300] != nullptr && "mstatus" " not initialized.")
+    // ? void(0)
+    // : __assert_fail("csr_bindings[0x300] != nullptr && CSR(mstatus) \" is not initialized.\"", __builtin_FILE(),
+    //                 __builtin_LINE(), __PRETTY_FUNCTION__));
+#define CSR_TABLE_ENTRY(name, idx) assert(csr_bindings[idx] != nullptr && CSR(name) " is not initialized.");
     CSR_TABLE
 #undef CSR_TABLE_ENTRY
+#undef CSR
 
 #undef CORE
 }
