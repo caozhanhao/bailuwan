@@ -9,33 +9,33 @@ const char* csr_names[4096];
 
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
-// #define BIND(reg) register_bindings[reg] = &this_dut->io_registers_##reg;
-//     BIND(0)
-//     BIND(1)
-//     BIND(2)
-//     BIND(3)
-//     BIND(4)
-//     BIND(5)
-//     BIND(6)
-//     BIND(7)
-//     BIND(8)
-//     BIND(9)
-//     BIND(10)
-//     BIND(11)
-//     BIND(12)
-//     BIND(13)
-//     BIND(14)
-//     BIND(15)
-// #undef BIND
-//
-//     pc_binding = &this_dut->io_pc;
-//     dnpc_binding = &this_dut->io_dnpc;
-//     inst_binding = &this_dut->io_inst;
-//     difftest_ready = &this_dut->io_difftest_ready;
-//
-// #define CSR_TABLE_ENTRY(name, idx) csr_bindings[idx] = &this_dut->io_csrs_##name;
-//     CSR_TABLE
-// #undef CSR_TABLE_ENTRY
+    // #define BIND(reg) register_bindings[reg] = &this_dut->io_registers_##reg;
+    //     BIND(0)
+    //     BIND(1)
+    //     BIND(2)
+    //     BIND(3)
+    //     BIND(4)
+    //     BIND(5)
+    //     BIND(6)
+    //     BIND(7)
+    //     BIND(8)
+    //     BIND(9)
+    //     BIND(10)
+    //     BIND(11)
+    //     BIND(12)
+    //     BIND(13)
+    //     BIND(14)
+    //     BIND(15)
+    // #undef BIND
+    //
+    //     pc_binding = &this_dut->io_pc;
+    //     dnpc_binding = &this_dut->io_dnpc;
+    //     inst_binding = &this_dut->io_inst;
+    //     difftest_ready = &this_dut->io_difftest_ready;
+    //
+    // #define CSR_TABLE_ENTRY(name, idx) csr_bindings[idx] = &this_dut->io_csrs_##name;
+    //     CSR_TABLE
+    // #undef CSR_TABLE_ENTRY
 }
 
 uint32_t CPUProxy::curr_inst() const
@@ -274,14 +274,20 @@ void SimHandle::cleanup()
 void SimHandle::single_cycle()
 {
     dut.clock = 1;
+
+    IFDEF(TRACE, tfp->dump(sim_time += 2));
+
     dut.eval();
 
-    IFDEF(TRACE, tfp->dump(sim_time++));
+    IFDEF(TRACE, tfp->dump(sim_time += 10));
 
     dut.clock = 0;
+
+    IFDEF(TRACE, tfp->dump(sim_time += 2));
+
     dut.eval();
 
-    IFDEF(TRACE, tfp->dump(sim_time++));
+    IFDEF(TRACE, tfp->dump(sim_time += 10));
 
     cycle_counter++;
 }
