@@ -31,5 +31,5 @@ void init_ysyxsoc() {
   mrom_base = new_space(CONFIG_MROM_SIZE);
   sram_base = new_space(CONFIG_SRAM_SIZE);
   add_mmio_map("ysyxsoc_mrom", CONFIG_MROM_BASE, mrom_base, CONFIG_MROM_SIZE, mrom_io_handler);
-  add_mmio_map("ysyxsoc_sram", CONFIG_MROM_BASE, sram_base, CONFIG_SRAM_SIZE, sram_io_handler);
+  add_mmio_map("ysyxsoc_sram", CONFIG_SRAM_BASE, sram_base, CONFIG_SRAM_SIZE, sram_io_handler);
 }
