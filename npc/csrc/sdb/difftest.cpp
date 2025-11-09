@@ -80,6 +80,9 @@ void init_difftest(size_t img_size)
     ref_difftest_init(0);
     auto& mem = sim_handle.get_memory();
 
+    // Copying
+    printf("Copying image to guest memory...\n");
+    printf("Image size: %lu bytes\n", img_size);
     ref_difftest_memcpy(RESET_VECTOR, mem.guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
 
     sync_regs_to_ref();
