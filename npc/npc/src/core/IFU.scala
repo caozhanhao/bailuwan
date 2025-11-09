@@ -26,12 +26,12 @@ class IFU(
   // AXI4-Lite
   io.mem.ar.bits.id := 0.U
   io.mem.ar.bits.len := 1.U
-  io.mem.ar.bits.size := 32.U
+  io.mem.ar.bits.size := 2.U // 2^2 = 4 bytes
   io.mem.ar.bits.burst := 1.U
 
   io.mem.aw.bits.id := 0.U
   io.mem.aw.bits.len := 1.U
-  io.mem.aw.bits.size := 32.U
+  io.mem.aw.bits.size := 2.U // 2^2 = 4 bytes
   io.mem.aw.bits.burst := 1.U
 
   io.mem.w.bits.last := true.B
