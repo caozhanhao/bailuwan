@@ -146,7 +146,7 @@ void DUTMemory::init(const std::string& filename)
         }
     }
 
-    img_size = CONFIG_MROM_BASE;
+    img_size = CONFIG_MROM_SIZE;
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
