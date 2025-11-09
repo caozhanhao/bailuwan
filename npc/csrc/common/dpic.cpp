@@ -12,7 +12,7 @@ static uint32_t mrom_data[1024];
 void mrom_read(int32_t addr, int32_t* data)
 {
     // printf("read addr = 0x%08x, data = 0x%08x\n", addr, sim_handle.get_memory().read(addr));
-    *data = sim_handle.get_memory().mrom_read(addr);
+    *data = sim_handle.get_memory().read(addr);
 }
 
 void ebreak_handler()
@@ -37,7 +37,7 @@ void ebreak_handler()
 
 int pmem_read(int raddr)
 {
-    auto ret = sim_handle.get_memory().mrom_read(raddr);
+    auto ret = sim_handle.get_memory().read(raddr);
     IFDEF(CONFIG_MTRACE, printf("read addr = 0x%08x, data = 0x%08x\n", raddr, ret));
     return ret;
 }
