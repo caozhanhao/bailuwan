@@ -54,7 +54,7 @@ class AXI4Arbiter(
   def if_rbusy[T <: Data](x: T) = Mux(r_state === r_busy, x, 0.U.asTypeOf(x))
 
   // Connect ar
-  slave.ar.valid   := if_rbusy(true.B)
+  slave.ar.valid   := if_rbusy(r_owner.ar.valid)
   slave.ar.bits    := if_rbusy(r_owner.ar.bits)
   r_owner.ar.ready := if_rbusy(slave.ar.ready)
 
@@ -84,7 +84,7 @@ class AXI4Arbiter(
   def if_wbusy[T <: Data](x: T) = Mux(w_state === w_busy, x, 0.U.asTypeOf(x))
 
   // Connect aw
-  slave.aw.valid   := if_wbusy(true.B)
+  slave.aw.valid   := if_wbusy(w_owner.aw.valid)
   slave.aw.bits    := if_wbusy(w_owner.aw.bits)
   w_owner.aw.ready := if_wbusy(slave.aw.ready)
 

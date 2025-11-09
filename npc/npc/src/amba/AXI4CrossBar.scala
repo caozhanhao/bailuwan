@@ -83,7 +83,7 @@ class AXI4CrossBar(
     Mux(r_state === r_busy, Mux(r_owner_id =/= err_idx, x, err), 0.U.asTypeOf(x))
 
   // Connect ar
-  r_owner.ar.valid := if_rbusy(true.B)()
+  r_owner.ar.valid := if_rbusy(master.ar.valid)()
   r_owner.ar.bits  := if_rbusy(master.ar.bits)()
   master.ar.ready  := if_rbusy(r_owner.ar.ready)(true.B)
 
@@ -117,7 +117,7 @@ class AXI4CrossBar(
     Mux(w_state === w_busy, Mux(w_owner_id =/= err_idx, x, err), 0.U.asTypeOf(x))
 
   // Connect aw
-  w_owner.aw.valid := if_wbusy(true.B)()
+  w_owner.aw.valid := if_wbusy(master.aw.valid)()
   w_owner.aw.bits  := if_wbusy(master.aw.bits)()
   master.aw.ready  := if_wbusy(w_owner.aw.ready)(true.B)
 
