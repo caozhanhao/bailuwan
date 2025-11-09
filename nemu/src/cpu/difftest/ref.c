@@ -22,9 +22,9 @@
 
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
   if (direction == DIFFTEST_TO_REF)
-    memcpy(guest_to_host(addr), buf, n);
+    copy_to_paddr(addr, buf, n);
   else
-    memcpy(buf, guest_to_host(addr), n);
+    copy_from_paddr(buf, addr, n);
 }
 
 struct diff_context_t {

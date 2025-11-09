@@ -34,4 +34,7 @@ static inline bool in_pmem(paddr_t addr) {
 word_t paddr_read(paddr_t addr, int len);
 void paddr_write(paddr_t addr, int len, word_t data);
 
+void copy_to_paddr(paddr_t addr, void *buf, size_t len);
+void copy_from_paddr(void *buf, paddr_t addr, size_t len);
+
 #endif
