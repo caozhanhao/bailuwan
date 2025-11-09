@@ -110,7 +110,7 @@ $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
 	$(VERILATOR) $(VERILATOR_CFLAGS) $(SOC_VINC_FLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(SOC_VSRCS) $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) --timescale "1ns/1ns" --no-timing
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) --timescale "1ns/1ns" --no-timing --autoflush
 
 
 ## 6. Miscellaneous
