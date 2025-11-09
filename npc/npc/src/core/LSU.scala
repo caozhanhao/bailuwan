@@ -23,12 +23,12 @@ class LSU(
 
   // AXI4-Lite
   io.mem.ar.bits.id := 0.U
-  io.mem.ar.bits.len := 1.U
+  io.mem.ar.bits.len := 0.U // burst length=1, equivalent to an AxLEN value of zero.
   io.mem.ar.bits.size := 2.U // 2^2 = 4 bytes
   io.mem.ar.bits.burst := 1.U
 
   io.mem.aw.bits.id := 0.U
-  io.mem.aw.bits.len := 1.U
+  io.mem.aw.bits.len := 0.U // burst length=1, equivalent to an AxLEN value of zero.
   io.mem.aw.bits.size := 2.U // 2^2 = 4 bytes
   io.mem.aw.bits.burst := 1.U
 
