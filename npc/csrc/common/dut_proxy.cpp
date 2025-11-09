@@ -9,33 +9,71 @@ const char* csr_names[4096];
 
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
-// #define BIND(reg) register_bindings[reg] = &this_dut->io_registers_##reg;
-//     BIND(0)
-//     BIND(1)
-//     BIND(2)
-//     BIND(3)
-//     BIND(4)
-//     BIND(5)
-//     BIND(6)
-//     BIND(7)
-//     BIND(8)
-//     BIND(9)
-//     BIND(10)
-//     BIND(11)
-//     BIND(12)
-//     BIND(13)
-//     BIND(14)
-//     BIND(15)
-// #undef BIND
-//
-//     pc_binding = &this_dut->io_pc;
-//     dnpc_binding = &this_dut->io_dnpc;
-//     inst_binding = &this_dut->io_inst;
-//     difftest_ready = &this_dut->io_difftest_ready;
-//
-// #define CSR_TABLE_ENTRY(name, idx) csr_bindings[idx] = &this_dut->io_csrs_##name;
-//     CSR_TABLE
-// #undef CSR_TABLE_ENTRY
+#define CORE(x) &this_dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__core__DOT__##x
+#define BIND(reg) register_bindings[reg] = CORE(RegFile__DOT__regs_##reg);
+    BIND(0)
+    BIND(1)
+    BIND(2)
+    BIND(3)
+    BIND(4)
+    BIND(5)
+    BIND(6)
+    BIND(7)
+    BIND(8)
+    BIND(9)
+    BIND(10)
+    BIND(11)
+    BIND(12)
+    BIND(13)
+    BIND(14)
+    BIND(15)
+#undef BIND
+
+    pc_binding = CORE(IFU__DOT__pc);
+    dnpc_binding = CORE(_WBU_io_out_bits_dnpc);
+    inst_binding = CORE(IDU__DOT__inst);
+    difftest_ready = CORE(IFU__DOT__difftest_ready);
+
+    // CSR_TABLE_ENTRY(mstatus, 0x300)
+    // CSR_TABLE_ENTRY(mtvec, 0x305)
+    // CSR_TABLE_ENTRY(mepc, 0x341)
+    // CSR_TABLE_ENTRY(mcause, 0x342)
+    // CSR_TABLE_ENTRY(mcycle, 0xb00)
+    // CSR_TABLE_ENTRY(mcycleh, 0xb80)
+    // CSR_TABLE_ENTRY(mvendorid, 0xf11)
+    // CSR_TABLE_ENTRY(marchid, 0xf12)
+
+    // We can't use CSR_TABLE_ENTRY here because some csr needs special handling
+#define BIND(name) csr_bindings[CSR_##name] = CORE(EXU__DOT__csr_file__DOT__##name);
+
+    BIND(mstatus)
+    BIND(mtvec)
+    BIND(mepc)
+    BIND(mcause)
+
+#undef BIND
+    auto mcycle = CORE(EXU__DOT__csr_file__DOT__mcycle);
+    static uint32_t mvendorid = 0x79737978;
+    static uint32_t marchid = 25100251;
+
+    csr_bindings[CSR_mcycle] = reinterpret_cast<uint32_t*>(mcycle);
+    csr_bindings[CSR_mcycleh] = reinterpret_cast<uint32_t*>(mcycle + 4);
+    csr_bindings[CSR_mvendorid] = &mvendorid;
+    csr_bindings[CSR_marchid] = &marchid;
+
+    // Safety checks
+#define CSR(x) TOSTRING(x)
+    // It will be expanded to
+    //     (static_cast<bool>(csr_bindings[0x300] != nullptr && "mstatus" " not initialized.")
+    // ? void(0)
+    // : __assert_fail("csr_bindings[0x300] != nullptr && CSR(mstatus) \" is not initialized.\"", __builtin_FILE(),
+    //                 __builtin_LINE(), __PRETTY_FUNCTION__));
+#define CSR_TABLE_ENTRY(name, idx) assert(csr_bindings[idx] != nullptr && CSR(name) " is not initialized.");
+    CSR_TABLE
+#undef CSR_TABLE_ENTRY
+#undef CSR
+
+#undef CORE
 }
 
 uint32_t CPUProxy::curr_inst() const
@@ -94,10 +132,10 @@ void DUTMemory::init(const std::string& filename)
     FILE* fp = fopen(filename.c_str(), "rb");
     assert(fp);
 
-    data = static_cast<uint32_t*>(malloc(CONFIG_MSIZE));
-    memset(data, 0, CONFIG_MSIZE);
+    data = static_cast<uint32_t*>(malloc(CONFIG_MROM_BASE));
+    memset(data, 0, CONFIG_MROM_BASE);
 
-    size_t bytes_read = fread(data, 1, CONFIG_MSIZE, fp);
+    size_t bytes_read = fread(data, 1, CONFIG_MROM_BASE, fp);
     if (bytes_read == 0)
     {
         if (ferror(stdin))
@@ -108,7 +146,7 @@ void DUTMemory::init(const std::string& filename)
         }
     }
 
-    img_size = CONFIG_MSIZE;
+    img_size = CONFIG_MROM_SIZE;
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
@@ -133,16 +171,6 @@ uint32_t DUTMemory::read(uint32_t raddr)
 
     // Clock
 
-    // Implemented in NPC with XBar.
-    // if (uaddr == RTC_MMIO || uaddr == RTC_MMIO + 4)
-    // {
-    //     auto now = std::chrono::high_resolution_clock::now();
-    //     auto delta = now - sim_handle.get_boot_time();
-    //     auto sec = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(delta).count());
-    //     if (uaddr == RTC_MMIO)
-    //         return sec & 0xffffffff;
-    //     return sec >> 32;
-    // }
     if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
     {
         std::time_t t = std::time(nullptr);
@@ -167,7 +195,7 @@ uint32_t DUTMemory::read(uint32_t raddr)
     }
 
     // Memory
-    if (!in_pmem(uaddr))
+    if (!in_mrom(uaddr))
     {
         auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
@@ -181,20 +209,12 @@ uint32_t DUTMemory::read(uint32_t raddr)
 
 void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
 {
+    assert(false && "Writing to mrom");
     auto uaddr = static_cast<uint32_t>(waddr);
     uaddr &= ~0x3u;
 
-    // Implemented in NPC with XBar.
-    // // Serial port
-    // if (uaddr == SERIAL_PORT_MMIO && wmask == 1)
-    // {
-    //     putchar(wdata);
-    //     fflush(stdout);
-    //     return;
-    // }
-
     // Memory
-    if (!in_pmem(uaddr))
+    if (!in_mrom(uaddr))
     {
         auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, waddr = 0x%08x\n", cpu.pc(), waddr);
@@ -212,19 +232,24 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
     }
 }
 
-bool DUTMemory::in_pmem(uint32_t addr)
+bool DUTMemory::in_mrom(uint32_t addr)
 {
-    return addr - CONFIG_MBASE < CONFIG_MSIZE;
+    return addr - CONFIG_MROM_BASE < CONFIG_MROM_SIZE;
+}
+
+bool DUTMemory::in_sram(uint32_t addr)
+{
+    return addr - CONFIG_SRAM_BASE < CONFIG_SRAM_SIZE;
 }
 
 uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
 {
-    return reinterpret_cast<uint8_t*>(data) + paddr - CONFIG_MBASE;
+    return reinterpret_cast<uint8_t*>(data) + paddr - CONFIG_MROM_BASE;
 }
 
 uint32_t DUTMemory::host_to_guest(uint8_t* haddr) const
 {
-    return haddr - reinterpret_cast<uint8_t*>(data) + CONFIG_MBASE;
+    return haddr - reinterpret_cast<uint8_t*>(data) + CONFIG_MROM_BASE;
 }
 
 void SimHandle::init_trace()

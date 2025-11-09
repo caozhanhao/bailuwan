@@ -87,3 +87,15 @@ void paddr_write(paddr_t addr, int len, word_t data) {
 
   out_of_bound(addr);
 }
+
+void copy_to_paddr(paddr_t addr, void *buf, size_t len) {
+  for (int i = 0; i < len; ++i) {
+    paddr_write(addr + i, 1, ((uint8_t *)buf)[i]);
+  }
+}
+
+void copy_from_paddr(void *buf, paddr_t addr, size_t len) {
+  for (int i = 0; i < len; ++i) {
+    ((uint8_t *)buf)[i] = paddr_read(addr + i, 1);
+  }
+}

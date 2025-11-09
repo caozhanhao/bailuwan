@@ -1,9 +1,10 @@
 package top
 
 import chisel3._
+import core._
 import amba._
 
-class TopForSoC extends Module {
+class Top extends Module {
   override val desiredName = "ysyx_25100251"
 
   implicit val p:        CoreParams  = CoreParams()
@@ -16,6 +17,5 @@ class TopForSoC extends Module {
   })
 
   val core = Module(new Core)
-
   core.io <> io
 }

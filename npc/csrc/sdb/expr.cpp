@@ -464,7 +464,7 @@ static word_t eval(int p, int q, bool* success)
                     return 0;
                 }
 
-                if (!mem.in_pmem(val))
+                if (!mem.in_mrom(val))
                 {
                     Log("dereference out of bound, addr: 0x%x", val);
                     *success = false;

@@ -78,7 +78,7 @@ class Core(
   )
   arbiter.io.slave <> xbar.io.master
 
-  val mtime   = Module(new MTime)
+  val mtime = Module(new MTime)
 
   xbar.io.slaves(0) <> io.master
   xbar.io.slaves(1) <> mtime.io

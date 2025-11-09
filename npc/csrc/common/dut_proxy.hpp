@@ -2,6 +2,7 @@
 #define COMMON_DUT_PROXY_HPP
 
 #include "VysyxSoCFull.h"
+#include "VysyxSoCFull___024root.h"
 #include "utils/macro.hpp"
 
 #ifdef TRACE_fst
@@ -73,8 +74,8 @@ public:
     bool is_ready_for_difftest() const;
 };
 
-#define PMEM_LEFT  ((uint32_t)CONFIG_MBASE)
-#define PMEM_RIGHT ((uint32_t)CONFIG_MBASE + CONFIG_MSIZE - 1)
+#define PMEM_LEFT  ((uint32_t)CONFIG_MROM_BASE)
+#define PMEM_RIGHT ((uint32_t)CONFIG_MROM_BASE + CONFIG_MROM_SIZE - 1)
 #define RESET_VECTOR PMEM_LEFT
 
 struct DUTMemory
@@ -88,7 +89,8 @@ struct DUTMemory
     uint32_t read(uint32_t raddr);
     void write(uint32_t waddr, uint32_t wdata, char wmask);
 
-    bool in_pmem(uint32_t addr);
+    bool in_mrom(uint32_t addr);
+    bool in_sram(uint32_t addr);
     uint8_t* guest_to_host(uint32_t paddr) const;
     uint32_t host_to_guest(uint8_t* haddr) const;
 };

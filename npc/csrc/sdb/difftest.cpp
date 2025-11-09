@@ -152,7 +152,7 @@ static bool is_accessing_device()
 
     // See if it is accessing devices.
     auto& mem = sim_handle.get_memory();
-    if (!mem.in_pmem(addr))
+    if (!mem.in_mrom(addr) && !mem.in_sram(addr))
     {
         // printf("Accessing device at addr: " FMT_WORD "\n", addr);
         return true;
