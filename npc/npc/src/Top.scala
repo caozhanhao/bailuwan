@@ -25,7 +25,7 @@ class DebugBoringBundle extends Bundle {
   val difftest_ready = Bool()
 }
 
-class TopForSoC extends Module {
+class Top extends Module {
   override val desiredName = "ysyx_25100251"
 
   implicit val p:        CoreParams  = CoreParams()
