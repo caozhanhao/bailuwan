@@ -24,7 +24,10 @@
 static uint8_t *mrom_base = nullptr;
 static uint8_t *sram_base = nullptr;
 
-static void mrom_io_handler(uint32_t offset, int len, bool is_write) { assert(!is_write && "MROM is read-only"); }
+static void mrom_io_handler(uint32_t offset, int len, bool is_write) {
+  // don't assert since we have to sync mrom when initing difftest.
+  // assert(!is_write && "MROM is read-only");
+}
 static void sram_io_handler(uint32_t offset, int len, bool is_write) { }
 
 void init_ysyxsoc() {
