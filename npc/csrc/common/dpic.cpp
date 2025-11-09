@@ -11,16 +11,7 @@ void flash_read(int32_t addr, int32_t* data) { assert(0); }
 static uint32_t mrom_data[1024];
 void mrom_read(int32_t addr, int32_t* data)
 {
-    static bool inited = false;
-    if (!inited) {
-        inited = true;
-        FILE* file = fopen("/home/caozhanhao/ysyx/workspace/tmp/chartest.bin", "rb");
-        fread(mrom_data, sizeof(mrom_data), 1, file);
-    }
-
-    *data = mrom_data[(addr - 0x20000000) / 4];
-
-    // printf("mrom_read: addr = 0x%08x, data = 0x%08x\n", addr, *data);
+    *data = sim_handle.get_memory().read(addr);
 }
 
 void ebreak_handler()
