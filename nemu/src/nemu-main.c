@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 #ifdef CONFIG_TARGET_AM
   am_init_monitor();
 #else
-  init_monitauipcor(argc, argv);
+  init_monitor(argc, argv);
 #endif
 
   /* Start engine. */
