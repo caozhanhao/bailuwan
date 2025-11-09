@@ -7,8 +7,9 @@ MEMORY {
 }
 
 SECTIONS {
-  . = ALIGN(8);
-  .text : {
+  . = ORIGIN(MROM);
+
+  .text : ALIGN(8) {
     KEEP(*(entry))
     *(.text*)
     *(.rodata*)
