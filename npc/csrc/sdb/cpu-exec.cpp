@@ -2,7 +2,8 @@
 #include "dut_proxy.hpp"
 #include "utils/disasm.hpp"
 
-static void trace_and_difftest() {
+static void trace_and_difftest()
+{
     static Disassembler disasm;
     static bool inited = false;
     if (!inited)
@@ -44,6 +45,12 @@ static void execute(uint64_t n)
         trace_and_difftest();
 
         if (sdb_state != SDBState::Running) break;
+
+        if (sim_stop_requested)
+        {
+            sim_handle.cleanup();
+            exit(-1);
+        }
     }
 }
 
