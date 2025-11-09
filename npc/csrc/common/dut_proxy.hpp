@@ -2,6 +2,7 @@
 #define COMMON_DUT_PROXY_HPP
 
 #include "VysyxSoCFull.h"
+#include "VysyxSoCFull___024root.h"
 #include "utils/macro.hpp"
 
 #ifdef TRACE_fst

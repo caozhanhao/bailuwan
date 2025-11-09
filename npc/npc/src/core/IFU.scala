@@ -82,4 +82,5 @@ class IFU(
   //                     |
   //          difftest_step is called here
   val difftest_ready = RegNext(io.in.valid)
+  dontTouch(difftest_ready)
 }

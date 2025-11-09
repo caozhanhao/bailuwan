@@ -9,8 +9,8 @@ const char* csr_names[4096];
 
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
-    this_dut->io_
-#define BIND(reg) register_bindings[reg] = &this_dut->io_dbg_registers_##reg;
+#define CORE(x) &this_dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__core__DOT__##x
+#define BIND(reg) register_bindings[reg] = CORE(RegFile__DOT__regs_##reg);
     BIND(0)
     BIND(1)
     BIND(2)
@@ -29,14 +29,16 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     BIND(15)
 #undef BIND
 
-    pc_binding = &this_dut->io_dbg_pc;
-    dnpc_binding = &this_dut->io_dbg_dnpc;
-    inst_binding = &this_dut->io_dbg_inst;
-    difftest_ready = &this_dut->io_dbg_difftest_ready;
+    pc_binding = CORE(IFU__DOT__pc);
+    dnpc_binding = &this_dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__core__DOT___WBU_io_out_bits_dnpc;
+    inst_binding = CORE(IDU__DOT__inst);
+    difftest_ready = CORE(IFU__DOT__)
 
 #define CSR_TABLE_ENTRY(name, idx) csr_bindings[idx] = &this_dut->io_dbg_csrs_##name;
     CSR_TABLE
 #undef CSR_TABLE_ENTRY
+
+#undef CORE
 }
 
 uint32_t CPUProxy::curr_inst() const
