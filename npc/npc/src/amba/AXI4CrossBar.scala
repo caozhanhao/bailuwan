@@ -74,7 +74,7 @@ class AXI4CrossBar(
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
       r_idle -> Mux(master.ar.valid, r_busy, r_idle),
-      r_busy -> Mux(r_owner_id === err_idx || r_owner.r.fire, r_idle, r_busy)
+      r_busy -> Mux(r_owner.r.fire, r_idle, r_busy)
     )
   )
 
@@ -108,7 +108,7 @@ class AXI4CrossBar(
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
       w_idle -> Mux(master.aw.valid, w_busy, w_idle),
-      w_busy -> Mux(w_owner_id === err_idx || w_owner.b.fire, w_idle, w_busy)
+      w_busy -> Mux(w_owner.b.fire, w_idle, w_busy)
     )
   )
 
