@@ -393,6 +393,20 @@ int main(int argc, char* argv[])
 {
     Verilated::commandArgs(argc, argv);
 
+    Verilated::addExitCb([](void*)
+    {
+        if (Verilated::gotError())
+        {
+            Log("Terminating due to a verilator error.");
+            printf("PC = " FMT_WORD "\n", sim_handle.get_cpu().pc());
+            printf("Registers:\n");
+            isa_reg_display();
+            printf("CSRs:\n");
+            isa_csr_display();
+            sim_handle.cleanup();
+        }
+    }, nullptr);
+
     signal(SIGINT, sig_handler);
 
     init_regex();
