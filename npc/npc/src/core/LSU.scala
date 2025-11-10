@@ -144,9 +144,15 @@ class LSU(
   val rfault_addr = RegInit(0.U(p.XLEN.W))
   rfault_addr := Mux(io.mem.ar.fire, io.addr, rfault_addr)
 
+  val rfault_resp = RegInit(AXIResp.OKAY)
+  rfault_resp := Mux(io.mem.r.fire, io.mem.r.bits.resp, rfault_resp)
+
   val wfault_addr = RegInit(0.U(p.XLEN.W))
   wfault_addr := Mux(io.mem.aw.fire, io.addr, wfault_addr)
 
-  assert(r_state =/= r_fault, cf"LSU: Read fault at 0x${rfault_addr}%x")
-  assert(w_state =/= w_fault, cf"LSU: Write fault at 0x${wfault_addr}%x")
+  val wfault_resp = RegInit(AXIResp.OKAY)
+  wfault_resp := Mux(io.mem.b.fire, io.mem.b.bits.resp, wfault_resp)
+
+  assert(r_state =/= r_fault, cf"LSU: Read fault at 0x${rfault_addr}%x, resp=${rfault_resp}")
+  assert(w_state =/= w_fault, cf"LSU: Write fault at 0x${wfault_addr}%x, resp=${wfault_resp}")
 }

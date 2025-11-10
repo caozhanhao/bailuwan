@@ -85,6 +85,8 @@ class IFU(
 
   val fault_addr = RegInit(0.U(p.XLEN.W))
   fault_addr := Mux(io.mem.ar.fire, pc, fault_addr)
+  val fault_resp = RegInit(AXIResp.OKAY)
+  fault_resp := Mux(io.mem.r.fire, io.mem.r.bits.resp, fault_resp)
 
-  assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x")
+  assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x, resp=${fault_resp}")
 }
