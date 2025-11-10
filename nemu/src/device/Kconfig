@@ -178,7 +178,7 @@ config SRAM_BASE
 
 config SRAM_SIZE
   hex "Size of the SRAM"
-  default 0x01000000
+  default 0x2000
 endif # HAS_YSYXSOC
 
 endif # DEVICE

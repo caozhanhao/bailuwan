@@ -36,13 +36,13 @@ class IFU(
 
   io.mem.w.bits.last := true.B
 
-  val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)
+  val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(4)
 
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle       -> Mux(io.mem.ar.fire, s_wait_mem, s_idle),
-      s_wait_mem   -> Mux(io.mem.r.fire, s_wait_ready, s_wait_mem),
+      s_wait_mem   -> Mux(io.mem.r.fire, Mux(io.mem.r.bits.resp === AXIResp.OKAY, s_wait_ready, s_fault), s_wait_mem),
       s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
   )
@@ -70,7 +70,6 @@ class IFU(
   io.in.ready  := io.out.ready
   io.out.valid := state === s_wait_ready
 
-
   // Difftest got ready after every pc advance (one instruction done),
   // which is just in.valid delayed one cycle.
   //               ___________
@@ -83,4 +82,11 @@ class IFU(
   //          difftest_step is called here
   val difftest_ready = RegNext(io.in.valid)
   dontTouch(difftest_ready)
+
+  val fault_addr = RegInit(0.U(p.XLEN.W))
+  fault_addr := Mux(io.mem.ar.fire, pc, fault_addr)
+  val fault_resp = RegInit(AXIResp.OKAY)
+  fault_resp := Mux(io.mem.r.fire, io.mem.r.bits.resp, fault_resp)
+
+  assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x, resp=${fault_resp}")
 }

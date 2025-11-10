@@ -22,14 +22,14 @@ class LSU(
   })
 
   // AXI4-Lite
-  io.mem.ar.bits.id := 0.U
-  io.mem.ar.bits.len := 0.U // burst length=1, equivalent to an AxLEN value of zero.
-  io.mem.ar.bits.size := 2.U // 2^2 = 4 bytes
+  io.mem.ar.bits.id    := 0.U
+  io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
   io.mem.ar.bits.burst := 0.U
 
-  io.mem.aw.bits.id := 0.U
-  io.mem.aw.bits.len := 0.U // burst length=1, equivalent to an AxLEN value of zero.
-  io.mem.aw.bits.size := 2.U // 2^2 = 4 bytes
+  io.mem.aw.bits.id    := 0.U
+  io.mem.aw.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.aw.bits.size  := 2.U // 2^2 = 4 bytes
   io.mem.aw.bits.burst := 0.U
 
   io.mem.w.bits.last := true.B
@@ -48,13 +48,13 @@ class LSU(
     )
   )
 
-  val r_idle :: r_wait_mem :: r_wait_ready :: Nil = Enum(3)
+  val r_idle :: r_wait_mem :: r_wait_ready :: r_fault :: Nil = Enum(4)
 
   val r_state = RegInit(r_idle)
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
       r_idle       -> Mux(read_enable && io.mem.ar.fire, r_wait_mem, r_idle),
-      r_wait_mem   -> Mux(io.mem.r.fire, r_wait_ready, r_wait_mem),
+      r_wait_mem   -> Mux(io.mem.r.fire, Mux(io.mem.r.bits.resp === AXIResp.OKAY, r_wait_ready, r_fault), r_wait_mem),
       r_wait_ready -> Mux(io.read_data.fire, r_idle, r_wait_ready)
     )
   )
@@ -122,14 +122,14 @@ class LSU(
     )
   )
 
-  val w_idle :: w_wait_mem :: Nil = Enum(2)
+  val w_idle :: w_wait_mem :: w_fault :: Nil = Enum(3)
 
   val w_state = RegInit(w_idle)
 
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
       w_idle     -> Mux(write_enable && io.mem.aw.fire, w_wait_mem, w_idle),
-      w_wait_mem -> Mux(io.mem.b.fire, w_idle, w_wait_mem)
+      w_wait_mem -> Mux(io.mem.b.fire, Mux(io.mem.b.bits.resp === AXIResp.OKAY, w_idle, w_fault), w_wait_mem)
     )
   )
 
@@ -140,4 +140,19 @@ class LSU(
   io.mem.w.valid      := w_state === w_idle
   io.mem.b.ready      := w_state === w_wait_mem
   io.write_data.ready := io.mem.b.valid
+
+  val rfault_addr = RegInit(0.U(p.XLEN.W))
+  rfault_addr := Mux(io.mem.ar.fire, io.addr, rfault_addr)
+
+  val rfault_resp = RegInit(AXIResp.OKAY)
+  rfault_resp := Mux(io.mem.r.fire, io.mem.r.bits.resp, rfault_resp)
+
+  val wfault_addr = RegInit(0.U(p.XLEN.W))
+  wfault_addr := Mux(io.mem.aw.fire, io.addr, wfault_addr)
+
+  val wfault_resp = RegInit(AXIResp.OKAY)
+  wfault_resp := Mux(io.mem.b.fire, io.mem.b.bits.resp, wfault_resp)
+
+  assert(r_state =/= r_fault, cf"LSU: Read fault at 0x${rfault_addr}%x, resp=${rfault_resp}")
+  assert(w_state =/= w_fault, cf"LSU: Write fault at 0x${wfault_addr}%x, resp=${wfault_resp}")
 }
