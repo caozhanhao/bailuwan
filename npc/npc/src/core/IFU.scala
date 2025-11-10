@@ -36,7 +36,7 @@ class IFU(
 
   io.mem.w.bits.last := true.B
 
-  val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(3)
+  val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(4)
 
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(

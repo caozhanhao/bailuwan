@@ -48,7 +48,7 @@ class LSU(
     )
   )
 
-  val r_idle :: r_wait_mem :: r_wait_ready :: r_fault :: Nil = Enum(3)
+  val r_idle :: r_wait_mem :: r_wait_ready :: r_fault :: Nil = Enum(4)
 
   val r_state = RegInit(r_idle)
   r_state := MuxLookup(r_state, r_idle)(
@@ -122,7 +122,7 @@ class LSU(
     )
   )
 
-  val w_idle :: w_wait_mem :: w_fault :: Nil = Enum(2)
+  val w_idle :: w_wait_mem :: w_fault :: Nil = Enum(3)
 
   val w_state = RegInit(w_idle)
 
