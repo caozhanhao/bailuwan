@@ -71,7 +71,7 @@ class Core(
   val xbar = Module(
     new AXI4CrossBar(
       Seq(
-        (Seq((0x0000_0000L, 0xa000_0048L), (0xa000_0050L, 0xffff_ffffL))), // SoC
+        (Seq((0xa000_0000L, 0xa000_0048L), (0xa000_0050L, 0xffff_ffffL))), // SoC
         (Seq((0xa000_0048L, 0xa000_0050L)))                                // MTime
       )
     )
