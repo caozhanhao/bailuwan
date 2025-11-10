@@ -141,6 +141,12 @@ class LSU(
   io.mem.b.ready      := w_state === w_wait_mem
   io.write_data.ready := io.mem.b.valid
 
-  assert(r_state =/= r_fault, cf"LSU: Read fault at 0x${io.addr}%x")
-  assert(w_state =/= w_fault, cf"LSU: Write fault at 0x${io.addr}%x")
+  val rfault_addr = RegInit(0.U(p.XLEN.W))
+  rfault_addr := Mux(io.mem.ar.fire, io.addr, rfault_addr)
+
+  val wfault_addr = RegInit(0.U(p.XLEN.W))
+  wfault_addr := Mux(io.mem.aw.fire, io.addr, wfault_addr)
+
+  assert(r_state =/= r_fault, cf"LSU: Read fault at 0x${rfault_addr}%x")
+  assert(w_state =/= w_fault, cf"LSU: Write fault at 0x${wfault_addr}%x")
 }

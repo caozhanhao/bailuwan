@@ -53,8 +53,6 @@ class IFU(
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.fire, io.in.bits.dnpc, pc)
 
-  assert(state =/= s_fault, cf"IFU: Access fault at 0x${pc}%x")
-
   io.mem.ar.bits.addr := pc
 
   io.mem.aw.valid := false.B
@@ -84,4 +82,9 @@ class IFU(
   //          difftest_step is called here
   val difftest_ready = RegNext(io.in.valid)
   dontTouch(difftest_ready)
+
+  val fault_addr = RegInit(0.U(p.XLEN.W))
+  fault_addr := Mux(io.mem.ar.fire, pc, fault_addr)
+
+  assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x")
 }
