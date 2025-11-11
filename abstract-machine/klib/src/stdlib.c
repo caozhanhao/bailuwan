@@ -49,7 +49,7 @@ void *malloc(size_t size) {
   alloc_base += size;
 
   // Don't assert since it will call printf, and let the code size grow.
-  assert((uintptr_t)heap.start <= alloc_base && alloc_base < (uintptr_t)heap.end);
+  // assert((uintptr_t)heap.start <= alloc_base && alloc_base < (uintptr_t)heap.end);
   return (void*)old_base;
 }
 
