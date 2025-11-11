@@ -34,7 +34,7 @@ SECTIONS {
     *(.scommon)
   } > sram AT> mrom
 
-  _heap_start = .;
+  _heap_start = ORIGIN(sram);
 
   .stack (NOLOAD) : {
     _stack_start = ORIGIN(sram);
