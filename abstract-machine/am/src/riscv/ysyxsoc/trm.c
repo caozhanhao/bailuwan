@@ -32,14 +32,14 @@ static const char mainargs[MAINARGS_MAX_LEN] = TOSTRING(MAINARGS_PLACEHOLDER); /
 
 void putch(char ch)
 {
-    while (!(inb(UART_BASE + UART_LSR) & (1 << 5)))
-    {
-        // LSR Bit 5 - Transmit FIFO is empty.
-        // ‘1’ – The transmitter FIFO is empty. Generates Transmitter
-        //       Holding Register Empty interrupt. The bit is cleared when data is
-        //       being been written to the transmitter FIFO.
-        // ‘0’ – Otherwise
-    }
+    // while (!(inb(UART_BASE + UART_LSR) & (1 << 5)))
+    // {
+    //     // LSR Bit 5 - Transmit FIFO is empty.
+    //     // ‘1’ – The transmitter FIFO is empty. Generates Transmitter
+    //     //       Holding Register Empty interrupt. The bit is cleared when data is
+    //     //       being been written to the transmitter FIFO.
+    //     // ‘0’ – Otherwise
+    // }
 
     outb(UART_BASE + UART_THR, (uint8_t)ch);
 }
@@ -86,7 +86,7 @@ void init_uart16550()
     // just skip this step.
 
     // 5. Enable desired interrupts by setting appropriate bits in the Interrupt Enable register.
-    // We don't need any interrupts. and the Reset Value is already 00h.
+    // The Reset Value is already 00h.
 }
 
 // Print Welcome Message
