@@ -63,9 +63,6 @@ void init_difftest(size_t img_size)
     ref_difftest_raise_intr = reinterpret_cast<difftest_raise_intr_t>(dlsym(handle, "difftest_raise_intr"));
     assert(ref_difftest_raise_intr);
 
-    ref_difftest_sync_mcycle = reinterpret_cast<difftest_raise_intr_t>(dlsym(handle, "difftest_sync_mcycle"));
-    assert(ref_difftest_sync_mcycle);
-
     using difftest_init_t = void (*)(int);
     auto ref_difftest_init = reinterpret_cast<difftest_init_t>(dlsym(handle, "difftest_init"));
     assert(ref_difftest_init);
@@ -98,6 +95,10 @@ static void checkregs(diff_context_t* ref)
 
     for (int i = 0; i < 4096; i++)
     {
+        // Don't check mcycle
+        if (i == CSR_mcycle)
+            continue;
+
         if (cpu.is_csr_valid(i) && cpu.csr(i) != ref->csr[i])
         {
             Log("csr: addr=%d, name=%s, expected " FMT_WORD ", but got " FMT_WORD "\n", i,
@@ -157,14 +158,6 @@ static bool is_accessing_device()
     }
 
     return false;
-}
-
-static void sync_mcycle(int delta)
-{
-    auto& cpu = sim_handle.get_cpu();
-    uint64_t mcycle = cpu.csr(CSR_mcycle);
-    uint64_t mcycleh = cpu.csr(CSR_mcycleh);
-    ref_difftest_sync_mcycle((mcycle | (mcycleh << 32)) + delta);
 }
 
 // Difftest happens after each cycle, and before the rising edge of the next cycle.
