@@ -38,7 +38,7 @@ SECTIONS {
 
   .stack (NOLOAD) : {
     _stack_start = ORIGIN(sram);
-    . = . + 0x1000;
+    . = . + LENGTH(sram) / 2;
     _stack_end = .;
     _stack_top = ALIGN(_stack_end);
     _stack_pointer = _stack_top;
