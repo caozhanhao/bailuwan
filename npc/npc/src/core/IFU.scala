@@ -23,7 +23,6 @@ class IFU(
     val mem = new AXI4()
   })
 
-  // AXI4-Lite
   io.mem.ar.bits.id    := 0.U
   io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
   io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
