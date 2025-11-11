@@ -9,13 +9,11 @@ using difftest_memcpy_t = void (*)(uint32_t addr, void* buf, size_t n, bool dire
 using difftest_regcpy_t = void (*)(void* dut, bool direction);
 using difftest_exec_t = void (*)(uint64_t n);
 using difftest_raise_intr_t = void (*)(uint64_t NO);
-using difftest_sync_mcycle_t = void (*)(uint64_t mcycle);
 
 difftest_memcpy_t ref_difftest_memcpy;
 difftest_regcpy_t ref_difftest_regcpy;
 difftest_exec_t ref_difftest_exec;
 difftest_raise_intr_t ref_difftest_raise_intr;
-difftest_sync_mcycle_t ref_difftest_sync_mcycle;
 
 struct diff_context_t
 {
@@ -195,9 +193,7 @@ void difftest_step()
         return;
     }
 
-    sync_mcycle(-1); // csrrw takes one cycle
     ref_difftest_exec(1);
-    sync_mcycle(0);
 
     diff_context_t ref_r;
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
