@@ -31,13 +31,13 @@ __attribute__((noinline)) void halt(int code)
 
 void _trm_init()
 {
-    size_t data_size = (uintptr_t) & _edata - (uintptr_t) & _sdata;
-    for (size_t i = 0; i < data_size; ++i)
-        (&_sdata)[i] = (&_sidata)[i];
-
-    unsigned int bss_size = (uintptr_t) & _ebss - (uintptr_t) & _sbss;
-    for (size_t i = 0; i < bss_size; ++i)
-        (&_sbss)[i] = 0;
+//     size_t data_size = (uintptr_t) & _edata - (uintptr_t) & _sdata;
+//     for (size_t i = 0; i < data_size; ++i)
+//         (&_sdata)[i] = (&_sidata)[i];
+//
+//     unsigned int bss_size = (uintptr_t) & _ebss - (uintptr_t) & _sbss;
+//     for (size_t i = 0; i < bss_size; ++i)
+//         (&_sbss)[i] = 0;
 
 
     // uint32_t mvendorid, marchid;
