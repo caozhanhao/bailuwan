@@ -24,7 +24,7 @@ object InstDecodeTable {
   val table = Array(
     // RV32I Base Instruction Set
     LUI    -> List(U, Imm,  Zero, T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    AUIPC  -> List(J, PC,   Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    AUIPC  -> List(U, PC,   Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
     JAL    -> List(J, PC,   Four, T, ALUOp.Add,  BrOp.JAL,  LSUOp.Nop, CSROp.Nop, ALU),
     JALR   -> List(I, PC,   Four, T, ALUOp.Add,  BrOp.JALR, LSUOp.Nop, CSROp.Nop, ALU),
     BEQ    -> List(B, Rs1,  Rs2,  F, ALUOp.Sub,  BrOp.BEQ,  LSUOp.Nop, CSROp.Nop, ALU),
