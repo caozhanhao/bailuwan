@@ -6,8 +6,6 @@ extern char _heap_start;
 extern char _heap_end;
 int main(const char *args);
 
-#define HEAP_SIZE 0x2000 // 8 KB
-
 #define UART_BASE 0x10000000L
 #define UART_TX   0
 
@@ -36,6 +34,9 @@ void _trm_init() {
   // buf[4] = '\0';
 
   // printf("[_trm_init]: %s_%d caozhanhao\n", buf, marchid);
+
+  if (heap.start == 0)
+    halt(2);
 
   int ret = main(mainargs);
   halt(ret);
