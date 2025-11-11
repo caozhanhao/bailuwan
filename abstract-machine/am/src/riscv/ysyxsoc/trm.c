@@ -45,12 +45,12 @@ __attribute__((noinline)) void halt(int code)
 void _trm_init()
 {
     // Initialize .data section
-    size_t data_size = (uintptr_t) & _edata - (uintptr_t) & _sdata;
+    size_t data_size = (uintptr_t)&_edata - (uintptr_t)&_sdata;
     for (size_t i = 0; i < data_size; ++i)
         (&_sdata)[i] = (&_sidata)[i];
 
     // Initialize .bss section
-    unsigned int bss_size = (uintptr_t) & _ebss - (uintptr_t) & _sbss;
+    unsigned int bss_size = (uintptr_t)&_ebss - (uintptr_t)&_sbss;
     for (size_t i = 0; i < bss_size; ++i)
         (&_sbss)[i] = 0;
 
@@ -74,17 +74,30 @@ void _trm_init()
     // We don't need any interrupts. and the Reset Value is already 00h.
 
     // Print Welcome Message
-    uint32_t mvendorid, marchid;
+    // We don't use printf here to reduce code size.
+    putstr("[_trm_init]: ");
+
+    // mvendorid: ysyx
+    uint32_t mvendorid;
     asm volatile ("csrr %0, mvendorid" : "=r"(mvendorid));
+    for (int i = 0; i < 4; i++)
+        putch((mvendorid >> ((3 - i) * 8)) & 0xFF);
+
+    putch('_');
+
+    // marchid: 25100251
+    uint32_t marchid;
     asm volatile ("csrr %0, marchid" : "=r"(marchid));
-    
-    char buf[5];
-    buf[0] = (char)((mvendorid >> 24) & 0xFF);
-    buf[1] = (char)((mvendorid >> 16) & 0xFF);
-    buf[2] = (char)((mvendorid >>  8) & 0xFF);
-    buf[3] = (char)( mvendorid        & 0xFF);
-    buf[4] = '\0';
-    printf("[_trm_init]: %s_%d caozhanhao\n", buf, marchid);
+    char buf[10];
+    int i = 0;
+    while (marchid) {
+        buf[i++] = (char)('0' + (marchid % 10));
+        marchid /= 10;
+    }
+    while (i-- > 0)
+        putch(buf[i]);
+
+    putstr(" caozhanhao\n");
 
     // Call main
     int ret = main(mainargs);
