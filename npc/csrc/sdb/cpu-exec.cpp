@@ -9,18 +9,21 @@ static void trace_and_difftest()
     if (!inited)
         disasm.init();
 
-#ifdef CONFIG_ITRACE
     auto& cpu = sim_handle.get_cpu();
-    auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
-    printf(FMT_WORD ": %s\n", cpu.pc(), str.c_str());
+    if (cpu.is_inst_valid())
+    {
+#ifdef CONFIG_ITRACE
+        auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
+        printf(FMT_WORD ": %s\n", cpu.pc(), str.c_str());
 #endif
 
 #ifdef CONFIG_FTRACE
-    char buf[512];
-    int ret = isa_ftrace_dump(buf, sizeof(buf));
-    if (ret == 0)
-        printf("FTRACE: %s\n", buf);
+        char buf[512];
+        int ret = isa_ftrace_dump(buf, sizeof(buf));
+        if (ret == 0)
+            printf("FTRACE: %s\n", buf);
 #endif
+    }
 
     IFDEF(CONFIG_DIFFTEST, difftest_step());
 
