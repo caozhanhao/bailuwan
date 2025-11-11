@@ -34,7 +34,7 @@ SECTIONS {
     *(.scommon)
   } > sram AT> mrom
 
-  __STACK_SIZE = 0x1000; /* 4K */
+  __STACK_SIZE = 0x800; /* 2K */
 
   .stack (NOLOAD) : {
     _stack_top   = ORIGIN(sram) + LENGTH(sram);
