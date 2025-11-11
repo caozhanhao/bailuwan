@@ -9,9 +9,8 @@ SECTIONS {
   . = ORIGIN(mrom);
 
   .text : ALIGN(8) {
-    KEEP(*(entry))
+    *(entry)
     *(.text*)
-    *(.rodata*)
   } > mrom AT> mrom
   etext = .;
   _etext = .;
