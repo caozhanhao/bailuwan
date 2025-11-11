@@ -90,11 +90,13 @@ class LSU(
     )
   )
 
-  io.mem.aw.bits.size := MuxLookup(io.lsu_op, 0.U(3.W))(
+  io.mem.ar.bits.size := MuxLookup(io.lsu_op, 0.U(3.W))(
     Seq(
-      LSUOp.SB -> 0.U(3.W),
-      LSUOp.SH -> 1.U(3.W),
-      LSUOp.SW -> 2.U(3.W)
+      LSUOp.LB  -> 0.U(3.W),
+      LSUOp.LH  -> 1.U(3.W),
+      LSUOp.LW  -> 2.U(3.W),
+      LSUOp.LBU -> 0.U(3.W),
+      LSUOp.LHU -> 1.U(3.W)
     )
   )
 
