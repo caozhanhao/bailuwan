@@ -114,6 +114,12 @@ bool CPUProxy::is_csr_valid(uint32_t idx) const
 
 bool CPUProxy::is_ready_for_difftest() const
 {
+    static int wait = 10;
+    if (wait > 0)
+    {
+        wait--;
+        return false;
+    }
     return *ifu_state_binding == 0;
     // return *difftest_ready_binding;
 }
