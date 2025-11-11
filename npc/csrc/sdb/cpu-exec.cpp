@@ -2,7 +2,8 @@
 #include "dut_proxy.hpp"
 #include "utils/disasm.hpp"
 
-static bool this_inst_seen = false;
+// If this instruction has been traced.
+static bool inst_has_been_traced = false;
 
 static void trace_and_difftest()
 {
@@ -12,7 +13,7 @@ static void trace_and_difftest()
         disasm.init();
 
     auto& cpu = sim_handle.get_cpu();
-    if (cpu.is_inst_valid() && !this_inst_seen)
+    if (cpu.is_inst_valid() && !inst_has_been_traced)
     {
 #ifdef CONFIG_ITRACE
         auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
@@ -35,7 +36,7 @@ static void trace_and_difftest()
 
 static void execute(uint64_t n)
 {
-    auto & cpu = sim_handle.get_cpu();
+    auto& cpu = sim_handle.get_cpu();
     while (n > 0)
     {
         try
@@ -58,14 +59,17 @@ static void execute(uint64_t n)
             exit(-1);
         }
 
-        if (cpu.is_inst_valid() && !this_inst_seen)
+        // If this instruction is valid and has not been traced, trace it
+        // and set the flag.
+        if (cpu.is_inst_valid() && !inst_has_been_traced)
         {
             --n;
-            this_inst_seen = true;
+            inst_has_been_traced = true;
         }
 
+        // If last instruction done, clear the flag.
         if (cpu.is_ready_for_difftest())
-            this_inst_seen = false;
+            inst_has_been_traced = false;
     }
 }
 
