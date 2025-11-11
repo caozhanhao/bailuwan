@@ -34,8 +34,6 @@ SECTIONS {
     *(.scommon)
   } > sram AT> mrom
 
-  _heap_start = ORIGIN(sram);
-
   .stack (NOLOAD) : {
     _stack_start = ORIGIN(sram);
     . = . + 0x1000; # 4K
@@ -43,6 +41,9 @@ SECTIONS {
     _stack_top = ALIGN(_stack_end);
     _stack_pointer = _stack_top;
   } > sram
+
+  _heap_start = ORIGIN(sram);
+  _heap_end = _stack_top;
 
   end = .;
   _end = .;

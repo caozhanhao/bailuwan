@@ -3,6 +3,7 @@
 #include <klib.h>
 
 extern char _heap_start;
+extern char _heap_end;
 int main(const char *args);
 
 #define HEAP_SIZE 0x2000 // 8 KB
@@ -10,7 +11,7 @@ int main(const char *args);
 #define UART_BASE 0x10000000L
 #define UART_TX   0
 
-Area heap = RANGE(&_heap_start, &_heap_start + HEAP_SIZE);
+Area heap = RANGE(&_heap_start, &_heap_end);
 static const char mainargs[MAINARGS_MAX_LEN] = TOSTRING(MAINARGS_PLACEHOLDER); // defined in CFLAGS
 
 void putch(char ch) {
