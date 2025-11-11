@@ -34,16 +34,19 @@ SECTIONS {
     *(.scommon)
   } > sram AT> mrom
 
+  __STACK_SIZE = 0x1000; /* 4K */
+
   .stack (NOLOAD) : {
-    _stack_start = ORIGIN(sram);
-    . = . + 0x1000; # 4K
-    _stack_end = .;
-    _stack_top = ALIGN(_stack_end);
-    _stack_pointer = _stack_top;
+    _stack_top   = ORIGIN(sram) + LENGTH(sram);
+    _stack_start = _stack_top - __STACK_SIZE;
+    . = _stack_start;
+    . = . + __STACK_SIZE;
+    _stack_end   = .;
+    _stack_pointer = ALIGN(_stack_top);
   } > sram
 
   _heap_start = ORIGIN(sram);
-  _heap_end = _stack_top;
+  _heap_end   = _stack_start;
 
   end = .;
   _end = .;
