@@ -21,15 +21,12 @@ class LSU(
     val mem = new AXI4()
   })
 
-  // AXI4-Lite
   io.mem.ar.bits.id    := 0.U
   io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
-  io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
   io.mem.ar.bits.burst := 0.U
 
   io.mem.aw.bits.id    := 0.U
   io.mem.aw.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
-  io.mem.aw.bits.size  := 2.U // 2^2 = 4 bytes
   io.mem.aw.bits.burst := 0.U
 
   io.mem.w.bits.last := true.B
@@ -93,6 +90,14 @@ class LSU(
     )
   )
 
+  io.mem.aw.bits.size := MuxLookup(io.lsu_op, 0.U(3.W))(
+    Seq(
+      LSUOp.SB -> 0.U(3.W),
+      LSUOp.SH -> 1.U(3.W),
+      LSUOp.SW -> 2.U(3.W)
+    )
+  )
+
   io.read_data.valid := r_state === r_wait_ready
   io.read_data.bits  := selected_loaded_data
 
@@ -119,6 +124,14 @@ class LSU(
       LSUOp.SB -> (io.write_data.bits << (io.addr(1, 0) << 3).asUInt).asUInt,
       LSUOp.SH -> (io.write_data.bits << (io.addr(1, 0) << 3).asUInt).asUInt,
       LSUOp.SW -> io.write_data.bits
+    )
+  )
+
+  io.mem.aw.bits.size := MuxLookup(io.lsu_op, 0.U(3.W))(
+    Seq(
+      LSUOp.SB -> 0.U(3.W),
+      LSUOp.SH -> 1.U(3.W),
+      LSUOp.SW -> 2.U(3.W)
     )
   )
 
