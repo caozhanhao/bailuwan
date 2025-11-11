@@ -23,6 +23,7 @@ SECTIONS {
     _sidata = LOADADDR(.data);
     _sdata = .;
     *(.data*)
+    *(.sdata*)
     _edata = .;
   } > sram AT> mrom
 
