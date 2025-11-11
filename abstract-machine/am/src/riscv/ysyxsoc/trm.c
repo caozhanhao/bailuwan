@@ -5,14 +5,12 @@
 extern char _heap_start;
 int main(const char *args);
 
-extern char _pmem_start;
-#define PMEM_SIZE (128 * 1024 * 1024)
-#define PMEM_END  ((uintptr_t)&_pmem_start + PMEM_SIZE)
+#define HEAP_SIZE 0x2000 // 8 KB
 
 #define UART_BASE 0x10000000L
 #define UART_TX   0
 
-Area heap = RANGE(&_heap_start, PMEM_END);
+Area heap = RANGE(&_heap_start, &_heap_start + HEAP_SIZE);
 static const char mainargs[MAINARGS_MAX_LEN] = TOSTRING(MAINARGS_PLACEHOLDER); // defined in CFLAGS
 
 void putch(char ch) {
