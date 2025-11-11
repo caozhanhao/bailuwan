@@ -26,12 +26,13 @@ static void trace_and_difftest()
         if (ret == 0)
             printf("FTRACE: %s\n", buf);
 #endif
+
+        // Before difftest
+        wp_update();
+        bp_update();
     }
 
     IFDEF(CONFIG_DIFFTEST, difftest_step());
-
-    wp_update();
-    bp_update();
 }
 
 static void execute(uint64_t n)
