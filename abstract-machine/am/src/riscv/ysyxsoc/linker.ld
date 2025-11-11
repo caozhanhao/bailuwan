@@ -40,7 +40,7 @@ SECTIONS {
     _stack_start = _stack_top - 0x800; /* 2 KB */
     . = _stack_start;
     . = . + 0x800;
-    _stack_pointer = _stack_top;
+    _stack_pointer = ALIGN(_stack_top);
   } > sram
 
   _heap_start = ORIGIN(sram);
