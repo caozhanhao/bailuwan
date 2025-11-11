@@ -16,7 +16,6 @@ extern char _ebss;
 int main(const char* args);
 
 #define UART_BASE 0x10000000L
-#define UART_TX   0
 #define UART_THR 0 // w  8
 #define UART_IER 1 // rw 8
 #define UART_IIR 2 // r  8
@@ -33,7 +32,16 @@ static const char mainargs[MAINARGS_MAX_LEN] = TOSTRING(MAINARGS_PLACEHOLDER); /
 
 void putch(char ch)
 {
-    *(volatile char*)(UART_BASE + UART_TX) = ch;
+    while (!(inb(UART_BASE + UART_LSR) & (1 << 5)))
+    {
+        // LSR Bit 5 - Transmit FIFO is empty.
+        // ‘1’ – The transmitter FIFO is empty. Generates Transmitter
+        //       Holding Register Empty interrupt. The bit is cleared when data is
+        //       being been written to the transmitter FIFO.
+        // ‘0’ – Otherwise
+    }
+
+    outb(UART_BASE + UART_THR, (uint8_t)ch);
 }
 
 __attribute__((noinline)) void halt(int code)
