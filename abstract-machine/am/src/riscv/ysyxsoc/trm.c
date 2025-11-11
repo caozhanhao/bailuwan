@@ -35,9 +35,6 @@ void _trm_init() {
 
   // printf("[_trm_init]: %s_%d caozhanhao\n", buf, marchid);
 
-  if (heap.start == 0)
-    halt(9);
-
   int ret = main(mainargs);
   halt(ret);
 }
