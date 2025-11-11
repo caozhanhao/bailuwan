@@ -42,7 +42,7 @@ SECTIONS {
     _stack_pointer = _stack_top;
   } > sram
 
-  _heap_start = ORIGIN(sram);
+  _heap_start = 0x0f000000;
   _heap_end = _stack_start;
 
   end = .;
