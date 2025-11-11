@@ -22,7 +22,7 @@ SECTIONS {
 
   .data : {
     *(.data*)
-  } > mrom AT> sram
+  } > sram AT> mrom
 
   edata = .;
   _data = .;
@@ -32,13 +32,13 @@ SECTIONS {
     *(.bss*)
     *(.sbss*)
     *(.scommon)
-  } > mrom AT> sram
+  } > sram AT> mrom
 
   _heap_start = .;
 
   .stack (NOLOAD) : {
     _stack_start = ORIGIN(sram);
-    . = . + LENGTH(sram);
+    . = . + 0x1000;
     _stack_end = .;
     _stack_top = ALIGN(_stack_end);
     _stack_pointer = _stack_top;
