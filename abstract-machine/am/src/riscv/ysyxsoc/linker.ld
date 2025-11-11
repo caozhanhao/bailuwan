@@ -9,9 +9,8 @@ SECTIONS {
   . = ORIGIN(mrom);
 
   .text : ALIGN(8) {
-    KEEP(*(entry))
+    *(entry)
     *(.text*)
-    *(.rodata*)
   } > mrom AT> mrom
   etext = .;
   _etext = .;
@@ -21,28 +20,31 @@ SECTIONS {
   } > mrom AT> mrom
 
   .data : {
+    _sidata = LOADADDR(.data);
+    _sdata = .;
     *(.data*)
-  } > mrom AT> sram
+    *(.sdata*)
+    _edata = .;
+  } > sram AT> mrom
 
-  edata = .;
-  _data = .;
-
-  .bss : {
-	_bss_start = .;
+  .bss (NOLOAD): {
+    _sbss = .;
     *(.bss*)
     *(.sbss*)
     *(.scommon)
-  } > mrom AT> sram
-
-  _heap_start = .;
+    _ebss = .;
+  } > sram
 
   .stack (NOLOAD) : {
-    _stack_start = ORIGIN(sram);
-    . = . + LENGTH(sram);
-    _stack_end = .;
-    _stack_top = ALIGN(_stack_end);
+    _stack_top   = ORIGIN(sram) + LENGTH(sram);
+    _stack_start = _stack_top - 0x800; /* 2 KB */
+    . = _stack_start;
+    . = . + 0x800;
     _stack_pointer = _stack_top;
   } > sram
+
+  _heap_start = ORIGIN(sram);
+  _heap_end = _stack_start;
 
   end = .;
   _end = .;

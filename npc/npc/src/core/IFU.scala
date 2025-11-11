@@ -23,7 +23,6 @@ class IFU(
     val mem = new AXI4()
   })
 
-  // AXI4-Lite
   io.mem.ar.bits.id    := 0.U
   io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
   io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
@@ -70,6 +69,13 @@ class IFU(
   io.in.ready  := io.out.ready
   io.out.valid := state === s_wait_ready
 
+  val fault_addr = RegInit(0.U(p.XLEN.W))
+  fault_addr := Mux(io.mem.ar.fire, pc, fault_addr)
+  val fault_resp = RegInit(AXIResp.OKAY)
+  fault_resp := Mux(io.mem.r.fire, io.mem.r.bits.resp, fault_resp)
+
+  assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x, resp=${fault_resp}")
+
   // Difftest got ready after every pc advance (one instruction done),
   // which is just in.valid delayed one cycle.
   //               ___________
@@ -82,11 +88,4 @@ class IFU(
   //          difftest_step is called here
   val difftest_ready = RegNext(io.in.valid)
   dontTouch(difftest_ready)
-
-  val fault_addr = RegInit(0.U(p.XLEN.W))
-  fault_addr := Mux(io.mem.ar.fire, pc, fault_addr)
-  val fault_resp = RegInit(AXIResp.OKAY)
-  fault_resp := Mux(io.mem.r.fire, io.mem.r.bits.resp, fault_resp)
-
-  assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x, resp=${fault_resp}")
 }

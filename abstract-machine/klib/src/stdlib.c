@@ -48,7 +48,9 @@ void *malloc(size_t size) {
   uintptr_t old_base = alloc_base;
   alloc_base += size;
 
-  assert((uintptr_t)heap.start <= alloc_base && alloc_base < (uintptr_t)heap.end);
+  if ((uintptr_t)heap.start <= alloc_base && alloc_base < (uintptr_t)heap.end)
+    return NULL;
+
   return (void*)old_base;
 }
 

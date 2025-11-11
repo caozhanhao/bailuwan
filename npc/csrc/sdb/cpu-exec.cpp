@@ -2,6 +2,9 @@
 #include "dut_proxy.hpp"
 #include "utils/disasm.hpp"
 
+// If this instruction has been traced.
+static bool inst_has_been_traced = false;
+
 static void trace_and_difftest()
 {
     static Disassembler disasm;
@@ -9,18 +12,21 @@ static void trace_and_difftest()
     if (!inited)
         disasm.init();
 
-#ifdef CONFIG_ITRACE
     auto& cpu = sim_handle.get_cpu();
-    auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
-    printf(FMT_WORD ": %s\n", cpu.pc(), str.c_str());
+    if (cpu.is_inst_valid() && !inst_has_been_traced)
+    {
+#ifdef CONFIG_ITRACE
+        auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
+        printf(FMT_WORD ": %s\n", cpu.pc(), str.c_str());
 #endif
 
 #ifdef CONFIG_FTRACE
-    char buf[512];
-    int ret = isa_ftrace_dump(buf, sizeof(buf));
-    if (ret == 0)
-        printf("FTRACE: %s\n", buf);
+        char buf[512];
+        int ret = isa_ftrace_dump(buf, sizeof(buf));
+        if (ret == 0)
+            printf("FTRACE: %s\n", buf);
 #endif
+    }
 
     IFDEF(CONFIG_DIFFTEST, difftest_step());
 
@@ -30,7 +36,8 @@ static void trace_and_difftest()
 
 static void execute(uint64_t n)
 {
-    for (; n > 0; n--)
+    auto& cpu = sim_handle.get_cpu();
+    while (n > 0)
     {
         try
         {
@@ -51,6 +58,18 @@ static void execute(uint64_t n)
             sim_handle.cleanup();
             exit(-1);
         }
+
+        // If this instruction is valid and has not been traced, trace it
+        // and set the flag.
+        if (cpu.is_inst_valid() && !inst_has_been_traced)
+        {
+            --n;
+            inst_has_been_traced = true;
+        }
+
+        // If last instruction done, clear the flag.
+        if (cpu.is_ready_for_difftest())
+            inst_has_been_traced = false;
     }
 }
 

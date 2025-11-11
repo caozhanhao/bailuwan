@@ -30,9 +30,10 @@ void CPUProxy::bind(TOP_NAME* this_dut)
 #undef BIND
 
     pc_binding = CORE(IFU__DOT__pc);
+    ifu_state_binding = CORE(IFU__DOT__state);
     dnpc_binding = CORE(_WBU_io_out_bits_dnpc);
     inst_binding = CORE(IDU__DOT__inst);
-    difftest_ready = CORE(IFU__DOT__difftest_ready);
+    difftest_ready_binding = CORE(IFU__DOT__difftest_ready);
 
     // CSR_TABLE_ENTRY(mstatus, 0x300)
     // CSR_TABLE_ENTRY(mtvec, 0x305)
@@ -113,7 +114,12 @@ bool CPUProxy::is_csr_valid(uint32_t idx) const
 
 bool CPUProxy::is_ready_for_difftest() const
 {
-    return *difftest_ready;
+    return *difftest_ready_binding;
+}
+
+bool CPUProxy::is_inst_valid() const
+{
+    return *ifu_state_binding == 2;
 }
 
 void CPUProxy::dump_registers(std::ostream& os)
