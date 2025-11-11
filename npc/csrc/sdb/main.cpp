@@ -122,6 +122,12 @@ static int cmd_x(char* args)
 
     auto& mem = sim_handle.get_memory();
 
+    if (!mem.in_mrom(res) || !mem.in_mrom(res + 4 * n))
+    {
+        printf("x: Address out of range.\n");
+        return 0;
+    }
+
     for (word_t i = 0; i < n; i++)
         printf("0x%x: 0x%08x\n", res + i * 4, mem.read(res + i * 4));
 
