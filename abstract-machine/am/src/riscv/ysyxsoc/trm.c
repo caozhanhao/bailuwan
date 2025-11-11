@@ -32,14 +32,14 @@ static const char mainargs[MAINARGS_MAX_LEN] = TOSTRING(MAINARGS_PLACEHOLDER); /
 
 void putch(char ch)
 {
-    // while (!(inb(UART_BASE + UART_LSR) & (1 << 5)))
-    // {
-    //     // LSR Bit 5 - Transmit FIFO is empty.
-    //     // ‘1’ – The transmitter FIFO is empty. Generates Transmitter
-    //     //       Holding Register Empty interrupt. The bit is cleared when data is
-    //     //       being been written to the transmitter FIFO.
-    //     // ‘0’ – Otherwise
-    // }
+    while (!(inb(UART_BASE + UART_LSR) & (1 << 5)))
+    {
+        // LSR Bit 5 - Transmit FIFO is empty.
+        // ‘1’ – The transmitter FIFO is empty. Generates Transmitter
+        //       Holding Register Empty interrupt. The bit is cleared when data is
+        //       being been written to the transmitter FIFO.
+        // ‘0’ – Otherwise
+    }
 
     outb(UART_BASE + UART_THR, (uint8_t)ch);
 }
