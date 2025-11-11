@@ -30,7 +30,7 @@ static void trace_and_difftest()
 
 static void execute(uint64_t n)
 {
-    for (; n > 0; n--)
+    while (n > 0)
     {
         try
         {
@@ -51,6 +51,9 @@ static void execute(uint64_t n)
             sim_handle.cleanup();
             exit(-1);
         }
+
+        if (sim_handle.get_cpu().is_ready_for_difftest())
+            --n;
     }
 }
 
