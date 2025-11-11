@@ -2,6 +2,8 @@
 #include "dut_proxy.hpp"
 #include "utils/disasm.hpp"
 
+static bool this_inst_seen = false;
+
 static void trace_and_difftest()
 {
     static Disassembler disasm;
@@ -10,7 +12,7 @@ static void trace_and_difftest()
         disasm.init();
 
     auto& cpu = sim_handle.get_cpu();
-    if (cpu.is_inst_valid())
+    if (cpu.is_inst_valid() && !this_inst_seen)
     {
 #ifdef CONFIG_ITRACE
         auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
@@ -33,6 +35,7 @@ static void trace_and_difftest()
 
 static void execute(uint64_t n)
 {
+    auto & cpu = sim_handle.get_cpu();
     while (n > 0)
     {
         try
@@ -55,8 +58,14 @@ static void execute(uint64_t n)
             exit(-1);
         }
 
-        if (sim_handle.get_cpu().is_inst_valid())
+        if (cpu.is_inst_valid() && !this_inst_seen)
+        {
             --n;
+            this_inst_seen = true;
+        }
+
+        if (cpu.is_ready_for_difftest())
+            this_inst_seen = false;
     }
 }
 
