@@ -114,7 +114,7 @@ bool CPUProxy::is_csr_valid(uint32_t idx) const
 
 bool CPUProxy::is_ready_for_difftest() const
 {
-    static int wait = 10;
+    static int wait = 100;
     if (wait > 0)
     {
         wait--;
