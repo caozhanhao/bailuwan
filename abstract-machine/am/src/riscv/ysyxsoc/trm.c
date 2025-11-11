@@ -42,7 +42,7 @@ __attribute__((noinline)) void halt(int code)
     while (1);
 }
 
-void _trm_init()
+void init_memory()
 {
     // Initialize .data section
     size_t data_size = (uintptr_t)&_edata - (uintptr_t)&_sdata;
@@ -53,7 +53,10 @@ void _trm_init()
     unsigned int bss_size = (uintptr_t)&_ebss - (uintptr_t)&_sbss;
     for (size_t i = 0; i < bss_size; ++i)
         (&_sbss)[i] = 0;
+}
 
+void init_uart16550()
+{
     // Initialize UART 16550
     // 1. Set the Line Control Register to the desired line control parameters.
     //    Set bit 7 to ‘1’ to allow access to the Divisor Latches.
@@ -72,7 +75,10 @@ void _trm_init()
     // just skip this step.
     // 5. Enable desired interrupts by setting appropriate bits in the Interrupt Enable register.
     // We don't need any interrupts. and the Reset Value is already 00h.
+}
 
+void print_welcome_msg()
+{
     // Print Welcome Message
     // We don't use printf here to reduce code size.
     putstr("[_trm_init]: ");
@@ -90,7 +96,8 @@ void _trm_init()
     asm volatile ("csrr %0, marchid" : "=r"(marchid));
     char buf[10];
     int i = 0;
-    while (marchid) {
+    while (marchid)
+    {
         buf[i++] = (char)('0' + (marchid % 10));
         marchid /= 10;
     }
@@ -98,10 +105,13 @@ void _trm_init()
         putch(buf[i]);
 
     putstr(" caozhanhao\n");
+}
 
-    // Call main
+void _trm_init()
+{
+    init_memory();
+    init_uart16550();
+    print_welcome_msg();
     int ret = main(mainargs);
-
-    // Halt
     halt(ret);
 }
