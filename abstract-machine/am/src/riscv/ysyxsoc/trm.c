@@ -64,8 +64,8 @@ void init_uart16550()
     outb(UART_BASE + UART_LCR, orignal_LCR | (1 << 7));
 
     // 2. Set the Divisor Latches, MSB first, LSB next.
-    outb(UART_BASE + UART_DIVISOR_LATCH_2, 0xf0);
-    outb(UART_BASE + UART_DIVISOR_LATCH_1, 0x00);
+    outb(UART_BASE + UART_DIVISOR_LATCH_2, 0x00);
+    outb(UART_BASE + UART_DIVISOR_LATCH_1, 0x01);
 
     // 3. Set bit 7 of LCR to ‘0’ to disable access to Divisor Latches.
     //    At this time the transmission engine starts working and data can be sent and received.
