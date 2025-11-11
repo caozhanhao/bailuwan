@@ -55,33 +55,37 @@ void init_memory()
         (&_sbss)[i] = 0;
 }
 
+// Initialize UART 16550
 void init_uart16550()
 {
-    // Initialize UART 16550
     // 1. Set the Line Control Register to the desired line control parameters.
     //    Set bit 7 to ‘1’ to allow access to the Divisor Latches.
     uint8_t orignal_LCR = inb(UART_BASE + UART_LCR);
     outb(UART_BASE + UART_LCR, orignal_LCR | (1 << 7));
+
     // 2. Set the Divisor Latches, MSB first, LSB next.
     outb(UART_BASE + UART_DIVISOR_LATCH_2, 0x00);
-    outb(UART_BASE + UART_DIVISOR_LATCH_1, 0x01);
+    outb(UART_BASE + UART_DIVISOR_LATCH_1, 0x00);
+
     // 3. Set bit 7 of LCR to ‘0’ to disable access to Divisor Latches.
     //    At this time the transmission engine starts working and data can be sent and received.
     outb(UART_BASE + UART_LCR, orignal_LCR);
+
     // 4. Set the FIFO trigger level.
     //    Generally, higher trigger level values produce less interrupt to the system,
     //    so setting it to 14 bytes is recommended if the system responds fast enough.
     // The Reset Value is 11000000b, which defines FIFO trigger level as 14 bytes, so we
     // just skip this step.
+
     // 5. Enable desired interrupts by setting appropriate bits in the Interrupt Enable register.
     // We don't need any interrupts. and the Reset Value is already 00h.
 }
 
+// Print Welcome Message
+// We don't use printf here to reduce code size.
 void print_welcome_msg()
 {
-    // Print Welcome Message
-    // We don't use printf here to reduce code size.
-    putstr("[_trm_init]: ");
+    putstr("[trm]: ");
 
     // mvendorid: ysyx
     uint32_t mvendorid;
