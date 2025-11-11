@@ -52,7 +52,7 @@ static void execute(uint64_t n)
             exit(-1);
         }
 
-        // if (sim_handle.get_cpu().is_ready_for_difftest())
+        if (sim_handle.get_cpu().is_inst_valid())
             --n;
     }
 }
