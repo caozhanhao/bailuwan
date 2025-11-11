@@ -21,18 +21,19 @@ SECTIONS {
   } > mrom AT> mrom
 
   .data : {
+    _sidata = LOADADDR(.data);
+    _sdata = .;
     *(.data*)
+    _edata = .;
   } > sram AT> mrom
 
-  edata = .;
-  _data = .;
-
-  .bss : {
-	_bss_start = .;
+  .bss (NOLOAD): {
+    _sbss = .;
     *(.bss*)
     *(.sbss*)
     *(.scommon)
-  } > sram AT> mrom
+    _ebss = .;
+  } > sram
 
   .stack (NOLOAD) : {
     _stack_top   = ORIGIN(sram) + LENGTH(sram);
