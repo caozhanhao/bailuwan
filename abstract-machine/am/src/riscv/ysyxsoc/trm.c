@@ -16,7 +16,7 @@ void putch(char ch) {
   *(volatile char *)(UART_BASE + UART_TX) = ch;
 }
 
-void halt(int code) {
+__attribute__((noinline)) void halt(int code) {
   asm volatile ("ebreak");
   while (1);
 }
