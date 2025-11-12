@@ -35,15 +35,6 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     inst_binding = CORE(IDU__DOT__inst);
     difftest_ready_binding = CORE(IFU__DOT__difftest_ready);
 
-    // CSR_TABLE_ENTRY(mstatus, 0x300)
-    // CSR_TABLE_ENTRY(mtvec, 0x305)
-    // CSR_TABLE_ENTRY(mepc, 0x341)
-    // CSR_TABLE_ENTRY(mcause, 0x342)
-    // CSR_TABLE_ENTRY(mcycle, 0xb00)
-    // CSR_TABLE_ENTRY(mcycleh, 0xb80)
-    // CSR_TABLE_ENTRY(mvendorid, 0xf11)
-    // CSR_TABLE_ENTRY(marchid, 0xf12)
-
     // We can't use CSR_TABLE_ENTRY here because some csr needs special handling
 #define BIND(name) csr_bindings[CSR_##name] = CORE(EXU__DOT__csr_file__DOT__##name);
 
@@ -57,8 +48,9 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     static uint32_t mvendorid = 0x79737978;
     static uint32_t marchid = 25100251;
 
-    csr_bindings[CSR_mcycle] = reinterpret_cast<uint32_t*>(mcycle);
-    csr_bindings[CSR_mcycleh] = reinterpret_cast<uint32_t*>(mcycle + 4);
+    uint32_t* mcycle32 = reinterpret_cast<uint32_t*>(mcycle);
+    csr_bindings[CSR_mcycle] = mcycle32;
+    csr_bindings[CSR_mcycleh] = mcycle32 + 1;
     csr_bindings[CSR_mvendorid] = &mvendorid;
     csr_bindings[CSR_marchid] = &marchid;
 
