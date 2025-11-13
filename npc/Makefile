@@ -98,6 +98,7 @@ endif
 ## 5. Compilation Rules
 
 $(VERILOG_STAMP): $(CHISEL_SRCS)
+	$(MAKE) -C $(YSYXSOC_HOME) verilog
 	@rm -rf $(BUILD_DIR)/*.sv
 	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
 	# rename some ports to connect ysyxSoC
@@ -150,6 +151,9 @@ idea:
 clean:
 	-rm -rf $(BUILD_DIR)
 
+clean-all:
+	-rm -rf $(BUILD_DIR)
+	-rm -rf $(YSYXSOC_HOME)/build/
 
 .PHONY: test verilog reformat checkformat clean
 -include ../Makefile
