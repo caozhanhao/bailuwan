@@ -6,7 +6,11 @@
 #include "dut_proxy.hpp"
 
 extern "C" {
-void flash_read(int32_t addr, int32_t* data) { assert(0); }
+void flash_read(int32_t addr, int32_t* data)
+{
+    *data = 25100251;
+    // assert(0);
+}
 
 static uint32_t mrom_data[1024];
 void mrom_read(int32_t addr, int32_t* data)
