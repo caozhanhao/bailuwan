@@ -9,7 +9,7 @@ extern "C" {
 void flash_read(int32_t addr, int32_t* data)
 {
     printf("flash_read addr = 0x%08x\n", addr);
-    *data = 25100251;
+    *data = 1;
     // assert(0);
 }
 
