@@ -44,7 +44,7 @@ endif
 ## 2. General Compilation Targets
 
 ### Create the destination directory (`build`)
-BUILD_DIR = ./build
+BUILD_DIR = $(abspath ./build)
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 $(shell mkdir -p $(BUILD_DIR))
 
@@ -149,6 +149,7 @@ idea:
 ### Clean
 clean:
 	-rm -rf $(BUILD_DIR)
+
 
 .PHONY: test verilog reformat checkformat clean
 -include ../Makefile
