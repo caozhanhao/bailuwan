@@ -58,8 +58,7 @@ CSRCS ?=
 INC_PATH ?=
 SOC_VSRCS ?=
 SOC_VINC_PATH ?=
-CHISEL_DEPS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
-CHISEL_DEPS += $(shell find $(YSYXSOC_HOME)/src -name "*.scala")
+CHISEL_SRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 
 
 
@@ -98,8 +97,7 @@ endif
 
 ## 5. Compilation Rules
 
-$(VERILOG_STAMP): $(CHISEL_DEPS)
-	$(MAKE) -C $(YSYXSOC_HOME) verilog
+$(VERILOG_STAMP): $(CHISEL_SRCS)
 	@rm -rf $(BUILD_DIR)/*.sv
 	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
 	# rename some ports to connect ysyxSoC
@@ -108,6 +106,7 @@ $(VERILOG_STAMP): $(CHISEL_DEPS)
 
 
 $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
+	$(MAKE) -C $(YSYXSOC_HOME) verilog
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) $(SOC_VINC_FLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(SOC_VSRCS) $(CSRCS) $(LINKAGE) \
