@@ -59,6 +59,7 @@ INC_PATH ?=
 SOC_VSRCS ?=
 SOC_VINC_PATH ?=
 CHISEL_SRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
+SOC_CHISEL_DEPS = $(shell find $(YSYXSOC_HOME)/src -name "*.scala")
 
 
 
@@ -105,7 +106,7 @@ $(VERILOG_STAMP): $(CHISEL_SRCS)
 	@touch $@
 
 
-$(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP)
+$(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP) $(SOC_CHISEL_DEPS)
 	$(MAKE) -C $(YSYXSOC_HOME) verilog
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) $(SOC_VINC_FLAGS) \
