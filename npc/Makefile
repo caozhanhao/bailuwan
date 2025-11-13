@@ -98,7 +98,7 @@ endif
 
 ## 5. Compilation Rules
 
-$(VERILOG_STAMP): CHISEL_DEPS
+$(VERILOG_STAMP): $(CHISEL_DEPS)
 	$(MAKE) -C $(YSYXSOC_HOME) verilog
 	@rm -rf $(BUILD_DIR)/*.sv
 	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
