@@ -186,7 +186,10 @@ config FLASH_BASE
 
 config FLASH_SIZE
   hex "Size of the FLASH"
-  default 0x10000000
+  # 0x10000000 is too big. Besides, only low 24-bit will be used by APBSPI.
+  # So access to address that can't be contained in 24-bit should also be
+  # considered invalid in difftest.
+  default 0x1000000
 
 endif # HAS_YSYXSOC
 
