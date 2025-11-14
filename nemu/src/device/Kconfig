@@ -179,6 +179,18 @@ config SRAM_BASE
 config SRAM_SIZE
   hex "Size of the SRAM"
   default 0x2000
+
+config FLASH_BASE
+  hex "Physical address of the FLASH"
+  default 0x30000000
+
+config FLASH_SIZE
+  hex "Size of the FLASH"
+  # 0x10000000 is too big. Besides, only low 24-bit will be used by APBSPI.
+  # So access to address that can't be contained in 24-bit should also be
+  # considered invalid in difftest.
+  default 0x1000000
+
 endif # HAS_YSYXSOC
 
 endif # DEVICE

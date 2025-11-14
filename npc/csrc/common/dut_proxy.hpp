@@ -76,13 +76,11 @@ public:
     bool is_inst_valid() const;
 };
 
-#define PMEM_LEFT  ((uint32_t)CONFIG_MROM_BASE)
-#define PMEM_RIGHT ((uint32_t)CONFIG_MROM_BASE + CONFIG_MROM_SIZE - 1)
-#define RESET_VECTOR PMEM_LEFT
-
 struct DUTMemory
 {
-    uint32_t* data{};
+    uint32_t* flash_data{};
+    uint32_t* mrom_data{}; // unused
+
     size_t img_size{};
 
     void init(const std::string& filename);
@@ -91,8 +89,11 @@ struct DUTMemory
     uint32_t read(uint32_t raddr);
     void write(uint32_t waddr, uint32_t wdata, char wmask);
 
-    bool in_mrom(uint32_t addr);
-    bool in_sram(uint32_t addr);
+    bool in_mrom(uint32_t addr) const;
+    bool in_sram(uint32_t addr) const;
+    bool in_flash(uint32_t addr) const;
+    bool in_device(uint32_t addr) const;
+    bool in_sim_mem(uint32_t addr) const; // flash + mrom
     uint8_t* guest_to_host(uint32_t paddr) const;
     uint32_t host_to_guest(uint8_t* haddr) const;
 };

@@ -23,16 +23,15 @@
 
 static uint8_t *mrom_base = nullptr;
 static uint8_t *sram_base = nullptr;
-
-static void mrom_io_handler(uint32_t offset, int len, bool is_write) {
-  // don't assert since we have to sync mrom when initing difftest.
-  // assert(!is_write && "MROM is read-only");
-}
-static void sram_io_handler(uint32_t offset, int len, bool is_write) { }
+static uint8_t *flash_base = nullptr;
 
 void init_ysyxsoc() {
   mrom_base = new_space(CONFIG_MROM_SIZE);
   sram_base = new_space(CONFIG_SRAM_SIZE);
-  add_mmio_map("ysyxsoc_mrom", CONFIG_MROM_BASE, mrom_base, CONFIG_MROM_SIZE, mrom_io_handler);
-  add_mmio_map("ysyxsoc_sram", CONFIG_SRAM_BASE, sram_base, CONFIG_SRAM_SIZE, sram_io_handler);
+  flash_base = new_space(CONFIG_FLASH_SIZE);
+
+  // Don't use a handler to assert !write, because we need to init difftest.
+  add_mmio_map("ysyxsoc_mrom", CONFIG_MROM_BASE, mrom_base, CONFIG_MROM_SIZE, nullptr);
+  add_mmio_map("ysyxsoc_sram", CONFIG_SRAM_BASE, sram_base, CONFIG_SRAM_SIZE, nullptr);
+  add_mmio_map("ysyxsoc_flash", CONFIG_FLASH_BASE, flash_base, CONFIG_FLASH_SIZE, nullptr);
 }

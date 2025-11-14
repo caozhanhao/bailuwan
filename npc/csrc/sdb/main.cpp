@@ -122,7 +122,7 @@ static int cmd_x(char* args)
 
     auto& mem = sim_handle.get_memory();
 
-    if (!mem.in_mrom(res) || !mem.in_mrom(res + 4 * n))
+    if (!mem.in_sim_mem(res) || !mem.in_sim_mem(res + 4 * n))
     {
         printf("x: Address out of range.\n");
         return 0;

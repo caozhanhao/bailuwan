@@ -8,6 +8,16 @@
 #define CONFIG_MROM_SIZE 0x1000
 #define CONFIG_SRAM_BASE 0x0f000000
 #define CONFIG_SRAM_SIZE 0x01000000
+#define CONFIG_FLASH_BASE 0x30000000
+
+// FLASH's address space is 0x10000000 bytes, but only low 24-bit in address
+// is used in APBSPI, so access to address that can't be contained in 24-bit should also be
+// considered invalid. Thus, we set the FLASH_SIZE as 0x1000000(= 2^24).
+#define CONFIG_FLASH_SIZE 0x1000000
+
+#define PMEM_LEFT  ((uint32_t)CONFIG_FLASH_BASE)
+#define PMEM_RIGHT ((uint32_t)CONFIG_FLASH_BASE + CONFIG_FLASH_SIZE - 1)
+#define RESET_VECTOR PMEM_LEFT
 
 // #define CONFIG_MTRACE 1
 

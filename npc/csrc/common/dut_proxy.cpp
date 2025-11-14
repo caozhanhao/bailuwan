@@ -130,21 +130,21 @@ void DUTMemory::init(const std::string& filename)
     FILE* fp = fopen(filename.c_str(), "rb");
     assert(fp);
 
-    data = static_cast<uint32_t*>(malloc(CONFIG_MROM_BASE));
-    memset(data, 0, CONFIG_MROM_BASE);
+    flash_data = static_cast<uint32_t*>(malloc(CONFIG_FLASH_SIZE));
+    memset(flash_data, 0, CONFIG_FLASH_SIZE);
 
-    size_t bytes_read = fread(data, 1, CONFIG_MROM_BASE, fp);
+    size_t bytes_read = fread(flash_data, 1, CONFIG_FLASH_SIZE, fp);
     if (bytes_read == 0)
     {
         if (ferror(stdin))
         {
             perror("fread");
-            free(data);
+            free(flash_data);
             exit(-1);
         }
     }
 
-    img_size = CONFIG_MROM_SIZE;
+    img_size = CONFIG_FLASH_SIZE;
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
@@ -157,9 +157,17 @@ void DUTMemory::init(const std::string& filename)
 
 void DUTMemory::destroy()
 {
-    if (data)
-        free(data);
-    data = nullptr;
+    if (flash_data)
+    {
+        free(flash_data);
+        flash_data = nullptr;
+    }
+
+    if (mrom_data)
+    {
+        free(mrom_data);
+        mrom_data = nullptr;
+    }
 }
 
 uint32_t DUTMemory::read(uint32_t raddr)
@@ -193,7 +201,7 @@ uint32_t DUTMemory::read(uint32_t raddr)
     }
 
     // Memory
-    if (!in_mrom(uaddr))
+    if (!in_sim_mem(uaddr))
     {
         auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
@@ -207,12 +215,11 @@ uint32_t DUTMemory::read(uint32_t raddr)
 
 void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
 {
-    assert(false && "Writing to mrom");
     auto uaddr = static_cast<uint32_t>(waddr);
     uaddr &= ~0x3u;
 
     // Memory
-    if (!in_mrom(uaddr))
+    if (!in_sim_mem(uaddr))
     {
         auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, waddr = 0x%08x\n", cpu.pc(), waddr);
@@ -230,24 +237,52 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
     }
 }
 
-bool DUTMemory::in_mrom(uint32_t addr)
+bool DUTMemory::in_mrom(uint32_t addr) const
 {
     return addr - CONFIG_MROM_BASE < CONFIG_MROM_SIZE;
 }
 
-bool DUTMemory::in_sram(uint32_t addr)
+bool DUTMemory::in_sram(uint32_t addr) const
 {
     return addr - CONFIG_SRAM_BASE < CONFIG_SRAM_SIZE;
 }
 
+bool DUTMemory::in_flash(uint32_t addr) const
+{
+    return addr - CONFIG_FLASH_BASE < CONFIG_FLASH_SIZE;
+}
+
+bool DUTMemory::in_device(uint32_t addr) const
+{
+    return !in_mrom(addr) && !in_sram(addr) && !in_flash(addr);
+}
+
+bool DUTMemory::in_sim_mem(uint32_t addr) const
+{
+    return in_flash(addr) || in_mrom(addr);
+}
+
 uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
 {
-    return reinterpret_cast<uint8_t*>(data) + paddr - CONFIG_MROM_BASE;
+    if (in_flash(paddr))
+        return reinterpret_cast<uint8_t*>(flash_data) + paddr - CONFIG_FLASH_BASE;
+    if (in_mrom(paddr))
+        return reinterpret_cast<uint8_t*>(mrom_data) + paddr - CONFIG_MROM_BASE;
+
+    assert(0 && "Unknown memory region");
+    return nullptr;
 }
 
 uint32_t DUTMemory::host_to_guest(uint8_t* haddr) const
 {
-    return haddr - reinterpret_cast<uint8_t*>(data) + CONFIG_MROM_BASE;
+    auto haddr_u32 = in_flash(static_cast<uint32_t>(reinterpret_cast<uint64_t>(haddr)));
+    if (in_flash(haddr_u32))
+        return haddr - reinterpret_cast<uint8_t*>(flash_data) + CONFIG_FLASH_BASE;
+    if (in_mrom(haddr_u32))
+        return haddr - reinterpret_cast<uint8_t*>(mrom_data) + CONFIG_MROM_BASE;
+
+    assert(0 && "Unknown memory region");
+    return 0;
 }
 
 void SimHandle::init_trace()

@@ -6,13 +6,24 @@
 #include "dut_proxy.hpp"
 
 extern "C" {
-void flash_read(int32_t addr, int32_t* data) { assert(0); }
+void flash_read(int32_t addr, int32_t* data)
+{
+    // Warning for FLASH:
+    //   Note that the address we got exactly is 24-bit, since the read request
+    //   we sent in APBSPI only takes the low 24-bit of the address.
+    //   Therefore, the high 12-bit is always 0 and we add it back here.
+    //   By the way, difftest in NEMU does not be affected by this, since the read request is emulated
+    //   by NEMU itself, not a APBSPI in ysyxSoC.
 
-static uint32_t mrom_data[1024];
+    *data = sim_handle.get_memory().read(addr + CONFIG_FLASH_BASE);
+}
+
 void mrom_read(int32_t addr, int32_t* data)
 {
-    // printf("read addr = 0x%08x, data = 0x%08x\n", addr, sim_handle.get_memory().read(addr));
-    *data = sim_handle.get_memory().read(addr);
+    assert(0);
+    // auto& mem = sim_handle.get_memory();
+    // assert(mem.in_mrom(addr));
+    // *data = sim_handle.get_memory().read(addr);
 }
 
 void ebreak_handler()
@@ -37,14 +48,16 @@ void ebreak_handler()
 
 int pmem_read(int raddr)
 {
-    auto ret = sim_handle.get_memory().read(raddr);
-    IFDEF(CONFIG_MTRACE, printf("read addr = 0x%08x, data = 0x%08x\n", raddr, ret));
-    return ret;
+    assert(0);
+    // auto ret = sim_handle.get_memory().read(raddr);
+    // IFDEF(CONFIG_MTRACE, printf("read addr = 0x%08x, data = 0x%08x\n", raddr, ret));
+    // return ret;
 }
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
-    IFDEF(CONFIG_MTRACE, printf("write addr = 0x%08x, data = 0x%08x, mask = 0x%x\n", waddr, wdata, wmask));
-    sim_handle.get_memory().write(waddr, wdata, wmask);
+    assert(0);
+    // IFDEF(CONFIG_MTRACE, printf("write addr = 0x%08x, data = 0x%08x, mask = 0x%x\n", waddr, wdata, wmask));
+    // sim_handle.get_memory().write(waddr, wdata, wmask);
 }
 }
