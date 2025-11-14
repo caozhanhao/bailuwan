@@ -8,7 +8,14 @@
 extern "C" {
 void flash_read(int32_t addr, int32_t* data)
 {
-    *data = 25100251;
+    static uint32_t flashd[1024];
+    static bool inited = false;
+    if (!inited) {
+        inited = true;
+        FILE* file = fopen("/home/caozhanhao/ysyx/workspace/tmp/chartest.bin", "rb");
+        fread(flashd, sizeof(flashd), 1, file);
+    }
+    *data = flashd[(addr - 0x30000000) / 4];
 }
 
 static uint32_t mrom_data[1024];
