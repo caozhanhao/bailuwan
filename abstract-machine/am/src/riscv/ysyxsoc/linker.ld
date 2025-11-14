@@ -3,6 +3,8 @@ ENTRY(_start)
 MEMORY {
   mrom : ORIGIN = 0x20000000, LENGTH = 4K
   sram : ORIGIN = 0x0f000000, LENGTH = 8K
+  /* only low 24-bit is taken in APBSPI, so flash size should be 2^24 bytes = 16 M */
+  flash : ORIGIN = 0x30000000, LENGTH = 16M
 }
 
 SECTIONS {
