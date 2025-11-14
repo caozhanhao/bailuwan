@@ -76,10 +76,6 @@ public:
     bool is_inst_valid() const;
 };
 
-#define PMEM_LEFT  ((uint32_t)CONFIG_MROM_BASE)
-#define PMEM_RIGHT ((uint32_t)CONFIG_MROM_BASE + CONFIG_MROM_SIZE - 1)
-#define RESET_VECTOR PMEM_LEFT
-
 struct DUTMemory
 {
     uint32_t* data{};
