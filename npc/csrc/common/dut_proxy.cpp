@@ -265,8 +265,9 @@ uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
     // FLASH:
     // Note that the address we got exactly is 24-bit, since the read request
     // we sent in APBSPI only takes the low 24-bit of the address.
-    // Therefore, the high 12-bit is always 0, and we don't need to substract the
-    // FLASH_BASE
+    // Therefore, the high 12-bit is always 0, and we don't need to substract the FLASH_BASE.
+    // By the way, difftest in NEMU does not be affected by this, since the read request is emulated
+    // by NEMU itself, not a APBSPI in ysyxSoC.
     return reinterpret_cast<uint8_t*>(data) + paddr;
 }
 

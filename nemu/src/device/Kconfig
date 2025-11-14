@@ -179,6 +179,15 @@ config SRAM_BASE
 config SRAM_SIZE
   hex "Size of the SRAM"
   default 0x2000
+
+config FLASH_BASE
+  hex "Physical address of the FLASH"
+  default 0x30000000
+
+config FLASH_SIZE
+  hex "Size of the FLASH"
+  default 0x10000000
+
 endif # HAS_YSYXSOC
 
 endif # DEVICE
