@@ -11,7 +11,7 @@ SECTIONS {
   .text : ALIGN(8) {
     *(entry)
     *(.text*)
-  } > mrom AT> mrom
+  } > flash AT> mrom
   etext = .;
   _etext = .;
 
