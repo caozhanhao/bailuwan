@@ -193,8 +193,7 @@ uint32_t DUTMemory::read(uint32_t raddr)
     }
 
     // Memory
-    // Only for flash
-    if (uaddr >= CONFIG_FLASH_SIZE)
+    if (!in_sim_mem(uaddr))
     {
         auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
@@ -212,8 +211,7 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
     uaddr &= ~0x3u;
 
     // Memory
-    // Only for flash
-    if (waddr >= CONFIG_FLASH_SIZE)
+    if (!in_sim_mem(uaddr))
     {
         auto& cpu = sim_handle.get_cpu();
         printf("Out of bound memory access at PC = 0x%08x, waddr = 0x%08x\n", cpu.pc(), waddr);
@@ -259,26 +257,12 @@ bool DUTMemory::in_sim_mem(uint32_t addr)
 
 uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
 {
-    // MROM, deprecated
-    // return reinterpret_cast<uint8_t*>(data) + paddr - CONFIG_MROM_BASE;
-
-    // FLASH:
-    // Note that the address we got exactly is 24-bit, since the read request
-    // we sent in APBSPI only takes the low 24-bit of the address.
-    // Therefore, the high 12-bit is always 0, and we don't need to substract the FLASH_BASE.
-    // By the way, difftest in NEMU does not be affected by this, since the read request is emulated
-    // by NEMU itself, not a APBSPI in ysyxSoC.
-    return reinterpret_cast<uint8_t*>(data) + paddr;
+    return reinterpret_cast<uint8_t*>(data) + paddr - CONFIG_FLASH_BASE;
 }
 
 uint32_t DUTMemory::host_to_guest(uint8_t* haddr) const
 {
-    // MROM, deprecated
-    // return haddr - reinterpret_cast<uint8_t*>(data) + CONFIG_MROM_BASE;
-
-    // FLASH:
-    // See comments in guest_to_host
-    return haddr - reinterpret_cast<uint8_t*>(data);
+    return haddr - reinterpret_cast<uint8_t*>(data) + CONFIG_FLASH_BASE;
 }
 
 void SimHandle::init_trace()

@@ -8,7 +8,14 @@
 extern "C" {
 void flash_read(int32_t addr, int32_t* data)
 {
-    *data = sim_handle.get_memory().read(addr);
+    // Warning for FLASH:
+    //   Note that the address we got exactly is 24-bit, since the read request
+    //   we sent in APBSPI only takes the low 24-bit of the address.
+    //   Therefore, the high 12-bit is always 0 and we add it back here.
+    //   By the way, difftest in NEMU does not be affected by this, since the read request is emulated
+    //   by NEMU itself, not a APBSPI in ysyxSoC.
+
+    *data = sim_handle.get_memory().read(addr + CONFIG_FLASH_BASE);
 }
 
 static uint32_t mrom_data[1024];
