@@ -79,7 +79,7 @@ public:
 struct DUTMemory
 {
     uint32_t* flash_data{};
-    uint32_t* mrom_data{};
+    uint32_t* mrom_data{}; // unused
 
     size_t img_size{};
 

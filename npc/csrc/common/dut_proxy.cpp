@@ -157,9 +157,17 @@ void DUTMemory::init(const std::string& filename)
 
 void DUTMemory::destroy()
 {
-    if (data)
-        free(data);
-    data = nullptr;
+    if (flash_data)
+    {
+        free(flash_data);
+        flash_data = nullptr;
+    }
+
+    if (mrom_data)
+    {
+        free(mrom_data);
+        mrom_data = nullptr;
+    }
 }
 
 uint32_t DUTMemory::read(uint32_t raddr)
