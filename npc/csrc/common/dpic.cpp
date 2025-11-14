@@ -18,12 +18,12 @@ void flash_read(int32_t addr, int32_t* data)
     *data = sim_handle.get_memory().read(addr + CONFIG_FLASH_BASE);
 }
 
-static uint32_t mrom_data[1024];
 void mrom_read(int32_t addr, int32_t* data)
 {
-    // printf("read addr = 0x%08x, data = 0x%08x\n", addr, sim_handle.get_memory().read(addr));
-    // *data = sim_handle.get_memory().read(addr);
     assert(0);
+    // auto& mem = sim_handle.get_memory();
+    // assert(mem.in_mrom(addr));
+    // *data = sim_handle.get_memory().read(addr);
 }
 
 void ebreak_handler()

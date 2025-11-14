@@ -13,13 +13,13 @@ SECTIONS {
   .text : ALIGN(8) {
     *(entry)
     *(.text*)
-  } > flash AT> mrom
+  } > flash AT> flash
   etext = .;
   _etext = .;
 
   .rodata : ALIGN(8) {
     *(.rodata*)
-  } > mrom AT> mrom
+  } > flash AT> flash
 
   .data : {
     _sidata = LOADADDR(.data);
@@ -27,7 +27,7 @@ SECTIONS {
     *(.data*)
     *(.sdata*)
     _edata = .;
-  } > sram AT> mrom
+  } > sram AT> flash
 
   .bss (NOLOAD): {
     _sbss = .;
