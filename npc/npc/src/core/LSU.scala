@@ -168,17 +168,17 @@ class LSU(
   val wfault_resp = RegInit(AXIResp.OKAY)
   wfault_resp := Mux(io.mem.b.fire, io.mem.b.bits.resp, wfault_resp)
 
-  val misalign = MuxLookup(io.lsu_op, false.B)(
+  val misaligned = MuxLookup(io.lsu_op, false.B)(
     Seq(
       LSUOp.LH  -> io.addr(0),
       LSUOp.SH  -> io.addr(0),
       LSUOp.LHU -> io.addr(0),
       LSUOp.LW  -> (io.addr(1) | io.addr(0)),
-      LSUOp.SW  -> (io.addr(1) | io.addr(0))
+      LSUOp.SW  -> (io.addr(1) | io.addr(0)),
     )
   )
 
-  assert(!misalign, cf"LSU: Misaligned access at 0x${io.addr}%x")
+  assert(!misaligned, cf"LSU: Misaligned access at 0x${io.addr}%x")
   assert(r_state =/= r_fault, cf"LSU: Read fault at 0x${rfault_addr}%x, resp=${rfault_resp}")
   assert(w_state =/= w_fault, cf"LSU: Write fault at 0x${wfault_addr}%x, resp=${wfault_resp}")
 }
