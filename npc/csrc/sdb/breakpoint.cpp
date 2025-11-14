@@ -101,7 +101,7 @@ void bp_display() {
 }
 
 void bp_create(word_t addr) {
-  if (!sim_handle.get_memory().in_mrom(addr)) {
+  if (!sim_handle.get_memory().in_sim_mem(addr)) {
     printf("Bad address to watch: " FMT_WORD "\n", addr);
     return;
   }

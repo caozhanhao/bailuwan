@@ -8,21 +8,15 @@
 extern "C" {
 void flash_read(int32_t addr, int32_t* data)
 {
-    static uint32_t flashd[1024];
-    static bool inited = false;
-    if (!inited) {
-        inited = true;
-        FILE* file = fopen("/home/caozhanhao/ysyx/workspace/tmp/chartest.bin", "rb");
-        fread(flashd, sizeof(flashd), 1, file);
-    }
-    *data = flashd[addr / 4];
+    *data = sim_handle.get_memory().read(addr);
 }
 
 static uint32_t mrom_data[1024];
 void mrom_read(int32_t addr, int32_t* data)
 {
     // printf("read addr = 0x%08x, data = 0x%08x\n", addr, sim_handle.get_memory().read(addr));
-    *data = sim_handle.get_memory().read(addr);
+    // *data = sim_handle.get_memory().read(addr);
+    assert(0);
 }
 
 void ebreak_handler()
@@ -47,14 +41,16 @@ void ebreak_handler()
 
 int pmem_read(int raddr)
 {
-    auto ret = sim_handle.get_memory().read(raddr);
-    IFDEF(CONFIG_MTRACE, printf("read addr = 0x%08x, data = 0x%08x\n", raddr, ret));
-    return ret;
+    assert(0);
+    // auto ret = sim_handle.get_memory().read(raddr);
+    // IFDEF(CONFIG_MTRACE, printf("read addr = 0x%08x, data = 0x%08x\n", raddr, ret));
+    // return ret;
 }
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
-    IFDEF(CONFIG_MTRACE, printf("write addr = 0x%08x, data = 0x%08x, mask = 0x%x\n", waddr, wdata, wmask));
-    sim_handle.get_memory().write(waddr, wdata, wmask);
+    assert(0);
+    // IFDEF(CONFIG_MTRACE, printf("write addr = 0x%08x, data = 0x%08x, mask = 0x%x\n", waddr, wdata, wmask));
+    // sim_handle.get_memory().write(waddr, wdata, wmask);
 }
 }

@@ -93,6 +93,10 @@ struct DUTMemory
 
     bool in_mrom(uint32_t addr);
     bool in_sram(uint32_t addr);
+    bool in_flash(uint32_t addr);
+    bool in_device(uint32_t addr);
+    // Currently it is in_flash
+    bool in_sim_mem(uint32_t addr);
     uint8_t* guest_to_host(uint32_t paddr) const;
     uint32_t host_to_guest(uint8_t* haddr) const;
 };
