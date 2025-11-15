@@ -34,6 +34,10 @@ SECTIONS {
     *(.sbss*)
     *(.scommon)
     _ebss = .;
+
+    /* heap starts immediately after bss */
+    _heap_start = .;
+    _heap_start = ALIGN(_heap_start, 8);
   } > psram
 
   .stack (NOLOAD) : {
@@ -44,7 +48,7 @@ SECTIONS {
     _stack_pointer = _stack_top;
   } > psram
 
-  _heap_start = ORIGIN(psram);
+  /* heap ends just before the stack */
   _heap_end = _stack_start;
 
   end = .;
