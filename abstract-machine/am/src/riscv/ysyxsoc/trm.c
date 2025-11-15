@@ -2,6 +2,7 @@
 #include <am.h>
 #include <klib-macros.h>
 #include <klib.h>
+#include <stddef.h>
 
 #include <stdint.h>
 
@@ -10,6 +11,12 @@ extern char _heap_end;
 extern char _sdata;
 extern char _sidata;
 extern char _edata;
+extern char _srodata;
+extern char _sirodata;
+extern char _erodata;
+extern char _stext;
+extern char _sitext;
+extern char _etext;
 extern char _sbss;
 extern char _ebss;
 
@@ -52,15 +59,20 @@ __attribute__((noinline)) void halt(int code)
 
 void init_memory()
 {
-    // Initialize .data section
-    size_t data_size = (uintptr_t)&_edata - (uintptr_t)&_sdata;
-    for (size_t i = 0; i < data_size; ++i)
-        (&_sdata)[i] = (&_sidata)[i];
+#define INIT_SECTION(section_name) \
+    size_t section_name##_size = (uintptr_t)&_e##section_name - (uintptr_t)&_s##section_name; \
+    memcpy(&_s##section_name, &_si##section_name, section_name##_size);
 
-    // Initialize .bss section
+    // rodata, data and text
+    INIT_SECTION(rodata)
+    INIT_SECTION(data)
+    INIT_SECTION(text)
+
+#undef INIT_SECTION
+
+    // bss
     unsigned int bss_size = (uintptr_t)&_ebss - (uintptr_t)&_sbss;
-    for (size_t i = 0; i < bss_size; ++i)
-        (&_sbss)[i] = 0;
+    memset(&_sbss, 0, bss_size);
 }
 
 // Initialize UART 16550
