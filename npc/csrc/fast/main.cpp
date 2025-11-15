@@ -43,16 +43,15 @@ int main(int argc, char* argv[])
 
     // Simulate
     printf("Fast simulation started. All trace or debug info are disabled.\n");
-    while (true)
+
+    try
     {
-        try
-        {
+        while (true)
             sim_handle.single_cycle();
-        }
-        catch (EBreakException& e)
-        {
-            exit(e.get_code());
-        }
+    }
+    catch (EBreakException& e)
+    {
+        exit(e.get_code());
     }
 
     printf("Simulation terminated after %lu cycles\n", sim_handle.get_cycles());
