@@ -8,14 +8,14 @@
 
 extern char _heap_start;
 extern char _heap_end;
+extern char _data_lma;
 extern char _sdata;
-extern char _sidata;
 extern char _edata;
+extern char _rodata_lma;
 extern char _srodata;
-extern char _sirodata;
 extern char _erodata;
+extern char _text_lma;
 extern char _stext;
-extern char _sitext;
 extern char _etext;
 extern char _sbss;
 extern char _ebss;
@@ -61,7 +61,7 @@ void init_memory()
 {
 #define INIT_SECTION(section_name) \
     size_t section_name##_size = (uintptr_t)&_e##section_name - (uintptr_t)&_s##section_name; \
-    memcpy(&_s##section_name, &_si##section_name, section_name##_size);
+    memcpy(&_s##section_name, &_##section_name##_lma, section_name##_size);
 
     // rodata, data and text
     INIT_SECTION(rodata)

@@ -10,7 +10,7 @@ MEMORY {
 
 SECTIONS {
   .text : ALIGN(8) {
-    _sitext = LOADADDR(.text);
+    _text_lma = LOADADDR(.text);
     _stext = .;
     *(entry)
     *(.text*)
@@ -18,14 +18,14 @@ SECTIONS {
   } > sram AT> flash
 
   .rodata : ALIGN(8) {
-    _sirodata = LOADADDR(.rodata);
+    _rodata_lma = LOADADDR(.rodata);
     _srodata = .;
     *(.rodata*)
     _erodata = .;
   } > sram AT> flash
 
   .data : {
-    _sidata = LOADADDR(.data);
+    _data_lma = LOADADDR(.data);
     _sdata = .;
     *(.data*)
     *(.sdata*)
@@ -50,7 +50,4 @@ SECTIONS {
 
   _heap_start = ORIGIN(psram);
   _heap_end = ORIGIN(psram) + LENGTH(psram);
-
-  end = .;
-  _end = .;
 }
