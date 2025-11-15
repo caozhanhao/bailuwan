@@ -24,7 +24,7 @@ static void parse_args(int argc, char* argv[])
             break;
         case 1:
             img_file = optarg;
-            return 0;
+            return;
         default:
             printf("Usage: %s [filename]\n", argv[0]);
             exit(0);
