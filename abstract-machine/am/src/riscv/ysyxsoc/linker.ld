@@ -38,10 +38,6 @@ SECTIONS {
     *(.sbss*)
     *(.scommon)
     _ebss = .;
-
-    /* heap starts immediately after bss */
-    _heap_start = .;
-    _heap_start = ALIGN(_heap_start, 8);
   } > sram
 
   .stack (NOLOAD) : {
@@ -52,7 +48,7 @@ SECTIONS {
     _stack_pointer = _stack_top;
   } > sram
 
-  /* heap ends at the end of psram */
+  _heap_start = ORIGIN(psram);
   _heap_end = ORIGIN(psram) + LENGTH(psram);
 
   end = .;
