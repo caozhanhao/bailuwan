@@ -8,17 +8,6 @@
 
 extern char _heap_start;
 extern char _heap_end;
-extern char _data_lma;
-extern char _sdata;
-extern char _edata;
-extern char _rodata_lma;
-extern char _srodata;
-extern char _erodata;
-extern char _text_lma;
-extern char _stext;
-extern char _etext;
-extern char _sbss;
-extern char _ebss;
 
 int main(const char* args);
 
@@ -55,24 +44,6 @@ __attribute__((noinline)) void halt(int code)
 {
     asm volatile ("ebreak");
     while (1);
-}
-
-void init_memory()
-{
-#define INIT_SECTION(section_name) \
-    size_t section_name##_size = (uintptr_t)&_e##section_name - (uintptr_t)&_s##section_name; \
-    memcpy(&_s##section_name, &_##section_name##_lma, section_name##_size);
-
-    // rodata, data and text
-    INIT_SECTION(rodata)
-    INIT_SECTION(data)
-    INIT_SECTION(text)
-
-#undef INIT_SECTION
-
-    // bss
-    unsigned int bss_size = (uintptr_t)&_ebss - (uintptr_t)&_sbss;
-    memset(&_sbss, 0, bss_size);
 }
 
 // Initialize UART 16550
@@ -133,7 +104,6 @@ void print_welcome_msg()
 
 void _trm_init()
 {
-    init_memory();
     init_uart16550();
     print_welcome_msg();
     int ret = main(mainargs);

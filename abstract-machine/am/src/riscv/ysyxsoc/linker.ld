@@ -1,4 +1,4 @@
-ENTRY(_start)
+ENTRY(_bootloader)
 
 MEMORY {
   mrom : ORIGIN = 0x20000000, LENGTH = 4K
