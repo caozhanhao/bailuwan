@@ -86,6 +86,9 @@ class IFU(
   //                     ^
   //                     |
   //          difftest_step is called here
-  val difftest_ready = RegNext(io.in.valid)
+  val difftest_ready = RegNext((false.B ## io.in.valid))
+  // An assert to avoid optimization by Verilator when trace is disabled.
+  assert(!difftest_ready(1))
+  // A dontTouch to avoid optimization by Chisel.
   dontTouch(difftest_ready)
 }
