@@ -40,16 +40,13 @@ SECTIONS {
     _ebss = .;
   } > sram
 
-
   .stack (NOLOAD) : {
     _stack_top   = ORIGIN(sram) + LENGTH(sram);
     _stack_start = _stack_top - 0x800; /* 2 KB */
     . = _stack_start;
     . = . + 0x800;
     _stack_pointer = _stack_top;
-    ASSERT(_stack_pointer != 0, "Bad sp");
   } > sram
-
 
   _heap_start = ORIGIN(psram);
   _heap_end = ORIGIN(psram) + LENGTH(psram);
