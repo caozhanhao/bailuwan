@@ -133,6 +133,9 @@ void DUTMemory::init(const std::string& filename)
     flash_data = static_cast<uint32_t*>(malloc(CONFIG_FLASH_SIZE));
     memset(flash_data, 0, CONFIG_FLASH_SIZE);
 
+    psram_data = static_cast<uint8_t*>(malloc(CONFIG_PSRAM_SIZE));
+    memset(psram_data, 0, CONFIG_PSRAM_SIZE);
+
     size_t bytes_read = fread(flash_data, 1, CONFIG_FLASH_SIZE, fp);
     if (bytes_read == 0)
     {
@@ -168,10 +171,18 @@ void DUTMemory::destroy()
         free(mrom_data);
         mrom_data = nullptr;
     }
+
+    if (psram_data)
+    {
+        free(psram_data);
+        psram_data = nullptr;
+    }
 }
 
 uint32_t DUTMemory::read(uint32_t raddr)
 {
+    assert(!in_psram(raddr));
+
     auto uaddr = static_cast<uint32_t>(raddr);
     uaddr &= ~0x3u;
 
@@ -215,6 +226,8 @@ uint32_t DUTMemory::read(uint32_t raddr)
 
 void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
 {
+    assert(!in_psram(waddr));
+
     auto uaddr = static_cast<uint32_t>(waddr);
     uaddr &= ~0x3u;
 
@@ -237,6 +250,18 @@ void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
     }
 }
 
+uint8_t DUTMemory::psram_read(uint32_t raddr)
+{
+    assert(in_psram(raddr));
+    return *guest_to_host(raddr);
+}
+
+void DUTMemory::psram_write(uint32_t waddr, uint8_t wdata)
+{
+    assert(in_psram(waddr));
+    *guest_to_host(waddr) = wdata;
+}
+
 bool DUTMemory::in_mrom(uint32_t addr) const
 {
     return addr - CONFIG_MROM_BASE < CONFIG_MROM_SIZE;
@@ -252,14 +277,20 @@ bool DUTMemory::in_flash(uint32_t addr) const
     return addr - CONFIG_FLASH_BASE < CONFIG_FLASH_SIZE;
 }
 
+bool DUTMemory::in_psram(uint32_t addr) const
+{
+    return addr - CONFIG_PSRAM_BASE < CONFIG_PSRAM_SIZE;
+}
+
+
 bool DUTMemory::in_device(uint32_t addr) const
 {
-    return !in_mrom(addr) && !in_sram(addr) && !in_flash(addr);
+    return !in_mrom(addr) && !in_sram(addr) && !in_flash(addr) && !in_psram(addr);
 }
 
 bool DUTMemory::in_sim_mem(uint32_t addr) const
 {
-    return in_flash(addr) || in_mrom(addr);
+    return in_flash(addr) || in_mrom(addr) || in_psram(addr);
 }
 
 uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
@@ -268,6 +299,8 @@ uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
         return reinterpret_cast<uint8_t*>(flash_data) + paddr - CONFIG_FLASH_BASE;
     if (in_mrom(paddr))
         return reinterpret_cast<uint8_t*>(mrom_data) + paddr - CONFIG_MROM_BASE;
+    if (in_psram(paddr))
+        return reinterpret_cast<uint8_t*>(psram_data) + paddr - CONFIG_PSRAM_BASE;
 
     assert(0 && "Unknown memory region");
     return nullptr;
@@ -280,6 +313,8 @@ uint32_t DUTMemory::host_to_guest(uint8_t* haddr) const
         return haddr - reinterpret_cast<uint8_t*>(flash_data) + CONFIG_FLASH_BASE;
     if (in_mrom(haddr_u32))
         return haddr - reinterpret_cast<uint8_t*>(mrom_data) + CONFIG_MROM_BASE;
+    if (in_psram(haddr_u32))
+        return haddr - reinterpret_cast<uint8_t*>(psram_data) + CONFIG_PSRAM_BASE;
 
     assert(0 && "Unknown memory region");
     return 0;

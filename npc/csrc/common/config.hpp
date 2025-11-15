@@ -15,6 +15,9 @@
 // considered invalid. Thus, we set the FLASH_SIZE as 0x1000000(= 2^24).
 #define CONFIG_FLASH_SIZE 0x1000000
 
+#define CONFIG_PSRAM_BASE 0x80000000
+#define CONFIG_PSRAM_SIZE 0x1000000 // Same as flash
+
 #define PMEM_LEFT  ((uint32_t)CONFIG_FLASH_BASE)
 #define PMEM_RIGHT ((uint32_t)CONFIG_FLASH_BASE + CONFIG_FLASH_SIZE - 1)
 #define RESET_VECTOR PMEM_LEFT
