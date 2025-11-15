@@ -7,10 +7,13 @@ static bool inst_has_been_traced = false;
 
 static void trace_and_difftest()
 {
+#ifdef CONFIG_ITRACE
     static Disassembler disasm;
     static bool inited = false;
+
     if (!inited)
         disasm.init();
+#endif
 
     auto& cpu = sim_handle.get_cpu();
     if (cpu.is_inst_valid() && !inst_has_been_traced)
@@ -27,9 +30,11 @@ static void trace_and_difftest()
             printf("FTRACE: %s\n", buf);
 #endif
 
+#ifdef CONFIG_WP_BP
         // Before difftest
         wp_update();
         bp_update();
+#endif
 
         ++inst_count;
     }

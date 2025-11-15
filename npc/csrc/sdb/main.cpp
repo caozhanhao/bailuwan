@@ -411,8 +411,11 @@ int main(int argc, char* argv[])
     signal(SIGINT, sig_handler);
 
     init_regex();
+
+#ifdef CONFIG_WP_BP
     init_wp_pool();
     init_bp_pool();
+#endif
 
     sdb_state = SDBState::Stop;
 

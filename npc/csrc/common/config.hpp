@@ -22,11 +22,10 @@
 #define PMEM_RIGHT ((uint32_t)CONFIG_FLASH_BASE + CONFIG_FLASH_SIZE - 1)
 #define RESET_VECTOR PMEM_LEFT
 
-// #define CONFIG_MTRACE 1
-
-// Only available in sdb
+// Only available in sdb:
 // #define CONFIG_ITRACE 1
 // #define CONFIG_FTRACE 1
 // #define CONFIG_DIFFTEST 1
+// #define CONFIG_WP_BP
 
 #endif
