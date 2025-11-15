@@ -26,6 +26,16 @@ void mrom_read(int32_t addr, int32_t* data)
     // *data = sim_handle.get_memory().read(addr);
 }
 
+char psram_read(int raddr)
+{
+    return static_cast<char>(sim_handle.get_memory().psram_read(raddr + CONFIG_PSRAM_BASE /* same as flash*/));
+}
+
+void psram_write(int waddr, char wdata)
+{
+    return sim_handle.get_memory().psram_write(waddr + CONFIG_PSRAM_BASE /* same as flash*/, wdata);
+}
+
 void ebreak_handler()
 {
     auto cycles = sim_handle.get_cycles();
