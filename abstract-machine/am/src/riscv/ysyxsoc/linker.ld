@@ -47,7 +47,7 @@ SECTIONS {
     . = _stack_start;
     . = . + 0x800;
     _stack_pointer = _stack_top;
-    # ASSERT(_stack_pointer >= ORIGIN(sram) && _stack_pointer <= ORIGIN(sram) + LENGTH(sram), "Bad sp");
+    ASSERT(_stack_pointer != 0, "Bad sp");
   } > sram
 
 
