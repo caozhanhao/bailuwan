@@ -9,8 +9,6 @@ MEMORY {
 }
 
 SECTIONS {
-  . = ORIGIN(mrom);
-
   .text : ALIGN(8) {
     *(entry)
     *(.text*)
