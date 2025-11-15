@@ -5,6 +5,7 @@ MEMORY {
   sram : ORIGIN = 0x0f000000, LENGTH = 8K
   /* only low 24-bit is taken in APBSPI, so flash size should be 2^24 bytes = 16 M */
   flash : ORIGIN = 0x30000000, LENGTH = 16M
+  psram : ORIGIN = 0x80000000, LENGTH = 16M
 }
 
 SECTIONS {
@@ -27,7 +28,7 @@ SECTIONS {
     *(.data*)
     *(.sdata*)
     _edata = .;
-  } > sram AT> flash
+  } > psram AT> flash
 
   .bss (NOLOAD): {
     _sbss = .;
@@ -35,17 +36,17 @@ SECTIONS {
     *(.sbss*)
     *(.scommon)
     _ebss = .;
-  } > sram
+  } > psram
 
   .stack (NOLOAD) : {
-    _stack_top   = ORIGIN(sram) + LENGTH(sram);
+    _stack_top   = ORIGIN(psram) + LENGTH(psram);
     _stack_start = _stack_top - 0x800; /* 2 KB */
     . = _stack_start;
     . = . + 0x800;
     _stack_pointer = _stack_top;
-  } > sram
+  } > psram
 
-  _heap_start = ORIGIN(sram);
+  _heap_start = ORIGIN(psram);
   _heap_end = _stack_start;
 
   end = .;
