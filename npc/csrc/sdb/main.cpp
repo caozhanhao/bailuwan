@@ -11,6 +11,7 @@
 SDBState sdb_state;
 int sdb_halt_ret;
 bool is_batch_mode;
+uint64_t inst_count;
 
 volatile sig_atomic_t sim_stop_requested = 0;
 

@@ -30,6 +30,8 @@ static void trace_and_difftest()
         // Before difftest
         wp_update();
         bp_update();
+
+        ++inst_count;
     }
 
     IFDEF(CONFIG_DIFFTEST, difftest_step());
@@ -48,6 +50,8 @@ static void execute(uint64_t n)
         {
             sdb_state = SDBState::End;
             sdb_halt_ret = e.get_code();
+            Log("Got Ebreak. Cycle Per Inst = %f",
+                static_cast<double>(sim_handle.get_cycles()) / static_cast<double>(inst_count));
         }
 
         trace_and_difftest();
