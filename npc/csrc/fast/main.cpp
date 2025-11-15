@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
     sim_handle.reset(10);
 
     // Simulate
-    printf("Simulation started...\n");
+    printf("Fast simulation started. All trace or debug info are disabled.\n");
     while (true)
     {
         try
