@@ -12,7 +12,10 @@ static void trace_and_difftest()
     static bool inited = false;
 
     if (!inited)
+    {
+        inited = true;
         disasm.init();
+    }
 #endif
 
     auto& cpu = sim_handle.get_cpu();
