@@ -23,6 +23,7 @@ SECTIONS {
   .text : ALIGN(8) {
     _text_lma = LOADADDR(.text);
     _stext = .;
+    *(entry)
     *(.text*)
     _etext = .;
   } > psram AT> flash
