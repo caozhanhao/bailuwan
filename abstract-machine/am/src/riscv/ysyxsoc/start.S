@@ -1,17 +1,3 @@
-
-
-// entry is placed in .text
-.section entry, "ax"
-.globl _start
-.type _start, @function
-_start:
-  mv s0, zero
-  la sp, _stack_pointer
-  call _trm_init
-
-.size _start, . - _start
-
-
 // macro to copy section
 .macro COPY_SECTION_WORD src, dst, end
     la   t0, \src       /* source (LMA) */
@@ -60,3 +46,14 @@ _ssbl:
     jr   t0
 
 .size _ssbl, . - _ssbl
+
+// entry is placed in .text
+.section entry, "ax"
+.globl _start
+.type _start, @function
+_start:
+  mv s0, zero
+  la sp, _stack_pointer
+  call _trm_init
+
+.size _start, . - _start
