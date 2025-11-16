@@ -1,4 +1,4 @@
-ENTRY(._fsbl)
+ENTRY(_fsbl)
 
 MEMORY {
   mrom : ORIGIN = 0x20000000, LENGTH = 4K
