@@ -8,15 +8,18 @@ MEMORY {
   psram : ORIGIN = 0x80000000, LENGTH = 16M
 }
 
+/* Attention: align to enable fsbl/ssbl to use lw/sw for copying. */
 SECTIONS {
   .fsbl : ALIGN(8) {
     *(fsbl)
+    . = ALIGN(8);
   } > flash AT> flash
 
   .ssbl : ALIGN(8) {
     _ssbl_lma = LOADADDR(.ssbl);
     _sssbl = .;
     *(ssbl)
+    . = ALIGN(8);
     _essbl = .;
   } > sram AT> flash
 
@@ -25,6 +28,7 @@ SECTIONS {
     _stext = .;
     *(entry)
     *(.text*)
+    . = ALIGN(8);
     _etext = .;
   } > psram AT> flash
 
@@ -32,6 +36,7 @@ SECTIONS {
     _rodata_lma = LOADADDR(.rodata);
     _srodata = .;
     *(.rodata*)
+    . = ALIGN(8);
     _erodata = .;
   } > psram AT> flash
 
@@ -40,6 +45,7 @@ SECTIONS {
     _sdata = .;
     *(.data*)
     *(.sdata*)
+    . = ALIGN(8);
     _edata = .;
   } > psram AT> flash
 
@@ -48,6 +54,7 @@ SECTIONS {
     *(.bss*)
     *(.sbss*)
     *(.scommon)
+    . = ALIGN(8);
     _ebss = .;
   } > psram
 
