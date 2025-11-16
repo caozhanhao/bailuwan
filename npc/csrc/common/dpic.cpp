@@ -21,9 +21,9 @@ void flash_read(int32_t addr, int32_t* data)
 void mrom_read(int32_t addr, int32_t* data)
 {
     assert(0);
-    // auto& mem = sim_handle.get_memory();
+    // auto& mem = SIM.mem();
     // assert(mem.in_mrom(addr));
-    // *data = sim_handle.get_memory().read(addr);
+    // *data = SIM.mem().read(addr);
 }
 
 char psram_read(int raddr)
@@ -41,9 +41,9 @@ int16_t sdram_read(int raddr)
     return SIM.mem().read<int16_t>(raddr + CONFIG_PSRAM_BASE /* same as flash*/);
 }
 
-void sdram_write(int waddr, char wdata)
+void sdram_write(int waddr, char wdata, char dqm)
 {
-    return SIM.mem().write<int16_t>(waddr + CONFIG_PSRAM_BASE /* same as flash*/, wdata, 0b11);
+    return SIM.mem().write<int16_t>(waddr + CONFIG_PSRAM_BASE /* same as flash*/, wdata, dqm);
 }
 
 void ebreak_handler()
@@ -64,20 +64,5 @@ void ebreak_handler()
         printf("\33[1;41mHIT BAD TRAP\33[0m, a0=%d\n", a0);
 
     throw EBreakException(static_cast<int>(a0));
-}
-
-int pmem_read(int raddr)
-{
-    assert(0);
-    // auto ret = sim_handle.get_memory().read(raddr);
-    // IFDEF(CONFIG_MTRACE, printf("read addr = 0x%08x, data = 0x%08x\n", raddr, ret));
-    // return ret;
-}
-
-void pmem_write(int waddr, int wdata, char wmask)
-{
-    assert(0);
-    // IFDEF(CONFIG_MTRACE, printf("write addr = 0x%08x, data = 0x%08x, mask = 0x%x\n", waddr, wdata, wmask));
-    // sim_handle.get_memory().write(waddr, wdata, wmask);
 }
 }

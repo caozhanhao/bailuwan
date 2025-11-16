@@ -9,27 +9,32 @@ const char* regs[] = {
 
 void isa_reg_display()
 {
-    auto& cpu = sim_handle.get_cpu();
+    auto& cpu = SIM.cpu();
     for (int i = 0; i < 16; i++)
         printf("x%-2d %-5s  0x%08x  %11d\n", i, regs[i], cpu.reg(i), cpu.reg(i));
 }
 
-void isa_csr_display() {
-    auto& cpu = sim_handle.get_cpu();
-    for (int i = 0; i < 4096; i++) {
+void isa_csr_display()
+{
+    auto& cpu = SIM.cpu();
+    for (int i = 0; i < 4096; i++)
+    {
         if (csr_names[i] == nullptr)
             continue;
         printf("%-10s 0x%08x  %11d\n", csr_names[i], cpu.csr(i), cpu.csr(i));
     }
 }
 
-word_t isa_csr_str2val(const char *s, bool *success) {
-    auto& cpu = sim_handle.get_cpu();
-    for (int i = 0; i < 4096; i++) {
+word_t isa_csr_str2val(const char* s, bool* success)
+{
+    auto& cpu = SIM.cpu();
+    for (int i = 0; i < 4096; i++)
+    {
         if (csr_names[i] == nullptr)
             continue;
 
-        if (strcmp(s, csr_names[i]) == 0) {
+        if (strcmp(s, csr_names[i]) == 0)
+        {
             *success = true;
             return cpu.csr(i);
         }
@@ -40,7 +45,7 @@ word_t isa_csr_str2val(const char *s, bool *success) {
 
 word_t isa_reg_str2val(const char* s, bool* success)
 {
-    auto& cpu = sim_handle.get_cpu();
+    auto& cpu = SIM.cpu();
 
     if (strcmp(s, "pc") == 0)
     {
@@ -98,8 +103,8 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
         return -1;
     }
 
-    auto pc = sim_handle.get_cpu().pc();
-    auto dnpc = sim_handle.get_cpu().dnpc();
+    auto pc = SIM.cpu().pc();
+    auto dnpc = SIM.cpu().dnpc();
 
     if (is_call)
     {
@@ -133,7 +138,7 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
 
 int isa_ftrace_dump(char* buf, size_t buf_size)
 {
-    auto inst = sim_handle.get_cpu().curr_inst();
+    auto inst = SIM.cpu().curr_inst();
 
 
     // jal

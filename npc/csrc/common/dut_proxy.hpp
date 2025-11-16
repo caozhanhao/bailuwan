@@ -78,10 +78,10 @@ public:
 
 struct DUTMemory
 {
-    uint32_t* flash_data{};
+    uint8_t* flash_data{};
     uint8_t* psram_data{};
-    uint16_t* sdram_data{};
-    uint32_t* mrom_data{}; // unused
+    uint8_t* sdram_data{};
+    uint8_t* mrom_data{};
 
     size_t img_size{};
 
@@ -89,13 +89,14 @@ struct DUTMemory
     void destroy();
 
     template <size_t S>
-    static uint32_t align_down(uint32_t addr) {
+    static uint32_t align_down(uint32_t addr)
+    {
         return addr & ~(S - 1);
     }
 
     [[noreturn]] void out_of_bound_abort(uint32_t addr);
 
-    template<typename T>
+    template <typename T>
     T read(uint32_t uaddr)
     {
         assert(!in_psram(uaddr));
@@ -133,7 +134,8 @@ struct DUTMemory
     }
 
     template <typename T>
-    void write(uint32_t uaddr, T wdata, char wmask) {
+    void write(uint32_t uaddr, T wdata, char wmask)
+    {
         assert(!in_psram(uaddr));
 
         align_down<sizeof(T)>(uaddr);

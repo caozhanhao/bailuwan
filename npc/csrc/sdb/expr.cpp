@@ -401,7 +401,8 @@ static word_t eval(int p, int q, bool* success)
             return ret;
         }
 
-        if (tokens[p].type == TK_REG) {
+        if (tokens[p].type == TK_REG)
+        {
             word_t res = isa_reg_str2val(tokens[p].str + 1, success);
             if (*success)
                 return res;

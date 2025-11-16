@@ -130,13 +130,16 @@ void DUTMemory::init(const std::string& filename)
     FILE* fp = fopen(filename.c_str(), "rb");
     assert(fp);
 
-    flash_data = static_cast<uint32_t*>(malloc(CONFIG_FLASH_SIZE));
+    mrom_data = static_cast<uint8_t*>(malloc(CONFIG_MROM_SIZE));
+    memset(mrom_data, 0, CONFIG_MROM_SIZE);
+
+    flash_data = static_cast<uint8_t*>(malloc(CONFIG_FLASH_SIZE));
     memset(flash_data, 0, CONFIG_FLASH_SIZE);
 
     psram_data = static_cast<uint8_t*>(malloc(CONFIG_PSRAM_SIZE));
     memset(psram_data, 0, CONFIG_PSRAM_SIZE);
 
-    sdram_data = static_cast<uint16_t*>(malloc(CONFIG_SDRAM_SIZE));
+    sdram_data = static_cast<uint8_t*>(malloc(CONFIG_SDRAM_SIZE));
     memset(sdram_data, 0, CONFIG_SDRAM_SIZE);
 
     size_t bytes_read = fread(flash_data, 1, CONFIG_FLASH_SIZE, fp);
@@ -179,6 +182,12 @@ void DUTMemory::destroy()
     {
         free(psram_data);
         psram_data = nullptr;
+    }
+
+    if (sdram_data)
+    {
+        free(sdram_data);
+        sdram_data = nullptr;
     }
 }
 
@@ -229,10 +238,10 @@ bool DUTMemory::in_sim_mem(uint32_t addr) const
 
 uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
 {
-    if (in_flash(paddr))
-        return reinterpret_cast<uint8_t*>(flash_data) + paddr - CONFIG_FLASH_BASE;
     if (in_mrom(paddr))
         return reinterpret_cast<uint8_t*>(mrom_data) + paddr - CONFIG_MROM_BASE;
+    if (in_flash(paddr))
+        return reinterpret_cast<uint8_t*>(flash_data) + paddr - CONFIG_FLASH_BASE;
     if (in_psram(paddr))
         return reinterpret_cast<uint8_t*>(psram_data) + paddr - CONFIG_PSRAM_BASE;
     if (in_sdram(paddr))
@@ -245,10 +254,10 @@ uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
 uint32_t DUTMemory::host_to_guest(uint8_t* haddr) const
 {
     auto haddr_u32 = in_flash(static_cast<uint32_t>(reinterpret_cast<uint64_t>(haddr)));
-    if (in_flash(haddr_u32))
-        return haddr - reinterpret_cast<uint8_t*>(flash_data) + CONFIG_FLASH_BASE;
     if (in_mrom(haddr_u32))
         return haddr - reinterpret_cast<uint8_t*>(mrom_data) + CONFIG_MROM_BASE;
+    if (in_flash(haddr_u32))
+        return haddr - reinterpret_cast<uint8_t*>(flash_data) + CONFIG_FLASH_BASE;
     if (in_psram(haddr_u32))
         return haddr - reinterpret_cast<uint8_t*>(psram_data) + CONFIG_PSRAM_BASE;
     if (in_sdram(haddr_u32))
@@ -282,7 +291,7 @@ void SimHandle::cleanup_trace()
 
 void SimHandle::init_sim(const std::string& filename)
 {
-    cpu_handle.bind(&DUT);
+    cpu_proxy.bind(&DUT);
     cycle_counter = 0;
     sim_time = 0;
     init_trace();

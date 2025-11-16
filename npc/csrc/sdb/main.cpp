@@ -404,7 +404,7 @@ int main(int argc, char* argv[])
             isa_reg_display();
             printf("CSRs:\n");
             isa_csr_display();
-            // sim_handle.cleanup();
+            // SIM.cleanup();
         }
     }, nullptr);
 
