@@ -429,7 +429,7 @@ int main(int argc, char* argv[])
     SIM.reset(10);
 
     // ATTENTION: Initialize difftest after the dut reset.
-    IFDEF(CONFIG_DIFFTEST, init_difftest(SIM.mem().img_size));
+    IFDEF(CONFIG_DIFFTEST, init_difftest(SIM.mem().inst_memory_size));
 
 
     if (elf_file)

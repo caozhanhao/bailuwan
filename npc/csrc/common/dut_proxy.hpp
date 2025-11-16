@@ -84,7 +84,7 @@ struct DUTMemory
     uint8_t* sdram_data{};
     uint8_t* mrom_data{};
 
-    size_t img_size{};
+    size_t inst_memory_size{};
 
     void init(const std::string& filename);
     void destroy();

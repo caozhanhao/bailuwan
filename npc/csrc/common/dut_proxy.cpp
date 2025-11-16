@@ -153,7 +153,7 @@ void DUTMemory::init(const std::string& filename)
         }
     }
 
-    img_size = CONFIG_FLASH_SIZE;
+    inst_memory_size = CONFIG_FLASH_SIZE;
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
