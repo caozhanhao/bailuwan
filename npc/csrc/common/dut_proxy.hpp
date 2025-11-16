@@ -142,13 +142,6 @@ struct DUTMemory
 
         auto haddr = guest_to_host(uaddr);
         auto* u8data = reinterpret_cast<uint8_t*>(&wdata);
-
-        if (sizeof (T) == 2)
-        {
-            printf("u8 d0=%d\n", *u8data);
-            printf("u8 d1=%d\n", *(u8data + 1));
-        }
-
         for (int i = 0; i < sizeof(T); i++)
         {
             if (wmask & (1 << i))
