@@ -60,30 +60,12 @@ int snprintf(char* out, size_t n, const char* fmt, ...)
         needed++; \
     } while (0)
 
-static void print_integer(char* out, long long val, int zero_pad, int width, size_t* pos_ptr, size_t* cap_ptr,
-                          size_t* needed_ptr, char fmt)
+static void print_integer(char* out, bool negative, unsigned long long abs_val, int zero_pad, int width,
+                          size_t* pos_ptr, size_t* cap_ptr, size_t* needed_ptr, char fmt)
 {
     size_t pos = *pos_ptr;
     size_t cap = *cap_ptr;
     size_t needed = *needed_ptr;
-
-    int negative = 0;
-    unsigned long long abs_val;
-
-    if (fmt == 'd')
-    {
-        if (val < 0)
-        {
-            negative = 1;
-            // avoid overflow for LLONG_MIN
-            abs_val = (unsigned long long)(-(val + 1)) + 1;
-        }
-        else
-            abs_val = (unsigned long long)val;
-    }
-    // fmt == 'u'/'x'/'X'
-    else
-        abs_val = (unsigned long long)val;
 
     // produce digits into buf in reverse
     char buf[128];
@@ -218,34 +200,65 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
             while (*s)
                 WRITE_CHAR(*s++);
             f++;
+            continue;
         }
-#define is_duxX(t) (t == 'd' || t == 'u' || t == 'x' || t == 'X')
-        else if (is_duxX(*f))
+
+        // Integers
+        int length = 0; // 0=none, 1=l, 2=ll
+        if (*f == 'l')
         {
-            int v = va_arg(ap, int);
-            print_integer(out, v, zero_pad, width, &pos, &cap, &needed, *f);
+            if (*(f + 1) == 'l')
+            {
+                length = 2;
+                f += 2;
+            }
+            else
+            {
+                length = 1;
+                f += 1;
+            }
+        }
+
+        if (*f == 'd')
+        {
+            long long llv = 0;
+            unsigned long long abs_val = 0;
+
+            if (length == 0)
+                llv = (long long)va_arg(ap, int);
+            else if (length == 1)
+                llv = (long long)va_arg(ap, long);
+            else if (length == 2)
+                llv = va_arg(ap, long long);
+            else halt(1);
+
+            if (llv < 0)
+                abs_val = (unsigned long long)(-(llv + 1)) + 1;
+            else
+                abs_val = (unsigned long long)llv;
+            print_integer(out, llv < 0, abs_val, zero_pad, width, &pos, &cap, &needed, *f);
             f++;
+            continue;
         }
-        else if (*f == 'l' && is_duxX(*(f + 1)))
+        if (*f == 'u' || *f == 'x' || *f == 'X')
         {
-            long v = va_arg(ap, long);
-            print_integer(out, v, zero_pad, width, &pos, &cap, &needed, *(f + 1));
-            f += 2;
+            unsigned long long uv = 0;
+            if (length == 0)
+                uv = (unsigned long long)va_arg(ap, unsigned int);
+            else if (length == 1)
+                uv = (unsigned long long)va_arg(ap, unsigned long);
+            else if (length == 2)
+                uv = va_arg(ap, unsigned long long);
+            else halt(1);
+
+            print_integer(out, false, uv, zero_pad, width, &pos, &cap, &needed, *(f + 1));
+            f++;
+            continue;
         }
-        else if (*f == 'l' && *(f + 1) == 'l' && is_duxX(*(f + 2)))
-        {
-            long long v = va_arg(ap, long long);
-            print_integer(out, v, zero_pad, width, &pos, &cap, &needed, *(f + 2));
-            f += 3;
-        }
-#undef is_dxX
-        else
-        {
-            // unsupported specifier: literally %<char>
-            WRITE_CHAR('%');
-            WRITE_CHAR(*f ? *f : '\0');
-            if (*f) f++;
-        }
+        // unsupported specifier: literally %<char>
+        WRITE_CHAR('%');
+        WRITE_CHAR(*f ? *f : '\0');
+        if (*f) f++;
     }
 
     if (n > 0)
