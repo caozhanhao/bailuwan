@@ -61,7 +61,7 @@ int snprintf(char* out, size_t n, const char* fmt, ...)
     } while (0)
 
 static void print_integer(char* out, unsigned long long val, int zero_pad, int width, size_t* pos_ptr, size_t* cap_ptr,
-                                 size_t* needed_ptr, char fmt)
+                          size_t* needed_ptr, char fmt)
 {
     size_t pos = *pos_ptr;
     size_t cap = *cap_ptr;
@@ -220,36 +220,32 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
                 WRITE_CHAR(*s++);
             f++;
         }
-        #define is_duxX(t) (t == 'd' || t == 'u' || t == 'x' || t == 'X')
-        // Integer
+#define is_duxX(t) (t == 'd' || t == 'u' || t == 'x' || t == 'X')
+        else if (is_duxX(*f))
+        {
+            int v = va_arg(ap, int);
+            print_integer(out, v, zero_pad, width, &pos, &cap, &needed, *f);
+            f++;
+        }
+        else if (*f == 'l' && is_duxX(*(f + 1)))
+        {
+            long v = va_arg(ap, long);
+            print_integer(out, v, zero_pad, width, &pos, &cap, &needed, *(f + 1));
+            f += 2;
+        }
+        else if (*f == 'l' && *(f + 1) == 'l' && is_duxX(*(f + 2)))
+        {
+            long long v = va_arg(ap, long long);
+            print_integer(out, v, zero_pad, width, &pos, &cap, &needed, *(f + 2));
+            f += 3;
+        }
+#undef is_dxX
         else
         {
-            if (is_duxX(*f))
-            {
-                int v = va_arg(ap, int);
-                print_integer(out, v, zero_pad, width, &pos, &cap, &needed, *f);
-                f++;
-            }
-            else if (*f == 'l' && is_duxX(*(f + 1)))
-            {
-                long v = va_arg(ap, long);
-                print_integer(out, v, zero_pad, width, &pos, &cap, &needed, *(f + 1));
-                f += 2;
-            }
-            else if (*f == 'l' && *(f + 1) == 'l' && is_duxX(*(f + 2)))
-            {
-                long long v = va_arg(ap, long long);
-                print_integer(out, v, zero_pad, width, &pos, &cap, &needed, *(f + 2));
-                f += 3;
-            }
-            else
-            {
-                // unsupported specifier: literally %<char>
-                WRITE_CHAR('%');
-                WRITE_CHAR(*f ? *f : '\0');
-                if (*f) f++;
-            }
-#undef is_dxX
+            // unsupported specifier: literally %<char>
+            WRITE_CHAR('%');
+            WRITE_CHAR(*f ? *f : '\0');
+            if (*f) f++;
         }
     }
 
