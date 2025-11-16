@@ -191,6 +191,14 @@ config FLASH_SIZE
   # considered invalid in difftest.
   default 0x1000000
 
+config SDRAM_BASE
+  hex "Physical address of the SDRAM"
+  default 0xa0000000
+
+config SDRAM_SIZE
+  hex "Size of the SDRAM"
+  default 0x2000000
+
 endif # HAS_YSYXSOC
 
 endif # DEVICE
