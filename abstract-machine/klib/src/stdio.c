@@ -102,7 +102,7 @@ static void print_signed_int(char* out, long long val, int zero_pad, int width, 
                 u >>= 4;
             }
         }
-        else
+        else if (fmt == 'd')
         {
             while (u > 0 && bi < (int)sizeof(buf))
             {
@@ -110,6 +110,8 @@ static void print_signed_int(char* out, long long val, int zero_pad, int width, 
                 u /= 10;
             }
         }
+        else
+            halt(1);
     }
     int digits_len = bi; // number of digit characters
 
