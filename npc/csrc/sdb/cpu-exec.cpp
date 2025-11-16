@@ -78,13 +78,13 @@ static void execute(uint64_t n)
         if (cpu.is_ready_for_difftest())
             inst_has_been_traced = false;
 
-        // if (sim_stop_requested)
-        // {
-        //     sdb_state = SDBState::Stop;
-        //     sim_stop_requested = 0;
-        //     // SIM.cleanup();
-        //     // exit(-1);
-        // }
+        if (sim_stop_requested)
+        {
+            sdb_state = SDBState::Stop;
+            sim_stop_requested = 0;
+            // SIM.cleanup();
+            // exit(-1);
+        }
     }
 }
 
