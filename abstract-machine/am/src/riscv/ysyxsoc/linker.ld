@@ -11,7 +11,7 @@ MEMORY {
 SECTIONS {
   .entry : ALIGN(8) {
     *(entry)
-  } > flash
+  } > flash AT> flash
 
   .text : ALIGN(8) {
     _text_lma = LOADADDR(.text);
