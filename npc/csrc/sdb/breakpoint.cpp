@@ -71,7 +71,7 @@ void free_bp(BP *bp) {
 }
 
 void bp_update_one(BP *p) {
-  if (sim_handle.get_cpu().pc() == p->addr) {
+  if (SIM.cpu().pc() == p->addr) {
     Log("Breakpoint hit at 0x%x.", p->addr);
 
     if (sdb_state == SDBState::Running)

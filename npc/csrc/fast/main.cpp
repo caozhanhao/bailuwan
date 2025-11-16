@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
         exit(e.get_code());
     }
 
-    printf("Simulation terminated after %lu cycles\n", sim_handle.get_cycles());
+    printf("Simulation terminated after %lu cycles\n", sim_handle.cycles());
 
     sim_handle.cleanup();
     return 0;

@@ -18,7 +18,7 @@ static void trace_and_difftest()
     }
 #endif
 
-    auto& cpu = sim_handle.get_cpu();
+    auto& cpu = SIM.cpu();
     if (cpu.is_inst_valid() && !inst_has_been_traced)
     {
 #ifdef CONFIG_ITRACE
@@ -47,19 +47,19 @@ static void trace_and_difftest()
 
 static void execute(uint64_t n)
 {
-    auto& cpu = sim_handle.get_cpu();
+    auto& cpu = SIM.cpu();
     while (n > 0)
     {
         try
         {
-            sim_handle.single_cycle();
+            SIM.single_cycle();
         }
         catch (EBreakException& e)
         {
             sdb_state = SDBState::End;
             sdb_halt_ret = e.get_code();
             Log("Got Ebreak. Cycle Per Inst = %f",
-                static_cast<double>(sim_handle.get_cycles()) / static_cast<double>(inst_count));
+                static_cast<double>(SIM.cycles()) / static_cast<double>(inst_count));
         }
 
         trace_and_difftest();
@@ -68,7 +68,7 @@ static void execute(uint64_t n)
 
         if (sim_stop_requested)
         {
-            sim_handle.cleanup();
+            SIM.cleanup();
             exit(-1);
         }
 

@@ -15,7 +15,7 @@ void flash_read(int32_t addr, int32_t* data)
     //   By the way, difftest in NEMU does not be affected by this, since the read request is emulated
     //   by NEMU itself, not a APBSPI in ysyxSoC.
 
-    *data = sim_handle.get_memory().read(addr + CONFIG_FLASH_BASE);
+    *data = SIM.mem().read<uint32_t>(addr + CONFIG_FLASH_BASE);
 }
 
 void mrom_read(int32_t addr, int32_t* data)
@@ -28,18 +28,28 @@ void mrom_read(int32_t addr, int32_t* data)
 
 char psram_read(int raddr)
 {
-    return static_cast<char>(sim_handle.get_memory().psram_read(raddr + CONFIG_PSRAM_BASE /* same as flash*/));
+    return SIM.mem().read<char>(raddr + CONFIG_PSRAM_BASE /* same as flash*/);
 }
 
 void psram_write(int waddr, char wdata)
 {
-    return sim_handle.get_memory().psram_write(waddr + CONFIG_PSRAM_BASE /* same as flash*/, wdata);
+    return SIM.mem().write<char>(waddr + CONFIG_PSRAM_BASE /* same as flash*/, wdata, 0b1);
+}
+
+int16_t sdram_read(int raddr)
+{
+    return SIM.mem().read<int16_t>(raddr + CONFIG_PSRAM_BASE /* same as flash*/);
+}
+
+void sdram_write(int waddr, char wdata)
+{
+    return SIM.mem().write<int16_t>(waddr + CONFIG_PSRAM_BASE /* same as flash*/, wdata, 0b11);
 }
 
 void ebreak_handler()
 {
-    auto cycles = sim_handle.get_cycles();
-    auto elapsed_time = sim_handle.elapsed_time();
+    auto cycles = SIM.cycles();
+    auto elapsed_time = SIM.elapsed_time();
 
     printf("ebreak after %lu cycles\n", cycles);
     printf("elapsed time: %lu us\n", elapsed_time);
@@ -47,7 +57,7 @@ void ebreak_handler()
     double cycle_per_us = static_cast<double>(elapsed_time) / static_cast<double>(cycles);
     printf("cycle per us: %f\n", cycle_per_us);
 
-    auto a0 = sim_handle.get_cpu().reg(10);
+    auto a0 = SIM.cpu().reg(10);
     if (a0 == 0)
         printf("\33[1;32mHIT GOOD TRAP\33[0m\n");
     else

@@ -456,7 +456,7 @@ static word_t eval(int p, int q, bool* success)
             {
                 // TODO: MMIO
                 // return vaddr_read(val, 4);
-                auto& mem = sim_handle.get_memory();
+                auto& mem = SIM.mem();
                 if (val % 4 != 0)
                 {
                     Log("dereference unaligned, addr: 0x%x", val);
@@ -471,7 +471,7 @@ static word_t eval(int p, int q, bool* success)
                     return 0;
                 }
 
-                return mem.read(val);
+                return mem.read<uint32_t>(val);
             }
         default:
             panic("unexpected unary operator");
