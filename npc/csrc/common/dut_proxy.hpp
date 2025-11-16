@@ -141,6 +141,9 @@ struct DUTMemory
         if (!in_sim_mem(uaddr))
             out_of_bound_abort(uaddr);
 
+        if (wmask == 0)
+            return;
+
         auto haddr = guest_to_host(uaddr);
         auto* u8data = reinterpret_cast<uint8_t*>(&wdata);
         for (int i = 0; i < sizeof(T); i++)
