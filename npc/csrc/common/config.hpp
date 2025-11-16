@@ -26,6 +26,9 @@
 #define PMEM_RIGHT ((uint32_t)CONFIG_FLASH_BASE + CONFIG_FLASH_SIZE - 1)
 #define RESET_VECTOR PMEM_LEFT
 
+// Available in sdb/fast/nvboard
+#define CONFIG_MTRACE 1
+
 // Only available in sdb:
 // #define CONFIG_ITRACE 1
 // #define CONFIG_FTRACE 1

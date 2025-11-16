@@ -38,11 +38,14 @@ void psram_write(int waddr, char wdata)
 
 int16_t sdram_read(int raddr)
 {
-    return SIM.mem().read<int16_t>(raddr + CONFIG_PSRAM_BASE /* same as flash*/);
+    auto data = SIM.mem().read<int16_t>(raddr + CONFIG_PSRAM_BASE /* same as flash*/);
+    IFDEF(CONFIG_MTRACE, printf("sdram_read | addr=0x%x, data=0x%x", raddr, data));
+    return data;
 }
 
 void sdram_write(int waddr, char wdata, char dqm)
 {
+    IFDEF(CONFIG_MTRACE, printf("sdram_write | addr=0x%x, data=0x%x, dqm=0x%x", waddr, wdata, dqm));
     return SIM.mem().write<int16_t>(waddr + CONFIG_PSRAM_BASE /* same as flash*/, wdata, dqm);
 }
 
