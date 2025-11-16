@@ -10,6 +10,7 @@ AM_SRCS := riscv/ysyxsoc/start.S \
 
 CFLAGS    += -fdata-sections -ffunction-sections
 LDSCRIPTS += $(AM_HOME)/am/src/riscv/ysyxsoc/linker.ld
+# Don't specify entry here to avoid conflict with the LDSCRIPTS.
 LDFLAGS   += --gc-sections
 NPCFLAGS  += -e $(IMAGE).elf
 
