@@ -4,6 +4,7 @@
 #include "VysyxSoCFull.h"
 #include "VysyxSoCFull___024root.h"
 #include "utils/macro.hpp"
+#include "config.hpp"
 
 #ifdef TRACE_fst
 #include "verilated_fst_c.h"
