@@ -1,4 +1,4 @@
-ENTRY(_fsbl)
+ENTRY(._fsbl)
 
 MEMORY {
   mrom : ORIGIN = 0x20000000, LENGTH = 4K
@@ -23,7 +23,7 @@ SECTIONS {
   .text : ALIGN(8) {
     _text_lma = LOADADDR(.text);
     _stext = .;
-    *(entry)
+    *(.entry)
     *(.text*)
     _etext = .;
   } > psram AT> flash
