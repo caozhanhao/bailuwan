@@ -22,7 +22,7 @@ _bootloader:
     COPY_SECTION_WORD _rodata_lma, _srodata, _erodata
     COPY_SECTION_WORD _data_lma, _sdata, _edata
 
-    /* ---- clear .bss: zero _sbss .. _ebss ---- */
+    /* clear .bss: zero _sbss .. _ebss */
     la   t1, _sbss
     la   t2, _ebss
 7:
