@@ -89,19 +89,11 @@ struct DUTMemory
     void init(const std::string& filename);
     void destroy();
 
-    template <size_t S>
-    static uint32_t align_down(uint32_t addr)
-    {
-        return addr & ~(S - 1);
-    }
-
     [[noreturn]] void out_of_bound_abort(uint32_t addr);
 
     template <typename T>
     T read(uint32_t uaddr)
     {
-        uaddr = align_down<sizeof(T)>(uaddr);
-
         // Clock
         if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
         {
@@ -136,8 +128,6 @@ struct DUTMemory
     template <typename T>
     void write(uint32_t uaddr, T wdata, uint8_t wmask)
     {
-        // uaddr = align_down<sizeof(T)>(uaddr);
-
         if (!in_sim_mem(uaddr))
             out_of_bound_abort(uaddr);
 
