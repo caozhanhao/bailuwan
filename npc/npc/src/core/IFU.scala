@@ -46,7 +46,7 @@ class IFU(
     )
   )
 
-  io.mem.ar.valid := state === s_idle
+  io.mem.ar.valid := (state === s_idle) && !reset.asBool // Don't send request when resetting
   io.mem.r.ready  := state === s_wait_mem
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
