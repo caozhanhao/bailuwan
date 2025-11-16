@@ -385,7 +385,7 @@ void sig_handler(int signum)
 {
     // Attention: Aware of signal safety.
     //   https://man7.org/linux/man-pages/man7/signal-safety.7.html
-    const char* msg = "SIGINT received, requesting stop\n";
+    const char* msg = "\nSIGINT received, requesting stop\n";
     write(STDERR_FILENO, msg, strlen(msg));
     sim_stop_requested = 1;
 }

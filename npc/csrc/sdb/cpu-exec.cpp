@@ -66,12 +66,6 @@ static void execute(uint64_t n)
 
         if (sdb_state != SDBState::Running) break;
 
-        if (sim_stop_requested)
-        {
-            SIM.cleanup();
-            exit(-1);
-        }
-
         // If this instruction is valid and has not been traced, trace it
         // and set the flag.
         if (cpu.is_inst_valid() && !inst_has_been_traced)
@@ -83,6 +77,14 @@ static void execute(uint64_t n)
         // If last instruction done, clear the flag.
         if (cpu.is_ready_for_difftest())
             inst_has_been_traced = false;
+
+        if (sim_stop_requested)
+        {
+            sim_stop_requested = 0;
+            sdb_state = SDBState::Stop;
+            // SIM.cleanup();
+            // exit(-1);
+        }
     }
 }
 
