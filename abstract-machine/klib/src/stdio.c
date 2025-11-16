@@ -251,7 +251,7 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
                 uv = va_arg(ap, unsigned long long);
             else halt(1);
 
-            print_integer(out, false, uv, zero_pad, width, &pos, &cap, &needed, *(f + 1));
+            print_integer(out, false, uv, zero_pad, width, &pos, &cap, &needed, *f);
             f++;
             continue;
         }
