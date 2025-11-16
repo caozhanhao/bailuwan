@@ -60,40 +60,44 @@ int snprintf(char* out, size_t n, const char* fmt, ...)
         needed++; \
     } while (0)
 
-static void print_signed_integer(char* out, long long val, int zero_pad, int width, size_t* pos_ptr, size_t* cap_ptr,
-                                 size_t* needed_ptr)
+static void print_integer(char* out, bool negative, unsigned long long abs_val, int zero_pad, int width,
+                          size_t* pos_ptr, size_t* cap_ptr, size_t* needed_ptr, char fmt)
 {
     size_t pos = *pos_ptr;
     size_t cap = *cap_ptr;
     size_t needed = *needed_ptr;
 
-    int negative = 0;
-    unsigned long long u;
-
-    if (val < 0)
-    {
-        negative = 1;
-        u = (unsigned long long)(-val);
-    }
-    else
-    {
-        u = (unsigned long long)val;
-    }
-
     // produce digits into buf in reverse
     char buf[128];
     int bi = 0;
-    if (u == 0)
+    if (abs_val == 0)
     {
         buf[bi++] = '0';
     }
     else
     {
-        while (u > 0 && bi < (int)sizeof(buf))
+        if (fmt == 'x' || fmt == 'X')
         {
-            buf[bi++] = (char)('0' + (u % 10));
-            u /= 10;
+            while (abs_val > 0 && bi < (int)sizeof(buf))
+            {
+                int digit = (int)(abs_val & 0xF);
+                if (digit < 10)
+                    buf[bi++] = '0' + digit;
+                else
+                    buf[bi++] = (fmt == 'X' ? 'A' : 'a') + (digit - 10);
+                abs_val >>= 4;
+            }
         }
+        else if (fmt == 'd' || fmt == 'u')
+        {
+            while (abs_val > 0 && bi < (int)sizeof(buf))
+            {
+                buf[bi++] = (char)('0' + (abs_val % 10));
+                abs_val /= 10;
+            }
+        }
+        else
+            halt(1);
     }
     int digits_len = bi; // number of digit characters
 
@@ -196,32 +200,65 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
             while (*s)
                 WRITE_CHAR(*s++);
             f++;
+            continue;
         }
-        else if (*f == 'd')
+
+        // Integers
+        int length = 0; // 0=none, 1=l, 2=ll
+        if (*f == 'l')
         {
-            int v = va_arg(ap, int);
-            print_signed_integer(out, v, zero_pad, width, &pos, &cap, &needed);
+            if (*(f + 1) == 'l')
+            {
+                length = 2;
+                f += 2;
+            }
+            else
+            {
+                length = 1;
+                f += 1;
+            }
+        }
+
+        if (*f == 'd')
+        {
+            long long llv = 0;
+            unsigned long long abs_val = 0;
+
+            if (length == 0)
+                llv = (long long)va_arg(ap, int);
+            else if (length == 1)
+                llv = (long long)va_arg(ap, long);
+            else if (length == 2)
+                llv = va_arg(ap, long long);
+            else halt(1);
+
+            if (llv < 0)
+                abs_val = (unsigned long long)(-(llv + 1)) + 1;
+            else
+                abs_val = (unsigned long long)llv;
+            print_integer(out, llv < 0, abs_val, zero_pad, width, &pos, &cap, &needed, *f);
             f++;
+            continue;
         }
-        else if (*f == 'l' && *(f + 1) == 'd')
+        if (*f == 'u' || *f == 'x' || *f == 'X')
         {
-            long v = va_arg(ap, long);
-            print_signed_integer(out, v, zero_pad, width, &pos, &cap, &needed);
-            f += 2;
+            unsigned long long uv = 0;
+            if (length == 0)
+                uv = (unsigned long long)va_arg(ap, unsigned int);
+            else if (length == 1)
+                uv = (unsigned long long)va_arg(ap, unsigned long);
+            else if (length == 2)
+                uv = va_arg(ap, unsigned long long);
+            else halt(1);
+
+            print_integer(out, false, uv, zero_pad, width, &pos, &cap, &needed, *f);
+            f++;
+            continue;
         }
-        else if (*f == 'l' && *(f + 1) == 'l' && *(f + 2) == 'd')
-        {
-            long long v = va_arg(ap, long long);
-            print_signed_integer(out, v, zero_pad, width, &pos, &cap, &needed);
-            f += 3;
-        }
-        else
-        {
-            // unsupported specifier: literally %<char>
-            WRITE_CHAR('%');
-            WRITE_CHAR(*f ? *f : '\0');
-            if (*f) f++;
-        }
+        // unsupported specifier: literally %<char>
+        WRITE_CHAR('%');
+        WRITE_CHAR(*f ? *f : '\0');
+        if (*f) f++;
     }
 
     if (n > 0)
