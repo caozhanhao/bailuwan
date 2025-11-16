@@ -48,7 +48,11 @@ void sdram_write(int waddr, int16_t wdata, char mask)
 {
     IFDEF(CONFIG_MTRACE, printf("SDRAM Write | addr=0x%x, data=0x%x, mask=0x%x\n",
               waddr, wdata, mask));
-    return SIM.mem().write<int16_t>(waddr + CONFIG_SDRAM_BASE /* same as flash*/, wdata, mask);
+    SIM.mem().write<int16_t>(waddr + CONFIG_SDRAM_BASE /* same as flash*/, wdata, mask);
+
+    printf("After write:\n");
+    for (int i = 0; i < 8; i++)
+        printf("%08x: %08x\n", i * 4, ((uint32_t*)SIM.mem().sdram_data)[i]);
 }
 
 void ebreak_handler()
