@@ -145,8 +145,8 @@ struct DUTMemory
 
         if (sizeof (T) == 2)
         {
-            printf("u8 d0=%d", *u8data);
-            printf("u8 d1=%d", *(u8data + 1));
+            printf("u8 d0=%d\n", *u8data);
+            printf("u8 d1=%d\n", *(u8data + 1));
         }
 
         for (int i = 0; i < sizeof(T); i++)
