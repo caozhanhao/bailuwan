@@ -10,20 +10,20 @@ MEMORY {
 
 SECTIONS {
   .fsbl : ALIGN(8) {
-    *(.fsbl)
+    *(fsbl)
   } > flash AT> flash
 
   .ssbl : ALIGN(8) {
     _ssbl_lma = LOADADDR(.ssbl);
     _sssbl = .;
-    *(.ssbl)
+    *(ssbl)
     _essbl = .;
   } > sram AT> flash
 
   .text : ALIGN(8) {
     _text_lma = LOADADDR(.text);
     _stext = .;
-    *(.entry)
+    *(entry)
     *(.text*)
     _etext = .;
   } > psram AT> flash

@@ -14,7 +14,7 @@
 .endm
 
 // fsbl is placed in flash
-.section .fsbl, "ax"
+.section fsbl, "ax"
 .global _fsbl
 .type _fsbl, @function
 _fsbl:
@@ -25,7 +25,7 @@ _fsbl:
 .size _fsbl, . - _fsbl
 
 // ssbl is placed in flash and loaded to sram by fsbl
-.section .ssbl, "ax"
+.section ssbl, "ax"
 .global _ssbl
 .type _ssbl, @function
 _ssbl:
@@ -48,7 +48,7 @@ _ssbl:
 .size _ssbl, . - _ssbl
 
 // entry is placed in .text
-.section .entry, "ax"
+.section entry, "ax"
 .globl _start
 .type _start, @function
 _start:
