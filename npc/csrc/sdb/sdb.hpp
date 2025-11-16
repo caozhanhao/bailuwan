@@ -65,7 +65,7 @@ enum class SDBState
 extern SDBState sdb_state;
 extern int sdb_halt_ret;
 extern uint64_t inst_count;
-extern bool is_batch_mode;
+extern bool resume_from_ctrl_c;
 
 extern volatile sig_atomic_t sim_stop_requested;
 

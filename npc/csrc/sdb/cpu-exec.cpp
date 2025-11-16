@@ -82,7 +82,7 @@ static void execute(uint64_t n)
         {
             sdb_state = SDBState::Stop;
             sim_stop_requested = 0;
-            is_batch_mode = false;
+            resume_from_ctrl_c = true;
             // SIM.cleanup();
             // exit(-1);
         }

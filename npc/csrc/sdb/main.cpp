@@ -11,6 +11,7 @@
 SDBState sdb_state;
 int sdb_halt_ret;
 bool is_batch_mode;
+bool resume_from_ctrl_c = false;
 uint64_t inst_count;
 
 volatile sig_atomic_t sim_stop_requested = 0;
@@ -291,7 +292,14 @@ void sdb_mainloop()
     if (is_batch_mode)
     {
         cmd_c(nullptr);
-        return;
+
+        // If we received a CTRL-C, we quit batch mode and resume executing
+        // in console mode.
+        if (!resume_from_ctrl_c)
+            return;
+
+        is_batch_mode = false;
+        resume_from_ctrl_c = false;
     }
 
     for (char* str; (str = rl_gets()) != nullptr;)
@@ -314,10 +322,6 @@ void sdb_mainloop()
             args = nullptr;
         }
 
-#ifdef CONFIG_DEVICE
-        extern void sdl_clear_event_queue();
-        sdl_clear_event_queue();
-#endif
 
         int i;
         for (i = 0; i < NR_CMD; i++)
