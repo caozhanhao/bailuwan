@@ -32,7 +32,6 @@ SECTIONS {
     _sdata = .;
     *(.data*)
     *(.sdata*)
-    *(.data.extra*)
     _edata = .;
   } > psram AT> flash
 
@@ -41,7 +40,6 @@ SECTIONS {
     *(.bss*)
     *(.sbss*)
     *(.scommon)
-    *(.bss.extra*)
     _ebss = .;
   } > psram
 
