@@ -100,7 +100,6 @@ struct DUTMemory
     template <typename T>
     T read(uint32_t uaddr)
     {
-        assert(!in_psram(uaddr));
         align_down<sizeof(T)>(uaddr);
 
         // Clock
@@ -137,8 +136,6 @@ struct DUTMemory
     template <typename T>
     void write(uint32_t uaddr, T wdata, char wmask)
     {
-        assert(!in_psram(uaddr));
-
         align_down<sizeof(T)>(uaddr);
 
         if (!in_sim_mem(uaddr))
