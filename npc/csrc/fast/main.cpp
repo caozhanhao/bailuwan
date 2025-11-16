@@ -38,8 +38,8 @@ int main(int argc, char* argv[])
     Verilated::commandArgs(argc, argv);
     parse_args(argc, argv);
     // INIT
-    sim_handle.init_sim(img_file);
-    sim_handle.reset(10);
+    SIM.init_sim(img_file);
+    SIM.reset(10);
 
     // Simulate
     printf("Fast simulation started. All trace or debug info are disabled.\n");
@@ -47,15 +47,15 @@ int main(int argc, char* argv[])
     try
     {
         while (true)
-            sim_handle.single_cycle();
+            SIM.single_cycle();
     }
     catch (EBreakException& e)
     {
         exit(e.get_code());
     }
 
-    printf("Simulation terminated after %lu cycles\n", sim_handle.get_cycles());
+    printf("Simulation terminated after %lu cycles\n", SIM.cycles());
 
-    sim_handle.cleanup();
+    SIM.cleanup();
     return 0;
 }

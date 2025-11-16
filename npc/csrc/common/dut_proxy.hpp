@@ -4,6 +4,7 @@
 #include "VysyxSoCFull.h"
 #include "VysyxSoCFull___024root.h"
 #include "utils/macro.hpp"
+#include "config.hpp"
 
 #ifdef TRACE_fst
 #include "verilated_fst_c.h"
@@ -78,25 +79,81 @@ public:
 
 struct DUTMemory
 {
-    uint32_t* flash_data{};
+    uint8_t* flash_data{};
     uint8_t* psram_data{};
-    uint32_t* mrom_data{}; // unused
+    uint8_t* sdram_data{};
+    uint8_t* mrom_data{};
 
-    size_t img_size{};
+    size_t inst_memory_size{};
 
     void init(const std::string& filename);
     void destroy();
 
-    uint32_t read(uint32_t raddr);
-    void write(uint32_t waddr, uint32_t wdata, char wmask);
+    template <size_t S>
+    static uint32_t align_down(uint32_t addr)
+    {
+        return addr & ~(S - 1);
+    }
 
-    uint8_t psram_read(uint32_t raddr);
-    void psram_write(uint32_t waddr, uint8_t wdata);
+    [[noreturn]] void out_of_bound_abort(uint32_t addr);
+
+    template <typename T>
+    T read(uint32_t uaddr)
+    {
+        // Clock
+        if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
+        {
+            std::time_t t = std::time(nullptr);
+            std::tm* now = std::gmtime(&t);
+            switch (uaddr - RTC_MMIO)
+            {
+            case 8:
+                return now->tm_sec;
+            case 12:
+                return now->tm_min;
+            case 16:
+                return now->tm_hour;
+            case 20:
+                return now->tm_mday;
+            case 24:
+                return now->tm_mon + 1;
+            case 28:
+                return now->tm_year + 1900;
+            default: assert(false);
+            }
+            assert(false);
+        }
+
+        // Memory
+        if (!in_sim_mem(uaddr))
+            out_of_bound_abort(uaddr);
+
+        return *reinterpret_cast<T*>(guest_to_host(uaddr));
+    }
+
+    template <typename T>
+    void write(uint32_t uaddr, T wdata, uint8_t wmask)
+    {
+        if (!in_sim_mem(uaddr))
+            out_of_bound_abort(uaddr);
+
+        if (wmask == 0)
+            return;
+
+        auto haddr = guest_to_host(uaddr);
+        auto* u8data = reinterpret_cast<uint8_t*>(&wdata);
+        for (int i = 0; i < sizeof(T); i++)
+        {
+            if (wmask & (1 << i))
+                haddr[i] = u8data[i];
+        }
+    }
 
     bool in_mrom(uint32_t addr) const;
     bool in_sram(uint32_t addr) const;
     bool in_flash(uint32_t addr) const;
     bool in_psram(uint32_t addr) const;
+    bool in_sdram(uint32_t addr) const;
     bool in_device(uint32_t addr) const;
     bool in_sim_mem(uint32_t addr) const; // flash + mrom
     uint8_t* guest_to_host(uint32_t paddr) const;
@@ -106,12 +163,12 @@ struct DUTMemory
 class SimHandle
 {
     DUTMemory memory;
-    CPUProxy cpu;
+    CPUProxy cpu_proxy;
     uint64_t cycle_counter;
     uint64_t sim_time;
     uint32_t prev_inst;
     IFDEF(TRACE, TFP_TYPE* tfp);
-    std::chrono::high_resolution_clock::time_point boot_time;
+    std::chrono::high_resolution_clock::time_point boot_timepoint;
 
     void init_trace();
     void cleanup_trace();
@@ -124,20 +181,20 @@ public:
     void single_cycle();
     void reset(int n);
 
-    uint64_t get_cycles() const { return cycle_counter; }
-    CPUProxy& get_cpu() { return cpu; }
-    DUTMemory& get_memory() { return memory; }
-    const auto& get_boot_time() const { return boot_time; }
+    uint64_t cycles() const { return cycle_counter; }
+    CPUProxy& cpu() { return cpu_proxy; }
+    DUTMemory& mem() { return memory; }
+    const auto& boot_tp() const { return boot_timepoint; }
 
     uint64_t elapsed_time() const
     {
         return std::chrono::duration_cast<std::chrono::microseconds>(
-                std::chrono::high_resolution_clock::now() - boot_time)
+                std::chrono::high_resolution_clock::now() - boot_timepoint)
             .count();
     }
 };
 
-extern TOP_NAME dut;
-extern SimHandle sim_handle;
+extern TOP_NAME DUT;
+extern SimHandle SIM;
 extern const char* csr_names[4096];
 #endif

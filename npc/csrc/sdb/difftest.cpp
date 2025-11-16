@@ -26,7 +26,7 @@ struct diff_context_t
 
 static void sync_regs_to_ref()
 {
-    auto& cpu = sim_handle.get_cpu();
+    auto& cpu = SIM.cpu();
 
     diff_context_t ctx;
     for (int i = 0; i < 16; i++)
@@ -73,7 +73,7 @@ void init_difftest(size_t img_size)
         "If it is not necessary, you can turn it off in menuconfig.", ref_so_file);
 
     ref_difftest_init(0);
-    auto& mem = sim_handle.get_memory();
+    auto& mem = SIM.mem();
 
     ref_difftest_memcpy(RESET_VECTOR, mem.guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
 
@@ -82,7 +82,7 @@ void init_difftest(size_t img_size)
 
 static void checkregs(diff_context_t* ref)
 {
-    auto& cpu = sim_handle.get_cpu();
+    auto& cpu = SIM.cpu();
     bool match = true;
     for (int i = 0; i < 16; i++)
     {
@@ -130,7 +130,7 @@ static int accessing_device = false;
 
 static bool is_accessing_device()
 {
-    auto& cpu = sim_handle.get_cpu();
+    auto& cpu = SIM.cpu();
     auto inst = cpu.curr_inst();
 
     bool is_store = BITS(inst, 6, 0) == 0b0100011;
@@ -150,8 +150,7 @@ static bool is_accessing_device()
     auto addr = src1 + imm;
 
     // See if it is accessing devices.
-    auto& mem = sim_handle.get_memory();
-    if (mem.in_device(addr))
+    if (SIM.mem().in_device(addr))
     {
         // printf("Accessing device at addr: " FMT_WORD "\n", addr);
         return true;
@@ -175,7 +174,7 @@ void difftest_step()
 
     // If this cycle is ready for difftest,
     // skip this cycle but do NOT sync registers.
-    auto& cpu = sim_handle.get_cpu();
+    auto& cpu = SIM.cpu();
     if (!cpu.is_ready_for_difftest())
         return;
 

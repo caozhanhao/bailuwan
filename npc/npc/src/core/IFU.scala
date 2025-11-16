@@ -28,11 +28,11 @@ class IFU(
   io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
   io.mem.ar.bits.burst := 0.U
 
-  io.mem.aw.bits.id    := 0.U
-  io.mem.aw.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
-  io.mem.aw.bits.size  := 2.U // 2^2 = 4 bytes
-  io.mem.aw.bits.burst := 0.U
-
+  io.mem.aw.valid := false.B
+  io.mem.aw.bits  := DontCare
+  io.mem.w.valid  := false.B
+  io.mem.w.bits   := DontCare
+  io.mem.b.ready  := false.B
   io.mem.w.bits.last := true.B
 
   val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(4)
@@ -46,19 +46,13 @@ class IFU(
     )
   )
 
-  io.mem.ar.valid := state === s_idle
+  io.mem.ar.valid := (state === s_idle) && !reset.asBool // Don't send request when resetting
   io.mem.r.ready  := state === s_wait_mem
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.fire, io.in.bits.dnpc, pc)
 
   io.mem.ar.bits.addr := pc
-
-  io.mem.aw.valid := false.B
-  io.mem.aw.bits  := DontCare
-  io.mem.w.valid  := false.B
-  io.mem.w.bits   := DontCare
-  io.mem.b.ready  := false.B
 
   val inst_reg = RegInit(0.U(32.W))
   inst_reg := Mux(io.mem.r.fire, io.mem.r.bits.data, inst_reg)

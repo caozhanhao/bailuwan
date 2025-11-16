@@ -401,7 +401,8 @@ static word_t eval(int p, int q, bool* success)
             return ret;
         }
 
-        if (tokens[p].type == TK_REG) {
+        if (tokens[p].type == TK_REG)
+        {
             word_t res = isa_reg_str2val(tokens[p].str + 1, success);
             if (*success)
                 return res;
@@ -456,7 +457,7 @@ static word_t eval(int p, int q, bool* success)
             {
                 // TODO: MMIO
                 // return vaddr_read(val, 4);
-                auto& mem = sim_handle.get_memory();
+                auto& mem = SIM.mem();
                 if (val % 4 != 0)
                 {
                     Log("dereference unaligned, addr: 0x%x", val);
@@ -471,7 +472,7 @@ static word_t eval(int p, int q, bool* success)
                     return 0;
                 }
 
-                return mem.read(val);
+                return mem.read<uint32_t>(val);
             }
         default:
             panic("unexpected unary operator");

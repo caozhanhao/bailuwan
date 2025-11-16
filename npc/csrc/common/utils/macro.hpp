@@ -66,4 +66,3 @@
 
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 #endif
-

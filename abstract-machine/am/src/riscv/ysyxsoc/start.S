@@ -37,12 +37,12 @@ _ssbl:
     // clear .bss
     la   t1, _sbss
     la   t2, _ebss
-7:
-    beq  t1, t2, 8f
+_ssbl_bss_loop:
+    beq  t1, t2, _ssbl_end
     sw   x0, 0(t1)
     addi t1, t1, 4
-    j    7b
-8:
+    j    _ssbl_bss_loop
+_ssbl_end:
     la   t0, _start
     jr   t0
 

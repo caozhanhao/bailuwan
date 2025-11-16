@@ -3,8 +3,8 @@
 #include <iostream>
 #include <iomanip>
 
-TOP_NAME dut;
-SimHandle sim_handle;
+TOP_NAME DUT;
+SimHandle SIM;
 const char* csr_names[4096];
 
 void CPUProxy::bind(TOP_NAME* this_dut)
@@ -130,11 +130,17 @@ void DUTMemory::init(const std::string& filename)
     FILE* fp = fopen(filename.c_str(), "rb");
     assert(fp);
 
-    flash_data = static_cast<uint32_t*>(malloc(CONFIG_FLASH_SIZE));
+    mrom_data = static_cast<uint8_t*>(malloc(CONFIG_MROM_SIZE));
+    memset(mrom_data, 0, CONFIG_MROM_SIZE);
+
+    flash_data = static_cast<uint8_t*>(malloc(CONFIG_FLASH_SIZE));
     memset(flash_data, 0, CONFIG_FLASH_SIZE);
 
     psram_data = static_cast<uint8_t*>(malloc(CONFIG_PSRAM_SIZE));
     memset(psram_data, 0, CONFIG_PSRAM_SIZE);
+
+    sdram_data = static_cast<uint8_t*>(malloc(CONFIG_SDRAM_SIZE));
+    memset(sdram_data, 0, CONFIG_SDRAM_SIZE);
 
     size_t bytes_read = fread(flash_data, 1, CONFIG_FLASH_SIZE, fp);
     if (bytes_read == 0)
@@ -147,7 +153,7 @@ void DUTMemory::init(const std::string& filename)
         }
     }
 
-    img_size = CONFIG_FLASH_SIZE;
+    inst_memory_size = CONFIG_FLASH_SIZE;
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
@@ -177,90 +183,23 @@ void DUTMemory::destroy()
         free(psram_data);
         psram_data = nullptr;
     }
-}
 
-uint32_t DUTMemory::read(uint32_t raddr)
-{
-    assert(!in_psram(raddr));
-
-    auto uaddr = static_cast<uint32_t>(raddr);
-    uaddr &= ~0x3u;
-
-    // Clock
-
-    if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
+    if (sdram_data)
     {
-        std::time_t t = std::time(nullptr);
-        std::tm* now = std::gmtime(&t);
-        switch (uaddr - RTC_MMIO)
-        {
-        case 8:
-            return now->tm_sec;
-        case 12:
-            return now->tm_min;
-        case 16:
-            return now->tm_hour;
-        case 20:
-            return now->tm_mday;
-        case 24:
-            return now->tm_mon + 1;
-        case 28:
-            return now->tm_year + 1900;
-        default: assert(false);
-        }
-        assert(false);
-    }
-
-    // Memory
-    if (!in_sim_mem(uaddr))
-    {
-        auto& cpu = sim_handle.get_cpu();
-        printf("Out of bound memory access at PC = 0x%08x, raddr = 0x%08x\n", cpu.pc(), raddr);
-        cpu.dump_registers(std::cerr);
-        sim_handle.cleanup();
-        exit(-1);
-    }
-
-    return *reinterpret_cast<uint32_t*>(guest_to_host(uaddr));
-}
-
-void DUTMemory::write(uint32_t waddr, uint32_t wdata, char wmask)
-{
-    assert(!in_psram(waddr));
-
-    auto uaddr = static_cast<uint32_t>(waddr);
-    uaddr &= ~0x3u;
-
-    // Memory
-    if (!in_sim_mem(uaddr))
-    {
-        auto& cpu = sim_handle.get_cpu();
-        printf("Out of bound memory access at PC = 0x%08x, waddr = 0x%08x\n", cpu.pc(), waddr);
-        cpu.dump_registers(std::cerr);
-        sim_handle.cleanup();
-        exit(-1);
-    }
-
-    auto haddr = guest_to_host(uaddr);
-    uint8_t* u8data = reinterpret_cast<uint8_t*>(&wdata);
-    for (int i = 0; i < 4; i++)
-    {
-        if (wmask & (1 << i))
-            haddr[i] = u8data[i];
+        free(sdram_data);
+        sdram_data = nullptr;
     }
 }
 
-uint8_t DUTMemory::psram_read(uint32_t raddr)
+void DUTMemory::out_of_bound_abort(uint32_t addr)
 {
-    assert(in_psram(raddr));
-    return *guest_to_host(raddr);
+    auto& cpu = SIM.cpu();
+    printf("Out of bound memory access at PC = 0x%08x, addr = 0x%08x\n", cpu.pc(), addr);
+    cpu.dump_registers(std::cerr);
+    SIM.cleanup();
+    exit(-1);
 }
 
-void DUTMemory::psram_write(uint32_t waddr, uint8_t wdata)
-{
-    assert(in_psram(waddr));
-    *guest_to_host(waddr) = wdata;
-}
 
 bool DUTMemory::in_mrom(uint32_t addr) const
 {
@@ -282,25 +221,31 @@ bool DUTMemory::in_psram(uint32_t addr) const
     return addr - CONFIG_PSRAM_BASE < CONFIG_PSRAM_SIZE;
 }
 
+bool DUTMemory::in_sdram(uint32_t addr) const
+{
+    return addr - CONFIG_SDRAM_BASE < CONFIG_SDRAM_SIZE;
+}
 
 bool DUTMemory::in_device(uint32_t addr) const
 {
-    return !in_mrom(addr) && !in_sram(addr) && !in_flash(addr) && !in_psram(addr);
+    return !in_mrom(addr) && !in_sram(addr) && !in_flash(addr) && !in_psram(addr) && !in_sdram(addr);
 }
 
 bool DUTMemory::in_sim_mem(uint32_t addr) const
 {
-    return in_flash(addr) || in_mrom(addr) || in_psram(addr);
+    return in_flash(addr) || in_mrom(addr) || in_psram(addr) || in_sdram(addr);
 }
 
 uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
 {
-    if (in_flash(paddr))
-        return reinterpret_cast<uint8_t*>(flash_data) + paddr - CONFIG_FLASH_BASE;
     if (in_mrom(paddr))
         return reinterpret_cast<uint8_t*>(mrom_data) + paddr - CONFIG_MROM_BASE;
+    if (in_flash(paddr))
+        return reinterpret_cast<uint8_t*>(flash_data) + paddr - CONFIG_FLASH_BASE;
     if (in_psram(paddr))
         return reinterpret_cast<uint8_t*>(psram_data) + paddr - CONFIG_PSRAM_BASE;
+    if (in_sdram(paddr))
+        return reinterpret_cast<uint8_t*>(sdram_data) + paddr - CONFIG_SDRAM_BASE;
 
     assert(0 && "Unknown memory region");
     return nullptr;
@@ -309,12 +254,14 @@ uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
 uint32_t DUTMemory::host_to_guest(uint8_t* haddr) const
 {
     auto haddr_u32 = in_flash(static_cast<uint32_t>(reinterpret_cast<uint64_t>(haddr)));
-    if (in_flash(haddr_u32))
-        return haddr - reinterpret_cast<uint8_t*>(flash_data) + CONFIG_FLASH_BASE;
     if (in_mrom(haddr_u32))
         return haddr - reinterpret_cast<uint8_t*>(mrom_data) + CONFIG_MROM_BASE;
+    if (in_flash(haddr_u32))
+        return haddr - reinterpret_cast<uint8_t*>(flash_data) + CONFIG_FLASH_BASE;
     if (in_psram(haddr_u32))
         return haddr - reinterpret_cast<uint8_t*>(psram_data) + CONFIG_PSRAM_BASE;
+    if (in_sdram(haddr_u32))
+        return haddr - reinterpret_cast<uint8_t*>(sdram_data) + CONFIG_SDRAM_BASE;
 
     assert(0 && "Unknown memory region");
     return 0;
@@ -325,7 +272,7 @@ void SimHandle::init_trace()
 #ifdef TRACE
     tfp = new TFP_TYPE;
     Verilated::traceEverOn(true);
-    dut.trace(tfp, 0);
+    DUT.trace(tfp, 0);
     tfp->open(TOSTRING(TRACE_FILENAME));
 #endif
 }
@@ -344,14 +291,14 @@ void SimHandle::cleanup_trace()
 
 void SimHandle::init_sim(const std::string& filename)
 {
-    cpu.bind(&dut);
+    cpu_proxy.bind(&DUT);
     cycle_counter = 0;
     sim_time = 0;
     init_trace();
 
     memory.init(filename.c_str());
 
-    boot_time = std::chrono::high_resolution_clock::now();
+    boot_timepoint = std::chrono::high_resolution_clock::now();
 
 #define CSR_TABLE_ENTRY(name, idx) csr_names[idx] = #name;
     CSR_TABLE
@@ -366,13 +313,13 @@ void SimHandle::cleanup()
 
 void SimHandle::single_cycle()
 {
-    dut.clock = 1;
-    dut.eval();
+    DUT.clock = 1;
+    DUT.eval();
 
     IFDEF(TRACE, tfp->dump(sim_time++));
 
-    dut.clock = 0;
-    dut.eval();
+    DUT.clock = 0;
+    DUT.eval();
 
     IFDEF(TRACE, tfp->dump(sim_time++));
 
@@ -381,15 +328,15 @@ void SimHandle::single_cycle()
 
 void SimHandle::reset(int n)
 {
-    dut.clock = 0;
-    dut.reset = 1;
+    DUT.clock = 0;
+    DUT.reset = 1;
     while (n-- > 0)
     {
-        dut.clock = 1;
-        dut.eval();
+        DUT.clock = 1;
+        DUT.eval();
 
-        dut.clock = 0;
-        dut.eval();
+        DUT.clock = 0;
+        DUT.eval();
     }
-    dut.reset = 0;
+    DUT.reset = 0;
 }

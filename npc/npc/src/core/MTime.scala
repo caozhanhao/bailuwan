@@ -36,8 +36,8 @@ class MTime(
   io.r.bits.data := Mux(addr === 0xa0000048L.U, mtime(31, 0), mtime(63, 32))
   io.r.bits.resp := AXIResp.OKAY
 
-  io.aw.ready    := false.B
-  io.w.ready     := false.B
-  io.b.valid     := false.B
+  io.aw.ready    := true.B
+  io.w.ready     := true.B
+  io.b.valid     := true.B
   io.b.bits.resp := AXIResp.SLVERR
 }

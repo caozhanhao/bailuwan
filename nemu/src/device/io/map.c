@@ -18,7 +18,8 @@
 #include <memory/vaddr.h>
 #include <device/map.h>
 
-#define IO_SPACE_MAX (32 * 1024 * 1024)
+// 256 MB
+#define IO_SPACE_MAX (256 * 1024 * 1024)
 
 static uint8_t *io_space = NULL;
 static uint8_t *p_space = NULL;

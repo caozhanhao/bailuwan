@@ -15,31 +15,46 @@ void flash_read(int32_t addr, int32_t* data)
     //   By the way, difftest in NEMU does not be affected by this, since the read request is emulated
     //   by NEMU itself, not a APBSPI in ysyxSoC.
 
-    *data = sim_handle.get_memory().read(addr + CONFIG_FLASH_BASE);
+    *data = SIM.mem().read<uint32_t>(addr + CONFIG_FLASH_BASE);
 }
 
 void mrom_read(int32_t addr, int32_t* data)
 {
     assert(0);
-    // auto& mem = sim_handle.get_memory();
+    // auto& mem = SIM.mem();
     // assert(mem.in_mrom(addr));
-    // *data = sim_handle.get_memory().read(addr);
+    // *data = SIM.mem().read(addr);
 }
 
 char psram_read(int raddr)
 {
-    return static_cast<char>(sim_handle.get_memory().psram_read(raddr + CONFIG_PSRAM_BASE /* same as flash*/));
+    return SIM.mem().read<char>(raddr + CONFIG_PSRAM_BASE /* same as flash*/);
 }
 
 void psram_write(int waddr, char wdata)
 {
-    return sim_handle.get_memory().psram_write(waddr + CONFIG_PSRAM_BASE /* same as flash*/, wdata);
+    return SIM.mem().write<char>(waddr + CONFIG_PSRAM_BASE /* same as flash*/, wdata, 0b1);
+}
+
+int16_t sdram_read(int raddr)
+{
+    auto data = SIM.mem().read<int16_t>(raddr + CONFIG_SDRAM_BASE /* same as flash*/);
+    IFDEF(CONFIG_MTRACE, printf("SDRAM Read | addr=0x%x, data=0x%x\n",
+              raddr, data));
+    return data;
+}
+
+void sdram_write(int waddr, int16_t wdata, char mask)
+{
+    IFDEF(CONFIG_MTRACE, printf("SDRAM Write | addr=0x%x, data=0x%x, mask=0x%x\n",
+              waddr, wdata, mask));
+    SIM.mem().write<int16_t>(waddr + CONFIG_SDRAM_BASE /* same as flash*/, wdata, mask);
 }
 
 void ebreak_handler()
 {
-    auto cycles = sim_handle.get_cycles();
-    auto elapsed_time = sim_handle.elapsed_time();
+    auto cycles = SIM.cycles();
+    auto elapsed_time = SIM.elapsed_time();
 
     printf("ebreak after %lu cycles\n", cycles);
     printf("elapsed time: %lu us\n", elapsed_time);
@@ -47,27 +62,12 @@ void ebreak_handler()
     double cycle_per_us = static_cast<double>(elapsed_time) / static_cast<double>(cycles);
     printf("cycle per us: %f\n", cycle_per_us);
 
-    auto a0 = sim_handle.get_cpu().reg(10);
+    auto a0 = SIM.cpu().reg(10);
     if (a0 == 0)
         printf("\33[1;32mHIT GOOD TRAP\33[0m\n");
     else
         printf("\33[1;41mHIT BAD TRAP\33[0m, a0=%d\n", a0);
 
     throw EBreakException(static_cast<int>(a0));
-}
-
-int pmem_read(int raddr)
-{
-    assert(0);
-    // auto ret = sim_handle.get_memory().read(raddr);
-    // IFDEF(CONFIG_MTRACE, printf("read addr = 0x%08x, data = 0x%08x\n", raddr, ret));
-    // return ret;
-}
-
-void pmem_write(int waddr, int wdata, char wmask)
-{
-    assert(0);
-    // IFDEF(CONFIG_MTRACE, printf("write addr = 0x%08x, data = 0x%08x, mask = 0x%x\n", waddr, wdata, wmask));
-    // sim_handle.get_memory().write(waddr, wdata, wmask);
 }
 }

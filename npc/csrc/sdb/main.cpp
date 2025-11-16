@@ -11,6 +11,7 @@
 SDBState sdb_state;
 int sdb_halt_ret;
 bool is_batch_mode;
+bool resume_from_ctrl_c = false;
 uint64_t inst_count;
 
 volatile sig_atomic_t sim_stop_requested = 0;
@@ -121,7 +122,7 @@ static int cmd_x(char* args)
         return 0;
     }
 
-    auto& mem = sim_handle.get_memory();
+    auto& mem = SIM.mem();
 
     if (!mem.in_sim_mem(res) || !mem.in_sim_mem(res + 4 * n))
     {
@@ -130,7 +131,7 @@ static int cmd_x(char* args)
     }
 
     for (word_t i = 0; i < n; i++)
-        printf("0x%x: 0x%08x\n", res + i * 4, mem.read(res + i * 4));
+        printf("0x%x: 0x%08x\n", res + i * 4, mem.read<uint32_t>(res + i * 4));
 
     return 0;
 }
@@ -291,7 +292,14 @@ void sdb_mainloop()
     if (is_batch_mode)
     {
         cmd_c(nullptr);
-        return;
+
+        // If we received a CTRL-C, we quit batch mode and resume executing
+        // in console mode.
+        if (!resume_from_ctrl_c)
+            return;
+
+        is_batch_mode = false;
+        resume_from_ctrl_c = false;
     }
 
     for (char* str; (str = rl_gets()) != nullptr;)
@@ -314,10 +322,6 @@ void sdb_mainloop()
             args = nullptr;
         }
 
-#ifdef CONFIG_DEVICE
-        extern void sdl_clear_event_queue();
-        sdl_clear_event_queue();
-#endif
 
         int i;
         for (i = 0; i < NR_CMD; i++)
@@ -399,12 +403,12 @@ int main(int argc, char* argv[])
         if (Verilated::gotError())
         {
             Log("Terminating due to a verilator error.");
-            printf("PC = " FMT_WORD "\n", sim_handle.get_cpu().pc());
+            printf("PC = " FMT_WORD "\n", SIM.cpu().pc());
             printf("Registers:\n");
             isa_reg_display();
             printf("CSRs:\n");
             isa_csr_display();
-            // sim_handle.cleanup();
+            // SIM.cleanup();
         }
     }, nullptr);
 
@@ -421,11 +425,11 @@ int main(int argc, char* argv[])
 
     parse_args(argc, argv);
 
-    sim_handle.init_sim(img_file);
-    sim_handle.reset(10);
+    SIM.init_sim(img_file);
+    SIM.reset(10);
 
     // ATTENTION: Initialize difftest after the dut reset.
-    IFDEF(CONFIG_DIFFTEST, init_difftest(sim_handle.get_memory().img_size));
+    IFDEF(CONFIG_DIFFTEST, init_difftest(SIM.mem().inst_memory_size));
 
 
     if (elf_file)
@@ -435,6 +439,6 @@ int main(int argc, char* argv[])
 
     sdb_mainloop();
 
-    sim_handle.cleanup();
+    SIM.cleanup();
     return is_exit_status_bad();
 }
