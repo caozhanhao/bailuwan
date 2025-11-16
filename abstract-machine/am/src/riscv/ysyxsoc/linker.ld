@@ -35,7 +35,7 @@ SECTIONS {
     _erodata = .;
   } > psram AT> flash
 
-  .data : {
+  .data : ALIGN(8) {
     _data_lma = LOADADDR(.data);
     _sdata = .;
     *(.data*)
@@ -43,7 +43,7 @@ SECTIONS {
     _edata = .;
   } > psram AT> flash
 
-  .bss (NOLOAD): {
+  .bss (NOLOAD) : ALIGN(8) {
     _sbss = .;
     *(.bss*)
     *(.sbss*)
@@ -51,7 +51,7 @@ SECTIONS {
     _ebss = .;
   } > psram
 
-  .stack (NOLOAD) : {
+  .stack (NOLOAD) : ALIGN(8) {
     _stack_top   = ORIGIN(sram) + LENGTH(sram);
     _stack_start = _stack_top - 0x800; /* 2 KB */
     . = _stack_start;
