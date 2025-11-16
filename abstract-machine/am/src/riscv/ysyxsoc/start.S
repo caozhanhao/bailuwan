@@ -1,9 +1,10 @@
 // macro to copy section
 .macro COPY_SECTION_WORD src, dst, end
-    la   t0, \src       /* source (LMA) */
-    la   t1, \dst       /* dest   (VMA) */
-    la   t2, \end       /* end    (VMA) */
+    la   t0, \src       // source (LMA)
+    la   t1, \dst       // dest   (VMA)
+    la   t2, \end       // end    (VMA)
 .Lcp\@:
+    // beq is fine since we've ensured align in linker.ld
     beq  t1, t2, .Lcp_done\@
     lw   x10, 0(t0)
     sw   x10, 0(t1)
