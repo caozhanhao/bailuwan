@@ -52,7 +52,7 @@ word_t isa_reg_str2val(const char* s, bool* success)
     {
         char* endptr;
         word_t idx = strtol(s + 1, &endptr, 10);
-        if (endptr == s + 1 || idx >= 32)
+        if (endptr == s + 1 || idx >= 16)
         {
             *success = false;
             return 0;
@@ -62,7 +62,7 @@ word_t isa_reg_str2val(const char* s, bool* success)
         return cpu.reg(idx);
     }
 
-    for (int i = 0; i < 32; i++)
+    for (int i = 0; i < 16; i++)
     {
         if (strcmp(s, regs[i]) == 0)
         {
