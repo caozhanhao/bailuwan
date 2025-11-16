@@ -18,7 +18,7 @@
 .global _fsbl
 .type _fsbl, @function
 _fsbl:
-    COPY_SECTION_WORD _ssbl_lma, _sssbl, _essbl
+    COPY_SECTION_WORD _ssbl_lma, _sssbl, _essbls
     la   t0, _ssbl
     jr   t0
 
