@@ -100,7 +100,7 @@ struct DUTMemory
     template <typename T>
     T read(uint32_t uaddr)
     {
-        align_down<sizeof(T)>(uaddr);
+        uaddr = align_down<sizeof(T)>(uaddr);
 
         // Clock
         if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
@@ -134,9 +134,9 @@ struct DUTMemory
     }
 
     template <typename T>
-    void write(uint32_t uaddr, T wdata, char wmask)
+    void write(uint32_t uaddr, T wdata, uint8_t wmask)
     {
-        align_down<sizeof(T)>(uaddr);
+        uaddr = align_down<sizeof(T)>(uaddr);
 
         if (!in_sim_mem(uaddr))
             out_of_bound_abort(uaddr);
