@@ -80,7 +80,7 @@ static void execute(uint64_t n)
 
         if (sim_stop_requested)
         {
-            sim_stop_requested = 0; 
+            sim_stop_requested = 0;
             sdb_state = SDBState::Stop;
             // SIM.cleanup();
             // exit(-1);
