@@ -14,7 +14,7 @@
 .endm
 
 // fsbl is placed in flash
-.section afsbl, "ax"
+.section fsbl, "ax"
 .global _fsbl
 .type _fsbl, @function
 _fsbl:
@@ -48,7 +48,7 @@ _ssbl:
 .size _ssbl, . - _ssbl
 
 // entry is placed in .text
-.section entry, "ax"
+.section aentry, "ax"
 .globl _start
 .type _start, @function
 _start:
