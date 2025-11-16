@@ -14,7 +14,7 @@
 .endm
 
 // fsbl is placed in flash
-.section fsbl, "ax"
+.section afsbl, "ax"
 .global _fsbl
 .type _fsbl, @function
 _fsbl:
