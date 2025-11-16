@@ -44,7 +44,7 @@ int16_t sdram_read(int raddr)
     return data;
 }
 
-void sdram_write(int waddr, char wdata, char dqm)
+void sdram_write(int waddr, int16_t wdata, char dqm)
 {
     IFDEF(CONFIG_MTRACE, printf("SDRAM Write | addr=0x%x, data=0x%x, dqm=0x%x\n",
               waddr, wdata, dqm));
