@@ -9,10 +9,13 @@ MEMORY {
 }
 
 SECTIONS {
+  .entry : ALIGN(8) {
+    *(entry)
+  } > flash
+
   .text : ALIGN(8) {
     _text_lma = LOADADDR(.text);
     _stext = .;
-    *(entry)
     *(.text*)
     _etext = .;
   } > sram AT> flash
