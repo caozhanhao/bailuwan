@@ -1,3 +1,4 @@
+// macro to copy section
 .macro COPY_SECTION_WORD src, dst, end
     la   t0, \src       /* source (LMA) */
     la   t1, \dst       /* dest   (VMA) */
@@ -12,17 +13,27 @@
 .Lcp_done\@:
 .endm
 
-/* entry section is placed in flash */
-.section entry, "ax"
-.global _bootloader
-.type _bootloader, @function
+// fsbl is placed in flash
+.section fsbl, "ax"
+.global _fsbl
+.type _fsbl, @function
+_fsbl:
+    COPY_SECTION_WORD _ssbl_lma, _sssbl, _essbl
+    la   t0, _ssbl
+    jr   t0
 
-_bootloader:
+.size _fsbl, . - _fsbl
+
+// ssbl is placed in flash and loaded to sram by fsbl
+.section ssbl, "ax"
+.global _ssbl
+.type _ssbl, @function
+_ssbl:
     COPY_SECTION_WORD _text_lma, _stext, _etext
     COPY_SECTION_WORD _rodata_lma, _srodata, _erodata
     COPY_SECTION_WORD _data_lma, _sdata, _edata
 
-    /* clear .bss: zero _sbss .. _ebss */
+    // clear .bss
     la   t1, _sbss
     la   t2, _ebss
 7:
@@ -34,8 +45,10 @@ _bootloader:
     la   t0, _start
     jr   t0
 
-.size _bootloader, . - _bootloader
+.size _ssbl, . - _ssbl
 
+
+.section entry, "ax"
 .globl _start
 .type _start, @function
 _start:

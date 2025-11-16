@@ -1,4 +1,4 @@
-ENTRY(_bootloader)
+ENTRY(_fsbl)
 
 MEMORY {
   mrom : ORIGIN = 0x20000000, LENGTH = 4K
@@ -9,9 +9,16 @@ MEMORY {
 }
 
 SECTIONS {
-  .entry : ALIGN(8) {
-    *(entry)
+  .fsbl : ALIGN(8) {
+    *(fsbl)
   } > flash AT> flash
+
+  .ssbl : ALIGN(8) {
+    _ssbl_lma = LOADADDR(.ssbl);
+    _sssbl = .;
+    *(ssbl)
+    _essbl = .;
+  } > sram AT> flash
 
   .text : ALIGN(8) {
     _text_lma = LOADADDR(.text);
