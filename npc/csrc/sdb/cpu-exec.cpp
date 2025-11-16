@@ -80,7 +80,7 @@ static void execute(uint64_t n)
 
         if (sim_stop_requested)
         {
-            sdb_state = SDBState::Quit;
+            sdb_state = SDBState::Stop;
             sim_stop_requested = 0;
         }
     }
