@@ -48,7 +48,7 @@ _ssbl:
 .size _ssbl, . - _ssbl
 
 // entry is placed in .text
-.section aentry, "ax"
+.section entry, "ax"
 .globl _start
 .type _start, @function
 _start:
