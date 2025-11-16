@@ -82,6 +82,7 @@ static void print_integer(char* out, unsigned long long val, int zero_pad, int w
         else
             abs = (unsigned long long)sval;
     }
+    // fmt == 'u'/'x'/'X'
     else
         abs = val;
 
