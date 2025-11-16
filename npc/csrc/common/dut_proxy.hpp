@@ -136,7 +136,7 @@ struct DUTMemory
     template <typename T>
     void write(uint32_t uaddr, T wdata, uint8_t wmask)
     {
-        uaddr = align_down<sizeof(T)>(uaddr);
+        // uaddr = align_down<sizeof(T)>(uaddr);
 
         if (!in_sim_mem(uaddr))
             out_of_bound_abort(uaddr);
