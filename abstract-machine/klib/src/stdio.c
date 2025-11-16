@@ -60,7 +60,7 @@ int snprintf(char* out, size_t n, const char* fmt, ...)
         needed++; \
     } while (0)
 
-static void print_integer(char* out, long long val, int zero_pad, int width, size_t* pos_ptr, size_t* cap_ptr,
+static void print_integer(char* out, unsigned long long val, int zero_pad, int width, size_t* pos_ptr, size_t* cap_ptr,
                                  size_t* needed_ptr, char fmt)
 {
     size_t pos = *pos_ptr;
@@ -68,7 +68,7 @@ static void print_integer(char* out, long long val, int zero_pad, int width, siz
     size_t needed = *needed_ptr;
 
     int negative = 0;
-    unsigned long long u;
+    unsigned long long abs;
 
     if (fmt == 'd')
     {
@@ -77,18 +77,18 @@ static void print_integer(char* out, long long val, int zero_pad, int width, siz
         {
             negative = 1;
             // avoid overflow for LLONG_MIN
-            u = (unsigned long long)(-(sval + 1)) + 1;
+            abs = (unsigned long long)(-(sval + 1)) + 1;
         }
         else
-            u = (unsigned long long)sval;
+            abs = (unsigned long long)sval;
     }
     else
-        u = val;
+        abs = val;
 
     // produce digits into buf in reverse
     char buf[128];
     int bi = 0;
-    if (u == 0)
+    if (abs == 0)
     {
         buf[bi++] = '0';
     }
@@ -96,22 +96,22 @@ static void print_integer(char* out, long long val, int zero_pad, int width, siz
     {
         if (fmt == 'x' || fmt == 'X')
         {
-            while (u > 0 && bi < (int)sizeof(buf))
+            while (abs > 0 && bi < (int)sizeof(buf))
             {
-                int digit = (int)(u & 0xF);
+                int digit = (int)(abs & 0xF);
                 if (digit < 10)
                     buf[bi++] = '0' + digit;
                 else
                     buf[bi++] = (fmt == 'X' ? 'A' : 'a') + (digit - 10);
-                u >>= 4;
+                abs >>= 4;
             }
         }
         else if (fmt == 'd' || fmt == 'u')
         {
-            while (u > 0 && bi < (int)sizeof(buf))
+            while (abs > 0 && bi < (int)sizeof(buf))
             {
-                buf[bi++] = (char)('0' + (u % 10));
-                u /= 10;
+                buf[bi++] = (char)('0' + (abs % 10));
+                abs /= 10;
             }
         }
         else
