@@ -12,7 +12,7 @@ class AXI4CrossBar(
     val master = Flipped(new AXI4)
     val slaves = Vec(slaves_map.size, new AXI4)
   })
-  assert(slaves_map.nonEmpty, "Crossbar for what?")
+  assert(slaves_map.size > 1, "Crossbar for what?")
 
   val n          = slaves_map.size
   val idx_width  = math.max(1, log2Ceil(n + 1)) // reserve 1 for err
