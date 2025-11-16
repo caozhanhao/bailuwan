@@ -60,8 +60,8 @@ int snprintf(char* out, size_t n, const char* fmt, ...)
         needed++; \
     } while (0)
 
-static void print_signed_integer(char* out, long long val, int zero_pad, int width, size_t* pos_ptr, size_t* cap_ptr,
-                                 size_t* needed_ptr)
+static void print_signed_int(char* out, long long val, int zero_pad, int width, size_t* pos_ptr, size_t* cap_ptr,
+                                 size_t* needed_ptr, char fmt)
 {
     size_t pos = *pos_ptr;
     size_t cap = *cap_ptr;
@@ -73,7 +73,8 @@ static void print_signed_integer(char* out, long long val, int zero_pad, int wid
     if (val < 0)
     {
         negative = 1;
-        u = (unsigned long long)(-val);
+        // avoid overflow for LLONG_MIN
+        u = (unsigned long long)(-(val + 1)) + 1;
     }
     else
     {
@@ -89,10 +90,25 @@ static void print_signed_integer(char* out, long long val, int zero_pad, int wid
     }
     else
     {
-        while (u > 0 && bi < (int)sizeof(buf))
+        if (fmt == 'x' || fmt == 'X')
         {
-            buf[bi++] = (char)('0' + (u % 10));
-            u /= 10;
+            while (u > 0 && bi < (int)sizeof(buf))
+            {
+                int digit = (int)(u & 0xF);
+                if (digit < 10)
+                    buf[bi++] = '0' + digit;
+                else
+                    buf[bi++] = (fmt == 'X' ? 'A' : 'a') + (digit - 10);
+                u >>= 4;
+            }
+        }
+        else
+        {
+            while (u > 0 && bi < (int)sizeof(buf))
+            {
+                buf[bi++] = (char)('0' + (u % 10));
+                u /= 10;
+            }
         }
     }
     int digits_len = bi; // number of digit characters
@@ -197,24 +213,26 @@ int vsnprintf(char* out, size_t n, const char* fmt, va_list ap)
                 WRITE_CHAR(*s++);
             f++;
         }
-        else if (*f == 'd')
+#define is_dxX(t) (t == 'd' || t == 'x' || t == 'X')
+        else if (is_dxX(*f))
         {
             int v = va_arg(ap, int);
-            print_signed_integer(out, v, zero_pad, width, &pos, &cap, &needed);
+            print_signed_int(out, v, zero_pad, width, &pos, &cap, &needed, *f);
             f++;
         }
-        else if (*f == 'l' && *(f + 1) == 'd')
+        else if (*f == 'l' && is_dxX(*(f + 1)))
         {
             long v = va_arg(ap, long);
-            print_signed_integer(out, v, zero_pad, width, &pos, &cap, &needed);
+            print_signed_int(out, v, zero_pad, width, &pos, &cap, &needed, *(f + 1));
             f += 2;
         }
-        else if (*f == 'l' && *(f + 1) == 'l' && *(f + 2) == 'd')
+        else if (*f == 'l' && *(f + 1) == 'l' && is_dxX(*(f + 2)))
         {
             long long v = va_arg(ap, long long);
-            print_signed_integer(out, v, zero_pad, width, &pos, &cap, &needed);
+            print_signed_int(out, v, zero_pad, width, &pos, &cap, &needed, *(f + 2));
             f += 3;
         }
+#undef is_dxX
         else
         {
             // unsupported specifier: literally %<char>
