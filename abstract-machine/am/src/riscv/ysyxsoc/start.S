@@ -12,6 +12,7 @@
 .Lcp_done\@:
 .endm
 
+/* entry section is placed in flash */
 .section entry, "ax"
 .global _bootloader
 .type _bootloader, @function
@@ -30,7 +31,6 @@ _bootloader:
     addi t1, t1, 4
     j    7b
 8:
-    /* Jump to _start (VMA in sram) */
     la   t0, _start
     jr   t0
 
