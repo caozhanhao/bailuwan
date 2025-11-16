@@ -46,7 +46,6 @@ int16_t sdram_read(int raddr)
 
 void sdram_write(int waddr, int16_t wdata, char dqm)
 {
-    printf("Before Write, d=0x%x\n", SIM.mem().read<int16_t>(waddr + CONFIG_SDRAM_BASE));
     IFDEF(CONFIG_MTRACE, printf("SDRAM Write | addr=0x%x, data=0x%x, dqm=0x%x\n",
               waddr, wdata, dqm));
     return SIM.mem().write<int16_t>(waddr + CONFIG_SDRAM_BASE /* same as flash*/, wdata, dqm);
