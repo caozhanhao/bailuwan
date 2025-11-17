@@ -116,13 +116,34 @@ bool CPUProxy::is_inst_valid() const
 
 void CPUProxy::dump_registers(std::ostream& os)
 {
+    const char* regs[] = {
+        "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0",
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5",
+        "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
+    };
+
     for (int i = 0; i < 16; i++)
+        printf("x%-2d %-5s  0x%08x  %11d\n", i, regs[i], reg(i), reg(i));
+}
+
+void CPUProxy::dump_csrs(std::ostream& os)
+{
+    for (int i = 0; i < 4096; i++)
     {
-        os << "x" << i << ": 0x" <<
-            std::hex << std::setfill('0') << std::setw(8) << reg(i)
-            << std::dec << std::endl;
+        if (csr_names[i] == nullptr)
+            continue;
+        printf("%-10s 0x%08x  %11d\n", csr_names[i], csr(i), csr(i));
     }
 }
+
+void CPUProxy::dump(std::ostream& os)
+{
+    os << "Registers:\n";
+    dump_registers(os);
+    os << "CSRs:\n";
+    dump_csrs(os);
+}
+
 
 void DUTMemory::init(const std::string& filename)
 {
@@ -195,7 +216,7 @@ void DUTMemory::out_of_bound_abort(uint32_t addr)
 {
     auto& cpu = SIM.cpu();
     printf("Out of bound memory access at PC = 0x%08x, addr = 0x%08x\n", cpu.pc(), addr);
-    cpu.dump_registers(std::cerr);
+    cpu.dump(std::cerr);
     SIM.cleanup();
     exit(-1);
 }
