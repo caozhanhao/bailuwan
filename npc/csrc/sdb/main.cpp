@@ -1,12 +1,12 @@
-#include <csignal>
-#include <iostream>
+#include "sdb.hpp"
+#include "dut_proxy.hpp"
 
 #include <getopt.h>
 #include <readline/history.h>
 #include <readline/readline.h>
 
-#include "sdb.hpp"
-#include "dut_proxy.hpp"
+#include <csignal>
+#include <iostream>
 
 SDBState sdb_state;
 int sdb_halt_ret;
@@ -404,10 +404,7 @@ int main(int argc, char* argv[])
         {
             Log("Terminating due to a verilator error.");
             printf("PC = " FMT_WORD "\n", SIM.cpu().pc());
-            printf("Registers:\n");
-            isa_reg_display();
-            printf("CSRs:\n");
-            isa_csr_display();
+            SIM.cpu().dump(std::cout);
             // SIM.cleanup();
         }
     }, nullptr);

@@ -27,7 +27,7 @@
 #define RESET_VECTOR PMEM_LEFT
 
 // Available in sdb/fast/nvboard
-#define CONFIG_MTRACE 1
+// #define CONFIG_MTRACE 1
 
 // Only available in sdb:
 #define CONFIG_ITRACE 1

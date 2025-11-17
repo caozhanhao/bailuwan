@@ -1,7 +1,9 @@
-#include <dlfcn.h>
-
 #include "dut_proxy.hpp"
 #include "sdb.hpp"
+
+#include <dlfcn.h>
+
+#include <iostream>
 
 enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF };
 
@@ -117,10 +119,7 @@ static void checkregs(diff_context_t* ref)
     {
         sdb_state = SDBState::Abort;
         printf("Test failed at pc = " FMT_WORD "\n", cpu.pc());
-        printf("Registers:\n");
-        isa_reg_display();
-        printf("CSRs:\n");
-        isa_csr_display();
+        cpu.dump(std::cout);
     }
 }
 

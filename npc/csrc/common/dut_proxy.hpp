@@ -66,7 +66,9 @@ public:
     CPUProxy() = default;
 
     void bind(TOP_NAME* dut);
-    void dump_registers(std::ostream& os);
+    void dump_gprs(std::ostream& os);
+    void dump_csrs(std::ostream& os);
+    void dump(std::ostream& os);
     uint32_t pc() const;
     uint32_t dnpc() const;
     uint32_t curr_inst() const;
@@ -100,29 +102,29 @@ struct DUTMemory
     template <typename T>
     T read(uint32_t uaddr)
     {
-        // Clock
-        if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
-        {
-            std::time_t t = std::time(nullptr);
-            std::tm* now = std::gmtime(&t);
-            switch (uaddr - RTC_MMIO)
-            {
-            case 8:
-                return now->tm_sec;
-            case 12:
-                return now->tm_min;
-            case 16:
-                return now->tm_hour;
-            case 20:
-                return now->tm_mday;
-            case 24:
-                return now->tm_mon + 1;
-            case 28:
-                return now->tm_year + 1900;
-            default: assert(false);
-            }
-            assert(false);
-        }
+        // // Clock
+        // if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
+        // {
+        //     std::time_t t = std::time(nullptr);
+        //     std::tm* now = std::gmtime(&t);
+        //     switch (uaddr - RTC_MMIO)
+        //     {
+        //     case 8:
+        //         return now->tm_sec;
+        //     case 12:
+        //         return now->tm_min;
+        //     case 16:
+        //         return now->tm_hour;
+        //     case 20:
+        //         return now->tm_mday;
+        //     case 24:
+        //         return now->tm_mon + 1;
+        //     case 28:
+        //         return now->tm_year + 1900;
+        //     default: assert(false);
+        //     }
+        //     assert(false);
+        // }
 
         // Memory
         if (!in_sim_mem(uaddr))
@@ -197,4 +199,5 @@ public:
 extern TOP_NAME DUT;
 extern SimHandle SIM;
 extern const char* csr_names[4096];
+extern const char* gpr_names[32];
 #endif
