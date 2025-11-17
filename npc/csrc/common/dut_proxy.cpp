@@ -6,7 +6,12 @@
 TOP_NAME DUT;
 SimHandle SIM;
 const char* csr_names[4096];
-const char* gpr_names[32];
+const char* gpr_names[32] = {
+    "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0",
+    "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5",
+    "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
+};
+
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
 #define CORE(x) &this_dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__core__DOT__##x
