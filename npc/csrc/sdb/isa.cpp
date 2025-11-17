@@ -5,7 +5,7 @@
 
 void isa_reg_display()
 {
-   SIM.cpu().dump_registers(std::cout);
+   SIM.cpu().dump_gprs(std::cout);
 }
 
 void isa_csr_display()
@@ -57,7 +57,7 @@ word_t isa_reg_str2val(const char* s, bool* success)
 
     for (int i = 0; i < 16; i++)
     {
-        if (strcmp(s, regs[i]) == 0)
+        if (strcmp(s, gpr_names[i]) == 0)
         {
             *success = true;
             return cpu.reg(i);

@@ -66,7 +66,7 @@ public:
     CPUProxy() = default;
 
     void bind(TOP_NAME* dut);
-    void dump_registers(std::ostream& os);
+    void dump_gprs(std::ostream& os);
     void dump_csrs(std::ostream& os);
     void dump(std::ostream& os);
     uint32_t pc() const;
@@ -199,4 +199,5 @@ public:
 extern TOP_NAME DUT;
 extern SimHandle SIM;
 extern const char* csr_names[4096];
+extern const char* gpr_names[32];
 #endif

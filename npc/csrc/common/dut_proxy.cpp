@@ -6,7 +6,7 @@
 TOP_NAME DUT;
 SimHandle SIM;
 const char* csr_names[4096];
-
+const char* gpr_names[32];
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
 #define CORE(x) &this_dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__core__DOT__##x
@@ -114,16 +114,10 @@ bool CPUProxy::is_inst_valid() const
     return *ifu_state_binding == 2;
 }
 
-void CPUProxy::dump_registers(std::ostream& os)
+void CPUProxy::dump_gprs(std::ostream& os)
 {
-    const char* regs[] = {
-        "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0",
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5",
-        "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
-    };
-
     for (int i = 0; i < 16; i++)
-        printf("x%-2d %-5s  0x%08x  %11d\n", i, regs[i], reg(i), reg(i));
+        printf("x%-2d %-5s  0x%08x  %11d\n", i, gpr_names[i], reg(i), reg(i));
 }
 
 void CPUProxy::dump_csrs(std::ostream& os)
@@ -139,7 +133,7 @@ void CPUProxy::dump_csrs(std::ostream& os)
 void CPUProxy::dump(std::ostream& os)
 {
     os << "Registers:\n";
-    dump_registers(os);
+    dump_gprs(os);
     os << "CSRs:\n";
     dump_csrs(os);
 }
