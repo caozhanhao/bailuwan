@@ -38,6 +38,7 @@ void psram_write(int waddr, char wdata)
 
 int16_t sdram_read(int raddr, char id)
 {
+    assert(id < CONFIG_SDRAM_CHIP_NUM);
     auto addr = raddr + CONFIG_SDRAM_BASE /* same as flash*/;
     addr += CONFIG_SDRAM_CHIP_SIZE * id;
     auto data = SIM.mem().read<int16_t>(addr);
@@ -47,6 +48,7 @@ int16_t sdram_read(int raddr, char id)
 
 void sdram_write(int waddr, int16_t wdata, char mask, char id)
 {
+    assert(id < CONFIG_SDRAM_CHIP_NUM);
     IFDEF(CONFIG_MTRACE, printf("SDRAM Write | id=%d, addr=0x%x, data=0x%x, mask=0x%x\n",
               id, waddr, wdata, mask));
     auto addr = waddr + CONFIG_SDRAM_BASE /* same as flash*/;
