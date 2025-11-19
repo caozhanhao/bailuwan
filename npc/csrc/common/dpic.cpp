@@ -40,15 +40,18 @@ int16_t sdram_read(int raddr, char id)
 {
     auto addr = raddr + CONFIG_SDRAM_BASE /* same as flash*/;
     addr += id * 2;
+    int chip_select = (raddr >> 12) & 1;
     auto data = SIM.mem().read<int16_t>(addr);
-    IFDEF(CONFIG_MTRACE, printf("SDRAM Read | id=%d, addr=0x%x, data=0x%x\n", id, raddr, data));
+    IFDEF(CONFIG_MTRACE, printf("SDRAM Read | id=%d, cs=%d, addr=0x%x, data=0x%x\n",
+              id, chip_select, raddr, data));
     return data;
 }
 
 void sdram_write(int waddr, int16_t wdata, char mask, char id)
 {
-    IFDEF(CONFIG_MTRACE, printf("SDRAM Write | id=%d, addr=0x%x, data=0x%x, mask=0x%x\n",
-              id, waddr, wdata, mask));
+    int chip_select = (waddr >> 12) & 1;
+    IFDEF(CONFIG_MTRACE, printf("SDRAM Write | id=%d, cs=%d, addr=0x%x, data=0x%x, mask=0x%x\n",
+              id, chip_select, waddr, wdata, mask));
     auto addr = waddr + CONFIG_SDRAM_BASE /* same as flash*/;
     addr += id * 2;
     SIM.mem().write<int16_t>(addr, wdata, mask);
