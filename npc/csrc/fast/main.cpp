@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
     SIM.reset(10);
 
     // Simulate
-    printf("Fast simulation started. All trace or debug info are disabled.\n");
+    printf("Fast simulation started.\n");
 
     try
     {
