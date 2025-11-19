@@ -46,7 +46,8 @@ int main(int argc, char* argv[])
 
     try
     {
-        SIM.drain();
+        while (true)
+            SIM.single_cycle();
     }
     catch (EBreakException& e)
     {

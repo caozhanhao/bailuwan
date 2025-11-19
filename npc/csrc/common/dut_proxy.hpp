@@ -182,7 +182,6 @@ public:
     void init_sim(TOP_NAME* dut_, const std::string& filename);
     void cleanup();
     void single_cycle();
-    void drain();
     void reset(int n);
 
     uint64_t cycles() const { return cycle_counter; }

@@ -347,25 +347,6 @@ void SimHandle::single_cycle()
     cycle_counter++;
 }
 
-void SimHandle::drain()
-{
-    while (true)
-    {
-        dut->clock = 1;
-        dut->eval();
-
-        IFDEF(TRACE, tfp->dump(sim_time++));
-
-        dut->clock = 0;
-        dut->eval();
-
-        IFDEF(TRACE, tfp->dump(sim_time++));
-
-        cycle_counter++;
-    }
-}
-
-
 void SimHandle::reset(int n)
 {
     dut->clock = 0;
