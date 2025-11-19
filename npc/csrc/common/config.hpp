@@ -20,7 +20,9 @@
 
 #define CONFIG_SDRAM_BASE 0xa0000000
 // 4 bank * 8192 row * 512 col * 16 bit = 32 MB
-#define CONFIG_SDRAM_SIZE 0x2000000
+#define CONFIG_SDRAM_CHIP_SIZE 0x2000000
+// 2 chip -> 64 MB
+#define CONFIG_SDRAM_SIZE (CONFIG_SDRAM_CHIP_SIZE * 4)
 
 #define PMEM_LEFT  ((uint32_t)CONFIG_FLASH_BASE)
 #define PMEM_RIGHT ((uint32_t)CONFIG_FLASH_BASE + CONFIG_FLASH_SIZE - 1)
@@ -30,9 +32,9 @@
 // #define CONFIG_MTRACE 1
 
 // Only available in sdb:
-#define CONFIG_ITRACE 1
-#define CONFIG_FTRACE 1
+// #define CONFIG_ITRACE 1
+// #define CONFIG_FTRACE 1
 #define CONFIG_WP_BP
-#define CONFIG_DIFFTEST 1
+// #define CONFIG_DIFFTEST 1
 
 #endif

@@ -23,14 +23,14 @@ static void trace_and_difftest()
     {
 #ifdef CONFIG_ITRACE
         auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
-        printf(FMT_WORD ": %s\n", cpu.pc(), str.c_str());
+        fprintf(stderr, FMT_WORD ": %s\n", cpu.pc(), str.c_str());
 #endif
 
 #ifdef CONFIG_FTRACE
         char buf[512];
         int ret = isa_ftrace_dump(buf, sizeof(buf));
         if (ret == 0)
-            printf("FTRACE: %s\n", buf);
+            fprintf(stderr, "FTRACE: %s\n", buf);
 #endif
 
 #ifdef CONFIG_WP_BP

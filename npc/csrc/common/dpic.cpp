@@ -36,19 +36,22 @@ void psram_write(int waddr, char wdata)
     return SIM.mem().write<char>(waddr + CONFIG_PSRAM_BASE /* same as flash*/, wdata, 0b1);
 }
 
-int16_t sdram_read(int raddr)
+int16_t sdram_read(int raddr, char id)
 {
-    auto data = SIM.mem().read<int16_t>(raddr + CONFIG_SDRAM_BASE /* same as flash*/);
-    IFDEF(CONFIG_MTRACE, printf("SDRAM Read | addr=0x%x, data=0x%x\n",
-              raddr, data));
+    auto addr = raddr + CONFIG_SDRAM_BASE /* same as flash*/;
+    addr += id * 2;
+    auto data = SIM.mem().read<int16_t>(addr);
+    IFDEF(CONFIG_MTRACE, printf("SDRAM Read | id=%d, addr=0x%x, data=0x%x\n", id, raddr, data));
     return data;
 }
 
-void sdram_write(int waddr, int16_t wdata, char mask)
+void sdram_write(int waddr, int16_t wdata, char mask, char id)
 {
-    IFDEF(CONFIG_MTRACE, printf("SDRAM Write | addr=0x%x, data=0x%x, mask=0x%x\n",
-              waddr, wdata, mask));
-    SIM.mem().write<int16_t>(waddr + CONFIG_SDRAM_BASE /* same as flash*/, wdata, mask);
+    IFDEF(CONFIG_MTRACE, printf("SDRAM Write | id=%d, addr=0x%x, data=0x%x, mask=0x%x\n",
+              id, waddr, wdata, mask));
+    auto addr = waddr + CONFIG_SDRAM_BASE /* same as flash*/;
+    addr += id * 2;
+    SIM.mem().write<int16_t>(addr, wdata, mask);
 }
 
 void ebreak_handler()
