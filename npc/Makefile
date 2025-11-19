@@ -91,7 +91,7 @@ TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
 CXXFLAGS += -DTRACE -DTRACE_$(TRACE) -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
 VERILATOR_CFLAGS += --trace-$(TRACE)
 else
-VERILATOR_CFLAGS += --no-trace --threads 4
+VERILATOR_CFLAGS += --no-trace
 endif
 
 ## 4. Hardware-Specific Configurations
