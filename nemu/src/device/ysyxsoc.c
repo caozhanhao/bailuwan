@@ -14,12 +14,6 @@
 ***************************************************************************************/
 
 #include <device/map.h>
-#include <utils.h>
-
-/* http://en.wikibooks.org/wiki/Serial_Programming/8250_UART_Programming */
-// NOTE: this is compatible to 16550
-
-#define CH_OFFSET 0
 
 static uint8_t *mrom_base = nullptr;
 static uint8_t *sram_base = nullptr;
