@@ -197,7 +197,7 @@ config SDRAM_BASE
 
 config SDRAM_SIZE
   hex "Size of the SDRAM"
-  default 0x2000000
+  default 0x8000000
 
 endif # HAS_YSYXSOC
 
