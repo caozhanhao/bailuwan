@@ -292,7 +292,7 @@ void SimHandle::init_trace()
 #ifdef TRACE
     tfp = new TFP_TYPE;
     Verilated::traceEverOn(true);
-    DUT.trace(tfp, 0);
+    dut->trace(tfp, 0);
     tfp->open(TOSTRING(TRACE_FILENAME));
 #endif
 }
@@ -309,9 +309,10 @@ void SimHandle::cleanup_trace()
 #endif
 }
 
-void SimHandle::init_sim(const std::string& filename)
+void SimHandle::init_sim(TOP_NAME* dut_, const std::string& filename)
 {
-    cpu_proxy.bind(&DUT);
+    dut = dut_;
+    cpu_proxy.bind(dut_);
     cycle_counter = 0;
     sim_time = 0;
     init_trace();
@@ -333,13 +334,13 @@ void SimHandle::cleanup()
 
 void SimHandle::single_cycle()
 {
-    DUT.clock = 1;
-    DUT.eval();
+    dut->clock = 1;
+    dut->eval();
 
     IFDEF(TRACE, tfp->dump(sim_time++));
 
-    DUT.clock = 0;
-    DUT.eval();
+    dut->clock = 0;
+    dut->eval();
 
     IFDEF(TRACE, tfp->dump(sim_time++));
 
@@ -348,15 +349,15 @@ void SimHandle::single_cycle()
 
 void SimHandle::reset(int n)
 {
-    DUT.clock = 0;
-    DUT.reset = 1;
+    dut->clock = 0;
+    dut->reset = 1;
     while (n-- > 0)
     {
-        DUT.clock = 1;
-        DUT.eval();
+        dut->clock = 1;
+        dut->eval();
 
-        DUT.clock = 0;
-        DUT.eval();
+        dut->clock = 0;
+        dut->eval();
     }
-    DUT.reset = 0;
+    dut->reset = 0;
 }

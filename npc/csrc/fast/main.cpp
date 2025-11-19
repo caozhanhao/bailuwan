@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
     Verilated::commandArgs(argc, argv);
     parse_args(argc, argv);
     // INIT
-    SIM.init_sim(img_file);
+    SIM.init_sim(&DUT, img_file);
     SIM.reset(10);
 
     // Simulate

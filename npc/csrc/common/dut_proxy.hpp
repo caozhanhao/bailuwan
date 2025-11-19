@@ -164,12 +164,13 @@ struct DUTMemory
 
 class SimHandle
 {
+    TOP_NAME* dut{};
     DUTMemory memory;
-    CPUProxy cpu_proxy;
-    uint64_t cycle_counter;
-    uint64_t sim_time;
-    uint32_t prev_inst;
-    IFDEF(TRACE, TFP_TYPE* tfp);
+    CPUProxy cpu_proxy{};
+    uint64_t cycle_counter{};
+    uint64_t sim_time{};
+    uint32_t prev_inst{};
+    IFDEF(TRACE, TFP_TYPE* tfp{});
     std::chrono::high_resolution_clock::time_point boot_timepoint;
 
     void init_trace();
@@ -178,7 +179,7 @@ class SimHandle
 public:
     SimHandle() = default;
 
-    void init_sim(const std::string& filename);
+    void init_sim(TOP_NAME* dut_, const std::string& filename);
     void cleanup();
     void single_cycle();
     void reset(int n);
