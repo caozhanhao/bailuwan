@@ -3,7 +3,7 @@
 
 #include <getopt.h>
 
-const char* img_file = nullptr;
+static const char* img_file = nullptr;
 
 // Compatible with SDB
 static void parse_args(int argc, char* argv[])
