@@ -39,6 +39,11 @@ int main(int argc, char* argv[])
 {
     Verilated::commandArgs(argc, argv);
     parse_args(argc, argv);
+
+    // NVBoard
+    nvboard_bind_all_pins(&DUT);
+    nvboard_init();
+
     // INIT
     SIM.init_sim(&DUT, img_file);
     SIM.reset(10);
