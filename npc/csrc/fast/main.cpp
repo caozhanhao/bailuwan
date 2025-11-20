@@ -3,7 +3,7 @@
 
 #include <getopt.h>
 
-const char* img_file = nullptr;
+static const char* img_file = nullptr;
 
 // Compatible with SDB
 static void parse_args(int argc, char* argv[])
@@ -38,11 +38,11 @@ int main(int argc, char* argv[])
     Verilated::commandArgs(argc, argv);
     parse_args(argc, argv);
     // INIT
-    SIM.init_sim(img_file);
+    SIM.init_sim(&DUT, img_file);
     SIM.reset(10);
 
     // Simulate
-    printf("Fast simulation started. All trace or debug info are disabled.\n");
+    printf("Fast simulation started.\n");
 
     try
     {

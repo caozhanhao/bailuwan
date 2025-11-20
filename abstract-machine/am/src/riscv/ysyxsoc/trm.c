@@ -55,6 +55,23 @@ void init_uart16550()
     outb(UART_BASE + UART_LCR, orignal_LCR | (1 << 7));
 
     // 2. Set the Divisor Latches, MSB first, LSB next.
+    //    The value set should be equal to (system clock speed) / (16 x desired baud rate).
+    //
+    // Note for NVBoard:
+    //   Quoted from ysyx v24.07 Study Handouts B2 SoC Computer System:
+    //     "As for the baud rate, because there is no concept of clock frequency in NVBoard,
+    //     it is described using a divisor, meaning the number of cycles needed to maintain
+    //     one bit during data transmission."
+    //   In other words, NVBoard divisor = the number of cycles per bit
+    //   Since one bit lasts `1 / baud` seconds and one clock cycle lasts `1 / clk_freq` seconds,
+    //   the number of cycles per bit is:
+    //       (1 / baud) / (1 / clk_freq) = clk_freq / baud
+    //   Therefore:
+    //       NVBoard divisor = clk_freq / baud
+    //   For UART16550, the Divisor Latch value (DL) should be set to `clk_freq / 16*baud`.
+    //   Hence:
+    //       NVBoard divisor = 16 * DL
+    //   The default divisor in NVBoard is 16, so we set DL to 1 here.
     outb(UART_BASE + UART_DIVISOR_LATCH_2, 0x00);
     outb(UART_BASE + UART_DIVISOR_LATCH_1, 0x01);
 

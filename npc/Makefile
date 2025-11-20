@@ -80,7 +80,8 @@ SOC_VINC_PATH += $(abspath $(YSYXSOC_HOME)/perip/spi/rtl)
 SOC_VINC_FLAGS += $(addprefix +incdir+, $(SOC_VINC_PATH))
 
 VERILATOR_CFLAGS += -MMD --build -cc  \
-				-O3 --x-assign fast --x-initial fast --noassert
+				-O3 --x-assign fast --x-initial fast --noassert \
+				 --autoflush --timescale "1ns/1ns" --no-timing
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
@@ -89,6 +90,8 @@ ifneq ($(TRACE), notrace)
 TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
 CXXFLAGS += -DTRACE -DTRACE_$(TRACE) -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
 VERILATOR_CFLAGS += --trace-$(TRACE)
+else
+VERILATOR_CFLAGS += --no-trace
 endif
 
 ## 4. Hardware-Specific Configurations
@@ -112,7 +115,7 @@ $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP) $(SOC_CHISEL_DEPS)
 	$(VERILATOR) $(VERILATOR_CFLAGS) $(SOC_VINC_FLAGS) \
 		--top-module $(TOPNAME) $(BUILD_DIR)/*.sv $(SOC_VSRCS) $(CSRCS) $(LINKAGE) \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) --autoflush --timescale "1ns/1ns" --no-timing
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
 
 ## 6. Miscellaneous

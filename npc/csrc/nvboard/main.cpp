@@ -1,35 +1,71 @@
+#include "dut_proxy.hpp"
+#include "utils/disasm.hpp"
+
 #include <nvboard.h>
-#include <VTop.h>
+#include <getopt.h>
 
-static TOP_NAME dut;
+static const char* img_file = nullptr;
+void nvboard_bind_all_pins(TOP_NAME* top);
 
-void nvboard_bind_all_pins(TOP_NAME * top);
-
-static void single_cycle()
+// Compatible with SDB
+static void parse_args(int argc, char* argv[])
 {
-    dut.clock = 0;
-    dut.eval();
-    dut.clock = 1;
-    dut.eval();
+    const struct option table[] = {
+        {"batch", no_argument, nullptr, 'b'},
+        {"elf", required_argument, nullptr, 'e'},
+        {"help", no_argument, nullptr, 'h'},
+        {0, 0, nullptr, 0},
+    };
+    int o;
+    while ((o = getopt_long(argc, argv, "-bhe:", table, nullptr)) != -1)
+    {
+        switch (o)
+        {
+        case 'e':
+        case 'b':
+            printf("Ignoring option -%c\n", o);
+            break;
+        case 1:
+            img_file = optarg;
+            return;
+        default:
+            printf("Usage: %s [filename]\n", argv[0]);
+            exit(0);
+        }
+    }
 }
 
-static void reset(int n)
+int main(int argc, char* argv[])
 {
-    dut.reset = 1;
-    while (n-- > 0) single_cycle();
-    dut.reset = 0;
-}
+    Verilated::commandArgs(argc, argv);
+    parse_args(argc, argv);
 
-int main()
-{
-    nvboard_bind_all_pins(&dut);
+    // NVBoard
+    nvboard_bind_all_pins(&DUT);
     nvboard_init();
 
-    reset(10);
+    // INIT
+    SIM.init_sim(&DUT, img_file);
+    SIM.reset(10);
 
-    while (1)
+    // Simulate
+    printf("Simulation on NVBoard started.\n");
+
+    try
     {
-        nvboard_update();
-        single_cycle();
+        while (true)
+        {
+            SIM.single_cycle();
+            nvboard_update();
+        }
     }
+    catch (EBreakException& e)
+    {
+        exit(e.get_code());
+    }
+
+    printf("Simulation terminated after %lu cycles\n", SIM.cycles());
+
+    SIM.cleanup();
+    return 0;
 }

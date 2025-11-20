@@ -422,7 +422,7 @@ int main(int argc, char* argv[])
 
     parse_args(argc, argv);
 
-    SIM.init_sim(img_file);
+    SIM.init_sim(&DUT, img_file);
     SIM.reset(10);
 
     // ATTENTION: Initialize difftest after the dut reset.
