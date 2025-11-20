@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
     SIM.reset(10);
 
     // Simulate
-    printf("Fast simulation started.\n");
+    printf("Simulation on NVBoard started.\n");
 
     try
     {
