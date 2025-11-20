@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 include_directories(../build/obj_dir)
 include_directories(common)
-include_directories($ENV{NVBOARD_HOME}/include)
+include_directories($ENV{NVBOARD_HOME}/usr/include)
 include_directories($ENV{VERILATOR_HOME}/include)
 
 add_compile_definitions(TOP_NAME=VysyxSoCFull TRACE TRACE_fst)
