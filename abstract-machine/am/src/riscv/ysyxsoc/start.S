@@ -5,7 +5,7 @@
     la   t2, \end       // end    (VMA)
 .Lcp\@:
     // beq is fine since we've ensured align in linker.ld
-    bge  t1, t2, .Lcp_done\@
+    beq  t1, t2, .Lcp_done\@
     lw   x10, 0(t0)
     sw   x10, 0(t1)
     addi t0, t0, 4
@@ -38,7 +38,7 @@ _ssbl:
     la   t1, _sbss
     la   t2, _ebss
 _ssbl_bss_loop:
-    beq  t1, t2, _ssbl_end
+    bge  t1, t2, _ssbl_end
     sw   x0, 0(t1)
     addi t1, t1, 4
     j    _ssbl_bss_loop
