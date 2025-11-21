@@ -104,7 +104,7 @@ void bp_display()
     for (BP* p = head; p != nullptr; p = p->next)
         buffer[buffer_pos++] = p;
 
-    printf("%-6s %-10s %s\n", "Num", "Func", "What");
+    printf("%-6s %-20s %s\n", "Num", "Func", "What");
     for (int i = buffer_pos - 1; i >= 0; --i)
     {
         BP* p = buffer[i];
@@ -112,9 +112,9 @@ void bp_display()
         uint32_t entry_addr;
         const char* func = ftrace_search(p->addr, &entry_addr);
         if (func)
-            printf("%-6d %-10s+0x%x " FMT_WORD "\n", p->NO, func, p->addr - entry_addr, p->addr);
+            printf("%-6d %-20s+0x%x " FMT_WORD "\n", p->NO, func, p->addr - entry_addr, p->addr);
         else
-            printf("%-6d %-10s " FMT_WORD "\n", p->NO, "?", p->addr);
+            printf("%-6d %-20s " FMT_WORD "\n", p->NO, "?", p->addr);
     }
 }
 
