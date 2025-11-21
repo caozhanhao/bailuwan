@@ -34,8 +34,8 @@
 
 // Only available in sdb:
 // #define CONFIG_ITRACE 1
-// #define CONFIG_FTRACE 1
-// #define CONFIG_WP_BP
+#define CONFIG_FTRACE 1
+#define CONFIG_WP_BP
 // #define CONFIG_DIFFTEST 1
 
 #endif
