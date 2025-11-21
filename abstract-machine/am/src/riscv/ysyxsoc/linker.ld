@@ -6,7 +6,7 @@ MEMORY {
   /* only low 24-bit is taken in APBSPI, so flash size should be 2^24 bytes = 16 M */
   flash : ORIGIN = 0x30000000, LENGTH = 16M
   psram : ORIGIN = 0x80000000, LENGTH = 16M
-  psram : ORIGIN = 0xa0000000, LENGTH = 128M
+  sdram : ORIGIN = 0xa0000000, LENGTH = 128M
 }
 
 /* Attention: align to enable fsbl/ssbl to use lw/sw for copying. */
