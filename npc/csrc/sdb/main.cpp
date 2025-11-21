@@ -248,9 +248,11 @@ static struct
     {"info", "Print register status(r) or watchpoint information(w).", cmd_info},
     {"x", "Display N consecutive 4-byte words in hexadecimal at given address.", cmd_x},
     {"p", "Evaluate the expression.", cmd_p},
+#ifdef CONFIG_WP_BP
     {"w", "Pause execution when the value of the expression changes.", cmd_w},
     {"b", "Set a breakpoint at the given address/function.", cmd_b},
     {"d", "Delete the watchpoint/breakpoint with index N.", cmd_d},
+#endif
     {"l", ""}
 };
 

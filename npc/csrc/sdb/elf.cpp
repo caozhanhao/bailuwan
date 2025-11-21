@@ -62,12 +62,16 @@ void ftrace_table_push(uint32_t addr, uint32_t size, const char* name)
     // Log("ftrace: %s @ 0x%x", name, addr);
 }
 
-const char* ftrace_search(uint32_t pc)
+const char* ftrace_search(uint32_t pc, uint32_t* entry_addr)
 {
     for (size_t i = 0; i < ftrace_size; i++)
     {
         if (pc >= ftrace_table[i].addr && pc < ftrace_table[i].addr + ftrace_table[i].size)
+        {
+            if (entry_addr)
+                *entry_addr = ftrace_table[i].addr;
             return ftrace_table[i].name;
+        }
     }
     return nullptr;
 }

@@ -5,7 +5,7 @@
 
 void isa_reg_display()
 {
-   SIM.cpu().dump_gprs(std::cout);
+    SIM.cpu().dump_gprs(std::cout);
 }
 
 void isa_csr_display()
@@ -96,19 +96,24 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
 
     if (is_call)
     {
-        const char* callee = ftrace_search(dnpc);
+        uint32_t entry_addr;
+        const char* callee = ftrace_search(dnpc, &entry_addr);
         if (callee == nullptr)
         {
-            Log("ftrace: Unknown function at " FMT_WORD, dnpc);
+            Log("ftrace: Unknown jump at " FMT_WORD, dnpc);
             return -1;
         }
 
+        // Not a function call
+        if (dnpc != entry_addr)
+            return -1;
+
         snprintf(buf, buf_size, FMT_WORD ": %s [%s@" FMT_WORD "]",
-                 pc, rd == 1 ? "call" : "tail", callee, dnpc);
+                 pc, (rd == 1 ? "call" : "tail"), callee, entry_addr);
     }
     else if (is_ret)
     {
-        const char* callee = ftrace_search(pc);
+        const char* callee = ftrace_search(pc, nullptr);
         if (callee == nullptr)
         {
             Log("ftrace: Unknown function at " FMT_WORD, pc);

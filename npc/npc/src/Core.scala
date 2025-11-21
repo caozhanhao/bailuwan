@@ -81,6 +81,9 @@ class Core(
 //  val mtime = Module(new MTime)
 //  xbar.io.slaves(0) <> io.master
 //  xbar.io.slaves(1) <> mtime.io
-
   arbiter.io.slave <> io.master
+
+  // Simple safety checks
+  assert(!io.master.aw.valid || io.master.aw.bits.addr =/= 0.U)
+  assert(!io.master.ar.valid || io.master.ar.bits.addr =/= 0.U)
 }
