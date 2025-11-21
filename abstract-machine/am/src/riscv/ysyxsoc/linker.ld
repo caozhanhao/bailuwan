@@ -6,7 +6,7 @@ MEMORY {
   /* only low 24-bit is taken in APBSPI, so flash size should be 2^24 bytes = 16 M */
   flash : ORIGIN = 0x30000000, LENGTH = 16M
   psram : ORIGIN = 0x80000000, LENGTH = 16M
-  sdram : ORIGIN = 0xa0000000, LENGTH = 128M
+  psram : ORIGIN = 0xa0000000, LENGTH = 128M
 }
 
 /* Attention: align to enable fsbl/ssbl to use lw/sw for copying. */
@@ -39,7 +39,7 @@ SECTIONS {
     *(.rodata*)
     . = ALIGN(8);
     _erodata = .;
-  } > sdram AT> flash
+  } > psram AT> flash
 
   .data : ALIGN(8) {
     _data_lma = LOADADDR(.data);
@@ -48,7 +48,7 @@ SECTIONS {
     *(.sdata*)
     . = ALIGN(8);
     _edata = .;
-  } > sdram AT> flash
+  } > psram AT> flash
 
   .bss (NOLOAD) : ALIGN(8) {
     _sbss = .;
@@ -57,7 +57,7 @@ SECTIONS {
     *(.scommon)
     . = ALIGN(8);
     _ebss = .;
-  } > sdram
+  } > psram
 
   .stack (NOLOAD) : ALIGN(8) {
     _stack_top   = ORIGIN(sram) + LENGTH(sram);
@@ -68,5 +68,5 @@ SECTIONS {
   } > sram
 
   _heap_start = ALIGN(_ebss, 8);
-  _heap_end = ORIGIN(sdram) + LENGTH(sdram);
+  _heap_end = ORIGIN(psram) + LENGTH(psram);
 }

@@ -39,6 +39,18 @@ void psram_write(int waddr, char wdata)
 // The SDRAM addr only has low 25-bit valid.
 // One chip -> 25-bit -> 32 MB
 // id is used to tell which chip is being accessed.
+//
+// To let command `x` in sdb work, we convert the address to the original address issued in
+// NPC by sw/lw/...
+//
+// First, in the SDRAM Controller, the addr[12] is used as chip select, and
+//    MSB (SDRAM_ADDR_W)                                          LSB (0)
+//    +---------------------+-------------+---------------+-----------+
+//    |     ROW Address     | BANK Select |  COL Address  |  Ignored  |
+//    +---------------------+-------------+---------------+-----------+
+//    |   [ADDR_W : C+B+1]  | [C+B : C+1] |    [C : 2]    |  [1 : 0]  |
+//    |   [     25:    13]  | [12  :  10] |    [9 : 2]       [1 : 0]  |
+//    +----------+----------+------+------+-------+-------+-----+-----+
 int16_t sdram_read(int raddr, char id)
 {
     assert(id >= 0 && id < CONFIG_SDRAM_CHIP_NUM);
