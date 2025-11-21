@@ -59,10 +59,10 @@ void psram_write(int waddr, char wdata)
 //                    addr[25:13] ## addr[11:2] ## 0.U(2.W)
 //
 // Besides, ID is a 2-bit wire assigned as [wordext id, bitext id], meaning:
-//          Word Extend     Bit Extend
-//   - 00: addr[12] = low,  low 16 bits
+//           Word Extend     Bit Extend
+//   - 00: addr[12] = low,  low  16 bits
 //   - 01: addr[12] = low,  high 16 bits
-//   - 10: addr[12] = high, low 16 bits
+//   - 10: addr[12] = high, low  16 bits
 //   - 11: addr[12] = high, high 16 bits
 //
 // Thus the original NPC address can be reconstructed as:
