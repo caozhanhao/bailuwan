@@ -4,6 +4,8 @@
 
 #include "disasm.hpp"
 
+#include <iostream>
+
 #include "dut_proxy.hpp"
 
 void Disassembler::init()
@@ -35,8 +37,9 @@ std::string Disassembler::disassemble(uint32_t pc, uint32_t inst) const
     size_t count = cs_disasm_dl(handle, code, 4, pc, 0, &insn);
     if (count != 1)
     {
+        fprintf(stderr, "Disassembler error at inst: 0x%x\n", inst);
+        SIM.cpu().dump(std::cerr);
         SIM.cleanup();
-        printf("Disassembler error at inst: 0x%x", inst);
         exit(-1);
     }
     int ret = snprintf(buffer, 128, "%s", insn->mnemonic);
