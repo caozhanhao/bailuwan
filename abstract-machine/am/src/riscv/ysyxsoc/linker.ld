@@ -31,7 +31,7 @@ SECTIONS {
     *(.text*)
     . = ALIGN(8);
     _etext = .;
-      } > sdram AT> flash
+  } > sdram AT> flash
 
   .rodata : ALIGN(8) {
     _rodata_lma = LOADADDR(.rodata);
