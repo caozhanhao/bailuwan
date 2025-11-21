@@ -38,7 +38,7 @@ _ssbl:
     la   t1, _sbss
     la   t2, _ebss
 _ssbl_bss_loop:
-    bge  t1, t2, _ssbl_end
+    beq  t1, t2, _ssbl_end
     sw   x0, 0(t1)
     addi t1, t1, 4
     j    _ssbl_bss_loop
