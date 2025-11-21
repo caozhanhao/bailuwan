@@ -18,11 +18,11 @@
 
 typedef struct breakpoint
 {
-  int NO;
-  int pool_index;
-  struct breakpoint* next;
+    int NO;
+    int pool_index;
+    struct breakpoint* next;
 
-  word_t addr;
+    word_t addr;
 } BP;
 
 static BP bp_pool[NR_BP] = {};
@@ -30,98 +30,106 @@ static BP *head = nullptr, *free_ = nullptr;
 
 void init_bp_pool()
 {
-  int i;
-  for (i = 0; i < NR_BP; i++)
-  {
-    // To avoid conflict with watch points, the NO of breakpoints starts from NR_WP.
-    bp_pool[i].NO = NR_WP + i;
-    bp_pool[i].next = (i == NR_BP - 1 ? nullptr : &bp_pool[i + 1]);
-  }
+    int i;
+    for (i = 0; i < NR_BP; i++)
+    {
+        // To avoid conflict with watch points, the NO of breakpoints starts from NR_WP.
+        bp_pool[i].NO = NR_WP + i;
+        bp_pool[i].next = (i == NR_BP - 1 ? nullptr : &bp_pool[i + 1]);
+    }
 
-  head = nullptr;
-  free_ = bp_pool;
+    head = nullptr;
+    free_ = bp_pool;
 }
 
 BP* new_bp()
 {
-  Assert(free_, "No more breakpoints available");
-  BP* p = free_;
-  free_ = free_->next;
-  p->next = head;
-  head = p;
-  return p;
+    Assert(free_, "No more breakpoints available");
+    BP* p = free_;
+    free_ = free_->next;
+    p->next = head;
+    head = p;
+    return p;
 }
 
 void free_bp(BP* bp)
 {
-  Assert(bp, "Breakpoint is nullptr");
+    Assert(bp, "Breakpoint is nullptr");
 
-  if (bp == head)
-  {
-    head = head->next;
-    bp->next = free_;
-    free_ = bp;
-    return;
-  }
-
-  for (BP* p = head; p != nullptr; p = p->next)
-  {
-    if (p->next == bp)
+    if (bp == head)
     {
-      p->next = bp->next;
-      bp->next = free_;
-      free_ = bp;
-      return;
+        head = head->next;
+        bp->next = free_;
+        free_ = bp;
+        return;
     }
-  }
 
-  panic("Breakpoint not found");
+    for (BP* p = head; p != nullptr; p = p->next)
+    {
+        if (p->next == bp)
+        {
+            p->next = bp->next;
+            bp->next = free_;
+            free_ = bp;
+            return;
+        }
+    }
+
+    panic("Breakpoint not found");
 }
 
 void bp_update_one(BP* p)
 {
-  if (SIM.cpu().pc() == p->addr)
-  {
-    Log("Breakpoint hit at 0x%x.", p->addr);
+    if (SIM.cpu().pc() == p->addr)
+    {
+        Log("Breakpoint hit at 0x%x.", p->addr);
 
-    if (sdb_state == SDBState::Running)
-      sdb_state = SDBState::Stop;
-  }
+        if (sdb_state == SDBState::Running)
+            sdb_state = SDBState::Stop;
+    }
 }
 
 void bp_update()
 {
-  for (BP* p = head; p != nullptr; p = p->next)
-    bp_update_one(p);
+    for (BP* p = head; p != nullptr; p = p->next)
+        bp_update_one(p);
 }
 
-const char* ftrace_search(uint32_t pc);
+const char* ftrace_search(uint32_t pc, uint32_t* entry_addr);
 
 void bp_display()
 {
-  BP* buffer[NR_BP] = {};
-  int buffer_pos = 0;
-  for (BP* p = head; p != nullptr; p = p->next)
-    buffer[buffer_pos++] = p;
+    BP* buffer[NR_BP] = {};
+    int buffer_pos = 0;
+    for (BP* p = head; p != nullptr; p = p->next)
+        buffer[buffer_pos++] = p;
 
-  printf("%-6s %-10s %s\n", "Num", "Func", "What");
-  for (int i = buffer_pos - 1; i >= 0; --i)
-  {
-    BP* p = buffer[i];
+    printf("%-6s %-10s %s\n", "Num", "Func", "What");
+    for (int i = buffer_pos - 1; i >= 0; --i)
+    {
+        BP* p = buffer[i];
 
-    const char* func = ftrace_search(p->addr);
-    printf("%-6d %-10s " FMT_WORD "\n", p->NO, func ? func : "???", p->addr);
-  }
+        uint32_t entry_addr;
+        const char* func = ftrace_search(p->addr, &entry_addr);
+        if (func)
+            printf("%-6d %-10s+0x%x " FMT_WORD "\n", p->NO, func, p->addr - entry_addr, p->addr);
+        else
+            printf("%-6d %-10s " FMT_WORD "\n", p->NO, "?", p->addr);
+    }
 }
 
 void bp_create(word_t addr)
 {
-  BP* p = new_bp();
-  p->addr = addr;
+    BP* p = new_bp();
+    p->addr = addr;
 
-  const char* func = ftrace_search(addr);
-  printf("Breakpoint %d: " FMT_WORD " (func: @%s)\n", p->NO, addr, func ? func : "???");
-  bp_update_one(p);
+    uint32_t entry_addr;
+    const char* func = ftrace_search(addr, &entry_addr);
+    if (func)
+        printf("Breakpoint %d: " FMT_WORD " (func: @%s+0x%x)\n", p->NO, addr, func, addr - entry_addr);
+    else
+        printf("Breakpoint %d: " FMT_WORD " (func: @?)\n", p->NO, addr);
+    bp_update_one(p);
 }
 
 void bp_delete(int NO) { free_bp(&bp_pool[NO]); }
