@@ -73,8 +73,13 @@ void psram_write(int waddr, char wdata)
 static uint32_t convert_sdram_addr(int addr, char id)
 {
     auto npc_addr = (BITS(addr, 24, 12) << 13) | (BITS(id, 1, 1) << 12) | (BITS(addr, 11, 2) << 2);
+
     // little-endian
-    return npc_addr + BITS(id, 0, 0) * 2;
+    npc_addr += BITS(id, 0, 0) * 2;
+
+    // same as flash
+    npc_addr += CONFIG_SDRAM_BASE;
+    return npc_addr;
 }
 
 int16_t sdram_read(int raddr, char id)
