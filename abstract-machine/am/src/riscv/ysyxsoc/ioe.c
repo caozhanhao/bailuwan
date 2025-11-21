@@ -12,7 +12,7 @@ void __am_input_keybrd(AM_INPUT_KEYBRD_T *);
 
 static void __am_timer_config(AM_TIMER_CONFIG_T *cfg) { cfg->present = true; cfg->has_rtc = true; }
 static void __am_uart_config(AM_INPUT_CONFIG_T *cfg) { cfg->present = true;  }
-static void __am_input_config(AM_INPUT_CONFIG_T *cfg) { cfg->present = false;  }
+// static void __am_input_config(AM_INPUT_CONFIG_T *cfg) { cfg->present = false;  }
 
 // similar to putch in trm.c
 static void __am_uart_tx(AM_UART_TX_T* tx)
@@ -35,8 +35,8 @@ static void *lut[128] = {
   [AM_TIMER_CONFIG] = __am_timer_config,
   [AM_TIMER_RTC   ] = __am_timer_rtc,
   [AM_TIMER_UPTIME] = __am_timer_uptime,
-  [AM_INPUT_CONFIG] = __am_input_config,
-  [AM_INPUT_KEYBRD] = __am_input_keybrd,
+  // [AM_INPUT_CONFIG] = __am_input_config,
+  // [AM_INPUT_KEYBRD] = __am_input_keybrd,
 };
 
 static void fail(void *buf) { panic("access nonexist register"); }
