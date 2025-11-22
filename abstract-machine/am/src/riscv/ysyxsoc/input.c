@@ -28,15 +28,16 @@ void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
   bool keydown = false;
   bool ext = false;
   uint8_t code;
+  printf("ha\n");
   while ((code = inb(PS2_KEYBOARD_BASE)))
   {
+    printf("?\n");
     if (code == 0xF0)
       keydown = false;
     else if (code == 0xE0)
       ext = true;
     else
     {
-      printf("Got code %x\n", code);
       kbd->keycode = ext ? keymap_ext[code] : keymap[code];
       kbd->keydown = keydown;
       return;
