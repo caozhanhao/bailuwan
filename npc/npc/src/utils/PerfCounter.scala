@@ -9,11 +9,12 @@ class PerfCounter(name: String) extends BlackBox with HasBlackBoxInline {
     val reset = Input(Reset())
     val cond  = Input(Bool())
   })
+  override def desiredName = s"PerfCounter_$name"
 
   setInline(
-    s"$name.sv",
+    s"PerfCounter_$name.sv",
     s"""
-       |module $name (
+       |module PerfCounter_$name(
        |    input clock,
        |    input reset,
        |    input cond
