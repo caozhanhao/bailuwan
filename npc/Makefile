@@ -69,8 +69,8 @@ SOC_CHISEL_DEPS = $(shell find $(YSYXSOC_HOME)/src -name "*.scala")
 VERILATOR = verilator
 
 ### Compilation flags
-INC_PATH += $(abspath ./csrc/common/)
-CSRCS += $(shell find $(abspath ./csrc/common) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+INC_PATH += $(abspath ./sim/common/)
+CSRCS += $(shell find $(abspath ./sim/common) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 HEADERS := $(sort $(shell find $(INC_PATH) -type f \( -name '*.h' -o -name '*.hpp' \) 2>/dev/null))
 
 SOC_VSRCS += $(shell find $(YSYXSOC_HOME)/perip -type f -name '*.v' 2>/dev/null)
@@ -159,5 +159,5 @@ clean-all:
 	-rm -rf $(BUILD_DIR)
 	-rm -rf $(YSYXSOC_HOME)/build/
 
-.PHONY: test verilog reformat checkformat clean
+.PHONY: test verilog reformat checkformat clean sim
 -include ../Makefile

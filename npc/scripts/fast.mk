@@ -1,1 +1,1 @@
-CSRCS += $(shell find $(abspath ./csrc/fast) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+CSRCS += $(shell find $(abspath ./sim/fast) -name "*.c" -or -name "*.cc" -or -name "*.cpp")

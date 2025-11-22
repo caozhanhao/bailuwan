@@ -1,10 +1,10 @@
 # constraint file
-NXDC_FILES = ./csrc/nvboard/top.nxdc
+NXDC_FILES = ./sim/nvboard/top.nxdc
 SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
 $(SRC_AUTO_BIND): $(NXDC_FILES)
 	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
 
-CSRCS += $(shell find $(abspath ./csrc/nvboard) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+CSRCS += $(shell find $(abspath ./sim/nvboard) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 CSRCS += $(SRC_AUTO_BIND)
 
 LINKAGE += $(NVBOARD_ARCHIVE)
