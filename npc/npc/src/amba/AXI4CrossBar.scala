@@ -38,7 +38,7 @@ class AXI4CrossBar(
   }
 
   // Address Mux
-  def addr_mux_map(addr: UInt) = slaves_map.zipWithIndex.map(x => {
+  def addr_mux_map(addr: UInt) = slaves_map.reverse.zipWithIndex.map(x => {
     val ranges = x._1
     val idx    = x._2.asUInt
 
