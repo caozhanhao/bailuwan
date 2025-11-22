@@ -9,10 +9,10 @@
 #define VGA_FB_ADDR 0x21000000
 
 void __am_gpu_init() {
-    int i;
-    uint32_t *fb = (uint32_t *)(uintptr_t)VGA_FB_ADDR;
-    for (i = 0; i < VGA_WIDTH * VGA_HEIGHT; i ++)
-        fb[i] = i;
+    // int i;
+    // uint32_t *fb = (uint32_t *)(uintptr_t)VGA_FB_ADDR;
+    // for (i = 0; i < VGA_WIDTH * VGA_HEIGHT; i ++)
+    //     fb[i] = i;
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T * cfg)
