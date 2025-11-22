@@ -173,15 +173,15 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(exu_done);
 #undef PERF
 
-    auto all_cnt_d = static_cast<double>(*b.all_ops);
+    auto all_ops_d = static_cast<double>(*b.all_ops);
 
     fprintf(stream, "+----------+------------+--------+------------+\n");
     fprintf(stream, "| Name     | Count      | %%      | Avg Cycles |\n");
     fprintf(stream, "+----------+------------+--------+------------+\n");
 #define PERF(name)  fprintf(stream, "| %-8s | %10lu | %05.2f%% | %10.2f |\n", \
     STRINGIFY(name), \
-    *b.name##_cycles, \
-    100.0 * (static_cast<double>(*b.name##_ops) / all_cnt_d), \
+    *b.name##_ops, \
+    100.0 * (static_cast<double>(*b.name##_ops) / all_ops_d), \
     (static_cast<double>(*b.name##_cycles) / static_cast<double>(*b.name##_ops)))
 
     PERF(alu);
