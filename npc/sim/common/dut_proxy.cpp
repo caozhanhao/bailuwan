@@ -176,7 +176,10 @@ void CPUProxy::dump_perf_counters(FILE* stream)
 
     auto all_cnt_d = static_cast<double>(*b.all_ops);
 
-#define PERF(name) fprintf(stream, "%-5s: cnt = %10lu (%05.2f%%), avg cycles = %3.2f\n", \
+    fprintf(stream, "+----------+------------+--------+------------+\n");
+    fprintf(stream, "| Name     | Count      | %%      | Avg Cycles |\n");
+    fprintf(stream, "+----------+------------+--------+------------+\n");
+#define PERF(name)  fprintf(stream, "| %-8s | %10lu | %05.2f%% | %10.2f |\n", \
     STRINGIFY(name), \
     *b.name##_cycles, \
     100.0 * (static_cast<double>(*b.name##_ops) / all_cnt_d), \
@@ -188,6 +191,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(csr);
     PERF(other);
 #undef PERF
+    fprintf(stream, "+----------+------------+--------+------------+\n");
 }
 
 void CPUProxy::dump(FILE* stream)
