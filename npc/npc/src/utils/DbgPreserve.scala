@@ -15,12 +15,12 @@ class DbgPreserve(name: String, width: Int) extends BlackBox with HasBlackBoxInl
       s".sv",
     s"""
        |module DbgPreserve_$name(
-       |    input [${width - 1}:0]data
+       |    input [${width - 1}:0] data
        |);
        |
        |`ifdef VERILATOR
        |  wire [63:0] $name /* verilator public_flat_rd */;
-       |  assign $name = val;
+       |  assign $name = data;
        |`endif
        |
        |endmodule
