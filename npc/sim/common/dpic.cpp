@@ -51,7 +51,7 @@ void psram_write(int waddr, char wdata)
 //    |     ROW Address     | BANK Select |  COL Address  |  Ignored  |
 //    +---------------------+-------------+---------------+-----------+
 //    |   [ADDR_W : C+B+1]  | [C+B : C+1] |    [C : 2]    |  [1 : 0]  |
-//    |   [     25:    13]  | [12  :  10] |    [9 : 2]       [1 : 0]  |
+//    |   [     25:    13]  | [12  :  10] |    [9 : 2]    |  [1 : 0]  |
 //    +----------+----------+------+------+-------+-------+-----+-----+
 //
 // Additionally, the SDRAM controller pads one 0 to the column address, and the SDRAM chip pads

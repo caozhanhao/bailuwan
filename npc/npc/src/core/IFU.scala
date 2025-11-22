@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import top.CoreParams
 import amba._
+import utils._
 
 class IFUOut(
   implicit p: CoreParams)
@@ -28,11 +29,11 @@ class IFU(
   io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
   io.mem.ar.bits.burst := 0.U
 
-  io.mem.aw.valid := false.B
-  io.mem.aw.bits  := DontCare
-  io.mem.w.valid  := false.B
-  io.mem.w.bits   := DontCare
-  io.mem.b.ready  := false.B
+  io.mem.aw.valid    := false.B
+  io.mem.aw.bits     := DontCare
+  io.mem.w.valid     := false.B
+  io.mem.w.bits      := DontCare
+  io.mem.b.ready     := false.B
   io.mem.w.bits.last := true.B
 
   val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(4)
@@ -70,19 +71,23 @@ class IFU(
 
   assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x, resp=${fault_resp}")
 
-  // Difftest got ready after every pc advance (one instruction done),
-  // which is just in.valid delayed one cycle.
-  //               ___________
-  //   ready      |          |
-  //              _____       _____
-  //   clock     |     |_____|     |_____
-  //              cycle 1        cycle 2
-  //                     ^
-  //                     |
-  //          difftest_step is called here
-  val difftest_ready = RegNext((false.B ## io.in.valid))
-  // An assert to avoid optimization by Verilator when trace is disabled.
-  assert(!difftest_ready(1))
-  // A dontTouch to avoid optimization by Chisel.
-  dontTouch(difftest_ready)
+  if (p.Debug) {
+    // Difftest got ready after every pc advance (one instruction done),
+    // which is just in.valid delayed one cycle.
+    //               ___________
+    //   ready      |          |
+    //              _____       _____
+    //   clock     |     |_____|     |_____
+    //              cycle 1        cycle 2
+    //                     ^
+    //                     |
+    //          difftest_step is called here
+    val difftest_ready = RegNext((false.B ## io.in.valid))
+    // An assert to avoid optimization by Verilator when trace is disabled.
+    assert(!difftest_ready(1))
+    // A dontTouch to avoid optimization by Chisel.
+    dontTouch(difftest_ready)
+
+    val fetched_cnt = PerfCounter(io.mem.r.fire)
+  }
 }

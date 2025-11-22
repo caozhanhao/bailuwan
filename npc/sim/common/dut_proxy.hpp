@@ -54,13 +54,19 @@ enum CSR
 
 class CPUProxy
 {
-    uint32_t* pc_binding;
-    uint32_t* dnpc_binding;
-    uint32_t* inst_binding;
-    uint8_t* difftest_ready_binding;
-    uint8_t* ifu_state_binding;
-    uint32_t* register_bindings[16];
-    uint32_t* csr_bindings[4096];
+    struct Bindings
+    {
+        uint32_t* pc;
+        uint32_t* dnpc;
+        uint32_t* inst;
+        uint8_t* difftest_ready;
+        uint8_t* ifu_state;
+        uint32_t* gprs[16];
+        uint32_t* csrs[4096];
+
+        // Perf Counters
+        uint64_t* ifu_fetched;
+    } bindings;
 
 public:
     CPUProxy() = default;
