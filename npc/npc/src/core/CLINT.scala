@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import amba._
 
-class MTime(
+class CLINT(
   implicit val axi_prop: AXIProperty)
     extends Module {
   val io = IO(Flipped(new AXI4))

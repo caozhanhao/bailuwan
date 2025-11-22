@@ -68,22 +68,33 @@ class Core(
 
   arbiter.io.slave <> io.master
 
-// FIXME: MTime conflicts with SDRAM
-//  val xbar = Module(
-//    new AXI4CrossBar(
-//      Seq(
-//        (Seq((0x0200_0000L, 0xa000_0048L), (0xa000_0050L, 0xffff_ffffL))), // SoC
-//        (Seq((0xa000_0048L, 0xa000_0050L)))                                // MTime
-//      )
-//    )
-//  )
-//  arbiter.io.slave <> xbar.io.master
-//  val mtime = Module(new MTime)
-//  xbar.io.slaves(0) <> io.master
-//  xbar.io.slaves(1) <> mtime.io
-  arbiter.io.slave <> io.master
+  val xbar  = Module(
+    new AXI4CrossBar(
+      Seq(
+        // SoC
+        Seq(
+          (0x0f000000L, 0x0fffffffL), // SRAM
+          (0x10000000L, 0x10000fffL), // UART16550
+          (0x10001000L, 0x10001fffL), // SPI master
+          (0x10002000L, 0x1000200fL), // GPIO
+          (0x10011000L, 0x10011007L), // PS2
+          (0x20000000L, 0x20000fffL), // MROM
+          (0x21000000L, 0x211fffffL), // VGA
+          (0x30000000L, 0x3fffffffL), // FLASH
+          (0x40000000L, 0x7fffffffL), // ChipLink MMIO
+          (0x80000000L, 0x9fffffffL), // PSRAM
+          (0xa0000000L, 0xbfffffffL), // SDRAM
+          (0xc0000000L, 0xffffffffL)  // ChipLink MEM
+        ),
+        // CLINT
+        Seq((0x02000000L, 0x0200ffffL))
+      )
+    )
+  )
+  arbiter.io.slave <> xbar.io.master
 
-  // Simple safety checks
-  assert(!io.master.aw.valid || io.master.aw.bits.addr =/= 0.U)
-  assert(!io.master.ar.valid || io.master.ar.bits.addr =/= 0.U)
+  val clint = Module(new CLINT())
+  xbar.io.slaves(0) <> io.master
+  xbar.io.slaves(1) <> clint.io
+  arbiter.io.slave <> io.master
 }
