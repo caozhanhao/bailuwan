@@ -78,7 +78,7 @@ void CPUProxy::bind(TOP_NAME* this_dut)
 
 
     // Perf counters
-    b.ifu_fetched = CORE(IFU_)
+    b.ifu_fetched = CORE(IFU__DOT___fetched_cnt_T);
 
 #undef CORE
 }

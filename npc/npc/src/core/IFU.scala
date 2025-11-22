@@ -89,5 +89,6 @@ class IFU(
     dontTouch(difftest_ready)
 
     val fetched_cnt = PerfCounter(io.mem.r.fire)
+    dontTouch(fetched_cnt)
   }
 }
