@@ -178,17 +178,17 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     fprintf(stream, "+----------+----------+--------+------------+\n");
     fprintf(stream, "|   Type   |  Count   |    %%   | Avg Cycles |\n");
     fprintf(stream, "+----------+----------+--------+------------+\n");
-#define PERF(name)  fprintf(stream, "| %-8s | %8lu | %05.2f%% | %10.2f |\n", \
-    STRINGIFY(name), \
+#define PERF(display_name, name)  fprintf(stream, "| %-8s | %8lu | %05.2f%% | %10.2f |\n", \
+    STRINGIFY(display_name), \
     *b.name##_ops, \
     100.0 * (static_cast<double>(*b.name##_ops) / all_ops_d), \
     (static_cast<double>(*b.name##_cycles) / static_cast<double>(*b.name##_ops)))
 
-    PERF(alu);
-    PERF(br);
-    PERF(lsu);
-    PERF(csr);
-    PERF(other);
+    PERF(ALU, alu);
+    PERF(Branch, br);
+    PERF(LSU, lsu);
+    PERF(CSR, csr);
+    PERF(Other,other);
 #undef PERF
     fprintf(stream, "+----------+----------+--------+------------+\n");
 }
