@@ -137,6 +137,7 @@ void CPUProxy::dump_csrs(std::ostream& os)
 
 void CPUProxy::dump(std::ostream& os)
 {
+    os << "PC=" << pc() << "\n";
     os << "Registers:\n";
     dump_gprs(os);
     os << "CSRs:\n";
