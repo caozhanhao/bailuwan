@@ -102,17 +102,7 @@ void sdram_write(int waddr, int16_t wdata, char mask, char id)
 
 void ebreak_handler()
 {
-    auto cycles = SIM.cycles();
-    auto elapsed_time = SIM.elapsed_time();
-
-    printf("Ebreak after %lu cycles\n", cycles);
-    printf("Elapsed time: %lu us\n", elapsed_time);
-
-    double cycle_per_us = static_cast<double>(elapsed_time) / static_cast<double>(cycles);
-    printf("Cycle per us: %f\n", cycle_per_us);
-
-    printf("\nPerformance Counters:\n");
-    SIM.cpu().dump_perf_counters(stdout);
+    SIM.dump_statistics();
 
     auto a0 = SIM.cpu().reg(10);
     if (a0 == 0)

@@ -62,6 +62,7 @@ static void execute(uint64_t n)
             auto cnt_d = static_cast<double>(inst_count);
             Log("Got Ebreak. CPI = %f, IPC = %f",
                 cycle_d / cnt_d, cnt_d / cycle_d);
+            Log("Inst Count=%lu", inst_count);
         }
 
         trace_and_difftest();

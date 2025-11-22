@@ -94,6 +94,11 @@ uint32_t CPUProxy::curr_inst() const
     return *bindings.inst;
 }
 
+uint64_t CPUProxy::inst_count() const
+{
+    return *bindings.all_ops;
+}
+
 uint32_t CPUProxy::pc() const
 {
     return *bindings.pc;
@@ -406,4 +411,23 @@ void SimHandle::reset(int n)
         dut->eval();
     }
     dut->reset = 0;
+}
+
+void SimHandle::dump_statistics(FILE* stream)
+{
+    auto inst_count = cpu().inst_count();
+    auto cnt_d = static_cast<double>(inst_count);
+    auto cycles_d = static_cast<double>(cycles());
+
+    printf("Ebreak after %lu cycles\n", cycles());
+    printf("Elapsed time: %lu us\n", elapsed_time());
+
+    double cycle_per_us = static_cast<double>(elapsed_time()) / cycles_d;
+    printf("Cycles per us: %f\n", cycle_per_us);
+
+    printf("Cycles Per Inst (CPI) = %f\n", cycles_d / cnt_d);
+    printf("Insts Per Cycle (IPC) = %f\n", cnt_d / cycles_d);
+
+    printf("\nPerf Counters:\n");
+    SIM.cpu().dump_perf_counters(stdout);
 }

@@ -86,6 +86,7 @@ public:
     uint32_t pc() const;
     uint32_t dnpc() const;
     uint32_t curr_inst() const;
+    uint64_t inst_count() const;
     uint32_t reg(uint32_t idx) const;
     uint32_t csr(uint32_t idx) const;
     bool is_csr_valid(uint32_t idx) const;
@@ -197,6 +198,8 @@ public:
     void cleanup();
     void single_cycle();
     void reset(int n);
+
+    void dump_statistics(FILE* stream = stderr);
 
     uint64_t cycles() const { return cycle_counter; }
     CPUProxy& cpu() { return cpu_proxy; }
