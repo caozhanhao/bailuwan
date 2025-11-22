@@ -58,8 +58,10 @@ static void execute(uint64_t n)
         {
             sdb_state = SDBState::End;
             sdb_halt_ret = e.get_code();
-            Log("Got Ebreak. Cycle Per Inst = %f",
-                static_cast<double>(SIM.cycles()) / static_cast<double>(inst_count));
+            auto cycle_d = static_cast<double>(SIM.cycles());
+            auto cnt_d = static_cast<double>(inst_count);
+            Log("Got Ebreak. CPI = %f, IPC = %f",
+                cycle_d / cnt_d, cnt_d / cycle_d);
         }
 
         trace_and_difftest();
