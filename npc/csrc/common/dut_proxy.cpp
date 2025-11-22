@@ -119,31 +119,31 @@ bool CPUProxy::is_inst_valid() const
     return *ifu_state_binding == 2;
 }
 
-void CPUProxy::dump_gprs()
+void CPUProxy::dump_gprs(FILE* stream)
 {
     for (int i = 0; i < 16; i++)
-        fprintf(stderr, "x%-2d %-5s  0x%08x  %11d\n", i, gpr_names[i], reg(i), reg(i));
+        fprintf(stream, "x%-2d %-5s  0x%08x  %11d\n", i, gpr_names[i], reg(i), reg(i));
 }
 
-void CPUProxy::dump_csrs()
+void CPUProxy::dump_csrs(FILE* stream)
 {
     for (int i = 0; i < 4096; i++)
     {
         if (csr_names[i] == nullptr)
             continue;
-        fprintf(stderr, "%-10s 0x%08x  %11d\n", csr_names[i], csr(i), csr(i));
+        fprintf(stream, "%-10s 0x%08x  %11d\n", csr_names[i], csr(i), csr(i));
     }
 }
 
-void CPUProxy::dump()
+void CPUProxy::dump(FILE* stream)
 {
-    fprintf(stderr, "Dumping CPU state:\n");
-    fprintf(stderr, "PC=0x%08x\n", pc());
-    fprintf(stderr, "Inst=0x%08x\n", curr_inst());
-    fprintf(stderr, "Registers:\n");
-    dump_gprs();
-    fprintf(stderr, "CSRs:\n");
-    dump_csrs();
+    fprintf(stream, "Dumping CPU state:\n");
+    fprintf(stream, "PC=0x%08x\n", pc());
+    fprintf(stream, "Inst=0x%08x\n", curr_inst());
+    fprintf(stream, "Registers:\n");
+    dump_gprs(stream);
+    fprintf(stream, "CSRs:\n");
+    dump_csrs(stream);
 }
 
 

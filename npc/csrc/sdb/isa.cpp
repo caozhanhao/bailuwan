@@ -5,12 +5,12 @@
 
 void isa_reg_display()
 {
-    SIM.cpu().dump_gprs(std::cout);
+    SIM.cpu().dump_gprs(stdout);
 }
 
 void isa_csr_display()
 {
-    SIM.cpu().dump_csrs(std::cout);
+    SIM.cpu().dump_csrs(stdout);
 }
 
 word_t isa_csr_str2val(const char* s, bool* success)

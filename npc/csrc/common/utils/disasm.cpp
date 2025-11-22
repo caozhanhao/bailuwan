@@ -38,7 +38,7 @@ std::string Disassembler::disassemble(uint32_t pc, uint32_t inst) const
     if (count != 1)
     {
         fprintf(stderr, "Disassembler error at inst: 0x%x\n", inst);
-        SIM.cpu().dump(std::cerr);
+        SIM.cpu().dump();
         SIM.cleanup();
         exit(-1);
     }
