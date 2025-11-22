@@ -111,7 +111,7 @@ void ebreak_handler()
     double cycle_per_us = static_cast<double>(elapsed_time) / static_cast<double>(cycles);
     printf("Cycle per us: %f\n", cycle_per_us);
 
-    printf("Performance Counters:\n");
+    printf("\nPerformance Counters:\n");
     SIM.cpu().dump_perf_counters(stdout);
 
     auto a0 = SIM.cpu().reg(10);
