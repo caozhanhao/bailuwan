@@ -80,10 +80,11 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     b.ifu_fetched = CORE(IFU__DOT__c_1__DOT__ifu_fetched);
     b.lsu_read = CORE(EXU__DOT__lsu__DOT__c__DOT__lsu_read);
     b.exu_done = CORE(EXU__DOT__c__DOT__exu_done);
-    b.alu_op = CORE(IDU__DOT__c__DOT__alu_op);
-    b.lsu_op = CORE(IDU__DOT__c_1__DOT__lsu_op);
-    b.csr_op = CORE(IDU__DOT__c_2__DOT__csr_op);
-    b.other_op = CORE(IDU__DOT__c_3__DOT__other_op);
+    b.alu_ops = CORE(IDU__DOT__c__DOT__alu_ops);
+    b.lsu_ops = CORE(IDU__DOT__c_1__DOT__lsu_ops);
+    b.csr_ops = CORE(IDU__DOT__c_2__DOT__csr_ops);
+    b.other_ops = CORE(IDU__DOT__c_3__DOT__other_ops);
+    b.all_ops = CORE(IDU__DOT__c_4__DOT__all_ops);
 
 #undef CORE
 }
