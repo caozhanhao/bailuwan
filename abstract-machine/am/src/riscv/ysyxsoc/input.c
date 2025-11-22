@@ -24,12 +24,15 @@ static int keymap_ext[256] = {
 #undef AM_EXT_KEY_ENTRY
 
 void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
-  // Attention: Initialize kbd first in case `inb(PS2_KEYBOARD_BASE)` is 0.
+  // Initialize kbd first in case `inb(PS2_KEYBOARD_BASE)` is 0.
   kbd->keycode = AM_KEY_NONE;
   kbd->keydown = 0;
 
-  bool keydown = true;
-  bool ext = false;
+  // Attention: static variables are needed because a key event can
+  //            take multiple calls to `__am_input_keybrd` to process.
+  static bool keydown = true;
+  static bool ext = false;
+
   uint8_t code;
   while ((code = inb(PS2_KEYBOARD_BASE)))
   {
@@ -41,6 +44,8 @@ void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
     {
       kbd->keycode = ext ? keymap_ext[code] : keymap[code];
       kbd->keydown = keydown;
+      ext = false;
+      keydown = false;
       return;
     }
   }
