@@ -66,8 +66,6 @@ class Core(
   arbiter.io.masters(0) <> IFU.io.mem
   arbiter.io.masters(1) <> EXU.io.mem
 
-  arbiter.io.slave <> io.master
-
   val xbar  = Module(
     new AXI4CrossBar(
       Seq(
@@ -91,10 +89,10 @@ class Core(
       )
     )
   )
-  arbiter.io.slave <> xbar.io.master
 
   val clint = Module(new CLINT())
   xbar.io.slaves(0) <> io.master
   xbar.io.slaves(1) <> clint.io
-  arbiter.io.slave <> io.master
+  
+  arbiter.io.slave <> xbar.io.master
 }
