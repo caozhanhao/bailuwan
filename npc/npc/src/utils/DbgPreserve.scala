@@ -6,7 +6,7 @@ import top.CoreParams
 
 class DbgPreserve(name: String, width: Int) extends BlackBox with HasBlackBoxInline {
   val io                   = IO(new Bundle {
-    val data = Input(UInt())
+    val data = Input(UInt(width.W))
   })
   override def desiredName = s"DbgPreserve_$name"
 
