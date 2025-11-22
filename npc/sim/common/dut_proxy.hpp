@@ -68,10 +68,11 @@ class CPUProxy
         uint64_t* ifu_fetched;
         uint64_t* lsu_read;
         uint64_t* exu_done;
-        uint64_t* alu_op;
-        uint64_t* lsu_op;
-        uint64_t* csr_op;
-        uint64_t* other_op;
+        uint64_t* alu_ops;
+        uint64_t* lsu_ops;
+        uint64_t* csr_ops;
+        uint64_t* other_ops;
+        uint64_t* all_ops;
     } bindings;
 
 public:
