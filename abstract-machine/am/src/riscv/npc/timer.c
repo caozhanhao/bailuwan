@@ -11,7 +11,7 @@ void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
   uint32_t lo = RTC_READ(0);
   uint32_t hi = RTC_READ(4);
   uint64_t mtime = ((uint64_t)hi << 32) | lo;
-  const uint64_t cycle_per_us = 10000;
+  const uint64_t cycle_per_us = 7;
   uptime->us = mtime * cycle_per_us;
 }
 
