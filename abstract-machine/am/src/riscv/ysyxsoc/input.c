@@ -3,6 +3,7 @@
 #include <am.h>
 #include <amdev.h>
 #include <klib-macros.h>
+#include <klib.h>
 
 #define PS2_KEYBOARD_BASE 0x10011000
 
@@ -35,6 +36,7 @@ void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
       ext = true;
     else
     {
+      printf("Got code %x\n", code);
       kbd->keycode = ext ? keymap_ext[code] : keymap[code];
       kbd->keydown = keydown;
       return;
