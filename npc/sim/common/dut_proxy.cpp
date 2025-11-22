@@ -83,6 +83,7 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     b.alu_op = CORE(IDU__DOT__c__DOT__alu_op);
     b.lsu_op = CORE(IDU__DOT__c_1__DOT__lsu_op);
     b.csr_op = CORE(IDU__DOT__c_2__DOT__csr_op);
+    b.other_op = CORE(IDU__DOT__c_2__DOT__csr_op);
 
 #undef CORE
 }

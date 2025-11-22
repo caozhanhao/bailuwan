@@ -199,4 +199,10 @@ class IDU(
   PerfCounter(exec_type === ExecType.ALU, "alu_op")
   PerfCounter(exec_type === ExecType.LSU, "lsu_op")
   PerfCounter(exec_type === ExecType.CSR, "csr_op")
+  PerfCounter(
+    exec_type =/= ExecType.ALU &&
+      exec_type =/= ExecType.LSU &&
+      exec_type =/= ExecType.CSR,
+    "other_op"
+  )
 }

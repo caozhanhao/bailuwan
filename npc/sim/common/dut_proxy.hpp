@@ -71,6 +71,7 @@ class CPUProxy
         uint64_t* alu_op;
         uint64_t* lsu_op;
         uint64_t* csr_op;
+        uint64_t* other_op;
     } bindings;
 
 public:
