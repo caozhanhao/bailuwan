@@ -196,5 +196,5 @@ class IDU(
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
 
-  PerfCounter()
+  // PerfCounter()
 }
