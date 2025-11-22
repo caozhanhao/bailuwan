@@ -69,6 +69,7 @@ class CPUProxy
         uint64_t* lsu_read;
         uint64_t* exu_done;
         uint64_t* alu_ops;
+        uint64_t* br_ops;
         uint64_t* lsu_ops;
         uint64_t* csr_ops;
         uint64_t* other_ops;
