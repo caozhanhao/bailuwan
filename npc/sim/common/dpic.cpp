@@ -102,15 +102,15 @@ void sdram_write(int waddr, int16_t wdata, char mask, char id)
 
 void ebreak_handler()
 {
-    printf("Ebreak after %lu cycles\n", SIM.cycles());
-    printf("Statistics:\n");
-    SIM.dump_statistics(stdout);
-
     auto a0 = SIM.cpu().reg(10);
     if (a0 == 0)
         printf("\33[1;32mHIT GOOD TRAP\33[0m\n");
     else
         printf("\33[1;41mHIT BAD TRAP\33[0m, a0=%d\n", a0);
+
+    printf("Ebreak after %lu cycles\n", SIM.cycles());
+    printf("Statistics:\n");
+    SIM.dump_statistics(stdout);
 
     throw EBreakException(static_cast<int>(a0));
 }
