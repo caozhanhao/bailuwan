@@ -4,8 +4,7 @@ import chisel3._
 import chisel3.util._
 import top.CoreParams
 import amba._
-import utils.DbgExpose
-import utils.PerfCounter
+import utils.{DbgPreserve, PerfCounter}
 
 class IFUOut(
   implicit p: CoreParams)
@@ -82,7 +81,7 @@ class IFU(
   //                     ^
   //                     |
   //          difftest_step is called here
-  DbgExpose(RegNext(io.in.valid), "difftest_ready")
+  DbgPreserve(RegNext(io.in.valid), "difftest_ready")
 
   // Perf counters
   PerfCounter(io.mem.r.fire, "ifu_fetched")
