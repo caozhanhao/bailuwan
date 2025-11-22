@@ -47,7 +47,7 @@ static void sync_regs_to_ref()
 
 void init_difftest(size_t img_size)
 {
-    const char* ref_so_file = "csrc/common/lib/riscv32-nemu-interpreter-so";
+    const char* ref_so_file = "sim/common/lib/riscv32-nemu-interpreter-so";
 
     void* handle;
     handle = dlopen(ref_so_file, RTLD_LAZY);
