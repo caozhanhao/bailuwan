@@ -218,7 +218,7 @@ void DUTMemory::out_of_bound_abort(uint32_t addr)
 {
     auto& cpu = SIM.cpu();
     printf("Out of bound memory access at PC = 0x%08x, addr = 0x%08x\n", cpu.pc(), addr);
-    cpu.dump(std::cerr);
+    cpu.dump();
     SIM.cleanup();
     exit(-1);
 }
