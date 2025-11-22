@@ -30,22 +30,22 @@ void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
 
   // Attention: static variables are needed because a key event can
   //            take multiple calls to `__am_input_keybrd` to process.
-  static bool keydown = true;
-  static bool ext = false;
+  static bool is_ext = false;
+  static bool is_break = false;
 
   uint8_t code;
   while ((code = inb(PS2_KEYBOARD_BASE)))
   {
     if (code == 0xF0)
-      keydown = false;
+      is_break = true;
     else if (code == 0xE0)
-      ext = true;
+      is_ext = true;
     else
     {
-      kbd->keycode = ext ? keymap_ext[code] : keymap[code];
-      kbd->keydown = keydown;
-      ext = false;
-      keydown = false;
+      kbd->keycode = is_ext ? keymap_ext[code] : keymap[code];
+      kbd->keydown = !is_break;
+      is_ext = false;
+      is_break = false;
       return;
     }
   }
