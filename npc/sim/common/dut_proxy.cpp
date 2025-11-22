@@ -171,7 +171,6 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(ifu_fetched);
     PERF(lsu_read);
     PERF(exu_done);
-    PERF(all_ops);
 #undef PERF
 
     auto all_cnt_d = static_cast<double>(*b.all_ops);
