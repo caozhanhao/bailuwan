@@ -172,7 +172,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     auto all = *b.all_ops;
     assert(all == alu + lsu + csr + other && "Bad perf counters");
 
-#define PERF(name) fprintf(stream, STRINGIFY(name) " = %lu (%f%%)", \
+#define PERF(name) fprintf(stream, STRINGIFY(name) " = %lu (%f%%)\n", \
     name, 100.0 * (static_cast<double>(name) / static_cast<double>(all)))
     PERF(alu);
     PERF(lsu);
