@@ -196,5 +196,7 @@ class IDU(
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
 
-  // PerfCounter()
+  PerfCounter(exec_type === ExecType.ALU, "alu_op")
+  PerfCounter(exec_type === ExecType.LSU, "lsu_op")
+  PerfCounter(exec_type === ExecType.CSR, "csr_op")
 }

@@ -66,6 +66,11 @@ class CPUProxy
 
         // Perf Counters
         uint64_t* ifu_fetched;
+        uint64_t* lsu_read;
+        uint64_t* exu_done;
+        uint64_t* alu_op;
+        uint64_t* lsu_op;
+        uint64_t* csr_op;
     } bindings;
 
 public:

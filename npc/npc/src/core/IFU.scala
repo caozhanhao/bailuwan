@@ -82,7 +82,5 @@ class IFU(
   //                     |
   //          difftest_step is called here
   DbgPreserve(RegNext(io.in.valid), "difftest_ready")
-
-  // Perf counters
   PerfCounter(io.mem.r.fire, "ifu_fetched")
 }

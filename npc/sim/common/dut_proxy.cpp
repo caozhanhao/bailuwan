@@ -41,7 +41,7 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     b.ifu_state = CORE(IFU__DOT__state);
     b.dnpc = CORE(_WBU_io_out_bits_dnpc);
     b.inst = CORE(IDU__DOT__inst);
-    b.difftest_ready = CORE(IFU__DOT__difftest_ready);
+    b.difftest_ready = CORE(IFU__DOT__c__DOT__difftest_ready);
 
     // CSRS
 
