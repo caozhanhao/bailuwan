@@ -4,17 +4,18 @@ import chisel3._
 import chisel3.util._
 import top.CoreParams
 
-class DbgExpose(name: String) extends BlackBox with HasBlackBoxInline {
+class DbgPreserve(name: String, width: Int) extends BlackBox with HasBlackBoxInline {
   val io                   = IO(new Bundle {
-    val data  = Input(UInt())
+    val data = Input(UInt())
   })
-  override def desiredName = s"DbgExpose_$name"
+  override def desiredName = s"DbgPreserve_$name"
 
   setInline(
-    s"DbgExpose_$name.sv",
+    s"DbgPreserve_$name" +
+      s".sv",
     s"""
-       |module DbgExpose_$name(
-       |    input data
+       |module DbgPreserve_$name(
+       |    input [${width - 1}:0]data
        |);
        |
        |`ifdef VERILATOR
@@ -27,7 +28,7 @@ class DbgExpose(name: String) extends BlackBox with HasBlackBoxInline {
   )
 }
 
-object DbgExpose {
+object DbgPreserve {
   def apply(
     data:       UInt,
     name:       String
@@ -35,7 +36,7 @@ object DbgExpose {
     implicit p: CoreParams
   ): Unit = {
     if (p.Debug) {
-      val c = Module(new DbgExpose(name))
+      val c = Module(new DbgPreserve(name, data.getWidth))
       c.io.data := data
     }
   }

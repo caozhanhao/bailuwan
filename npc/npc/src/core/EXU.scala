@@ -5,6 +5,7 @@ import chisel3.util._
 import constants._
 import top.CoreParams
 import amba._
+import utils.PerfCounter
 
 class EXUOut(
   implicit p: CoreParams)
@@ -159,4 +160,6 @@ class EXU(
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid && lsu_valid
+
+  PerfCounter(io.out.valid, "exu_done")
 }

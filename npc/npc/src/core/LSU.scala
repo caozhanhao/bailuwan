@@ -183,5 +183,5 @@ class LSU(
   assert(r_state =/= r_fault, cf"LSU: Read fault at 0x${rfault_addr}%x, resp=${rfault_resp}")
   assert(w_state =/= w_fault, cf"LSU: Write fault at 0x${wfault_addr}%x, resp=${wfault_resp}")
 
-  PerfCounter(io.mem.r.fire, "ifu_fetched")
+  PerfCounter(io.mem.r.fire, "lsu_read")
 }

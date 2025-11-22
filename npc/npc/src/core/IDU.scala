@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import constants._
 import top.CoreParams
+import utils.PerfCounter
 import utils.Utils._
 
 object InstDecodeTable {
@@ -194,4 +195,6 @@ class IDU(
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
+
+  PerfCounter()
 }
