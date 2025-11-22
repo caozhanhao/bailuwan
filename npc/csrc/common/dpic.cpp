@@ -20,10 +20,9 @@ void flash_read(int32_t addr, int32_t* data)
 
 void mrom_read(int32_t addr, int32_t* data)
 {
-    assert(0);
-    // auto& mem = SIM.mem();
-    // assert(mem.in_mrom(addr));
-    // *data = SIM.mem().read(addr);
+    auto& mem = SIM.mem();
+    assert(mem.in_mrom(addr));
+    *data = SIM.mem().read<int32_t>(addr);
 }
 
 char psram_read(int raddr)
