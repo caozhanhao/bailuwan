@@ -20,10 +20,11 @@ void flash_read(int32_t addr, int32_t* data)
 
 void mrom_read(int32_t addr, int32_t* data)
 {
+    fprintf(stderr, "Unexpected MROM Read at addr=0x%x\n", addr);
+    SIM.cpu().dump();
     assert(0);
-    // auto& mem = SIM.mem();
-    // assert(mem.in_mrom(addr));
-    // *data = SIM.mem().read(addr);
+    // *data = SIM.mem().read<int32_t>(addr);
+    // printf("MROM Read | addr=0x%x, data=0x%x\n", addr, *data);
 }
 
 char psram_read(int raddr)

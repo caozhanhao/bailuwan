@@ -66,9 +66,9 @@ public:
     CPUProxy() = default;
 
     void bind(TOP_NAME* dut);
-    void dump_gprs(std::ostream& os);
-    void dump_csrs(std::ostream& os);
-    void dump(std::ostream& os);
+    void dump_gprs(FILE* stream = stderr);
+    void dump_csrs(FILE* stream = stderr);
+    void dump(FILE* stream = stderr);
     uint32_t pc() const;
     uint32_t dnpc() const;
     uint32_t curr_inst() const;
