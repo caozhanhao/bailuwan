@@ -102,7 +102,9 @@ void sdram_write(int waddr, int16_t wdata, char mask, char id)
 
 void ebreak_handler()
 {
-    SIM.dump_statistics();
+    printf("Ebreak after %lu cycles\n", SIM.cycles());
+    printf("Statistics:\n");
+    SIM.dump_statistics(stdout);
 
     auto a0 = SIM.cpu().reg(10);
     if (a0 == 0)

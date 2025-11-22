@@ -419,15 +419,14 @@ void SimHandle::dump_statistics(FILE* stream)
     auto cnt_d = static_cast<double>(inst_count);
     auto cycles_d = static_cast<double>(cycles());
 
-    printf("Ebreak after %lu cycles\n", cycles());
-    printf("Elapsed time: %lu us\n", elapsed_time());
+    fprintf(stream, "Elapsed time: %lu us\n", elapsed_time());
 
     double cycle_per_us = static_cast<double>(elapsed_time()) / cycles_d;
-    printf("Cycles per us: %f\n", cycle_per_us);
+    fprintf(stream, "Cycles per us: %f\n", cycle_per_us);
 
-    printf("Cycles Per Inst (CPI) = %f\n", cycles_d / cnt_d);
-    printf("Insts Per Cycle (IPC) = %f\n", cnt_d / cycles_d);
+    fprintf(stream, "Cycles Per Inst (CPI) = %f\n", cycles_d / cnt_d);
+    fprintf(stream, "Insts Per Cycle (IPC) = %f\n", cnt_d / cycles_d);
 
-    printf("\nPerf Counters:\n");
-    SIM.cpu().dump_perf_counters(stdout);
+    fprintf(stream, "Perf Counters:\n");
+    SIM.cpu().dump_perf_counters(stream);
 }
