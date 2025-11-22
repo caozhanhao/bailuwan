@@ -21,7 +21,7 @@ class PerfCounter(name: String) extends BlackBox with HasBlackBoxInline {
        |);
        |
        |`ifdef VERILATOR
-       |  reg [63:0] $name /* verilator public */;
+       |  reg [63:0] $name /* verilator public_flat_rd */;
        |
        |  always @(posedge clock) begin
        |    if (reset)
