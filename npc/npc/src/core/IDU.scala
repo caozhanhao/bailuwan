@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import constants._
 import top.CoreParams
+import utils.PerfCounter
 import utils.Utils._
 
 object InstDecodeTable {
@@ -194,4 +195,22 @@ class IDU(
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
+
+  // Rising edge
+  val counter_inc = io.in.valid && !RegNext(io.in.valid)
+  def once(b: Bool) = counter_inc && b
+
+  PerfCounter(once(exec_type === ExecType.ALU && br_op === BrOp.Nop), "alu_ops")
+  PerfCounter(once(br_op =/= BrOp.Nop), "br_ops")
+  PerfCounter(once(exec_type === ExecType.LSU), "lsu_ops")
+  PerfCounter(once(exec_type === ExecType.CSR), "csr_ops")
+  PerfCounter(
+    once(
+      exec_type =/= ExecType.ALU &&
+        exec_type =/= ExecType.LSU &&
+        exec_type =/= ExecType.CSR
+    ),
+    "other_ops"
+  )
+  PerfCounter(once(true.B), "all_ops")
 }

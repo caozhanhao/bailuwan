@@ -54,13 +54,35 @@ enum CSR
 
 class CPUProxy
 {
-    uint32_t* pc_binding;
-    uint32_t* dnpc_binding;
-    uint32_t* inst_binding;
-    uint8_t* difftest_ready_binding;
-    uint8_t* ifu_state_binding;
-    uint32_t* register_bindings[16];
-    uint32_t* csr_bindings[4096];
+    struct Bindings
+    {
+        uint32_t* pc;
+        uint32_t* dnpc;
+        uint32_t* inst;
+        uint8_t* difftest_ready;
+        uint8_t* ifu_state;
+        uint32_t* gprs[16];
+        uint32_t* csrs[4096];
+
+        // Perf Counters
+        uint64_t* ifu_fetched;
+        uint64_t* lsu_read;
+        uint64_t* exu_done;
+
+        uint64_t* alu_ops;
+        uint64_t* br_ops;
+        uint64_t* lsu_ops;
+        uint64_t* csr_ops;
+        uint64_t* other_ops;
+        uint64_t* all_ops;
+
+        uint64_t* alu_cycles;
+        uint64_t* br_cycles;
+        uint64_t* lsu_cycles;
+        uint64_t* csr_cycles;
+        uint64_t* other_cycles;
+        uint64_t* all_cycles;
+    } bindings;
 
 public:
     CPUProxy() = default;
@@ -68,10 +90,12 @@ public:
     void bind(TOP_NAME* dut);
     void dump_gprs(FILE* stream = stderr);
     void dump_csrs(FILE* stream = stderr);
+    void dump_perf_counters(FILE* stream = stderr);
     void dump(FILE* stream = stderr);
     uint32_t pc() const;
     uint32_t dnpc() const;
     uint32_t curr_inst() const;
+    uint64_t inst_count() const;
     uint32_t reg(uint32_t idx) const;
     uint32_t csr(uint32_t idx) const;
     bool is_csr_valid(uint32_t idx) const;
@@ -183,6 +207,8 @@ public:
     void cleanup();
     void single_cycle();
     void reset(int n);
+
+    void dump_statistics(FILE* stream = stderr);
 
     uint64_t cycles() const { return cycle_counter; }
     CPUProxy& cpu() { return cpu_proxy; }

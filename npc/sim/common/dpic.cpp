@@ -51,7 +51,7 @@ void psram_write(int waddr, char wdata)
 //    |     ROW Address     | BANK Select |  COL Address  |  Ignored  |
 //    +---------------------+-------------+---------------+-----------+
 //    |   [ADDR_W : C+B+1]  | [C+B : C+1] |    [C : 2]    |  [1 : 0]  |
-//    |   [     25:    13]  | [12  :  10] |    [9 : 2]       [1 : 0]  |
+//    |   [     25:    13]  | [12  :  10] |    [9 : 2]    |  [1 : 0]  |
 //    +----------+----------+------+------+-------+-------+-----+-----+
 //
 // Additionally, the SDRAM controller pads one 0 to the column address, and the SDRAM chip pads
@@ -102,20 +102,15 @@ void sdram_write(int waddr, int16_t wdata, char mask, char id)
 
 void ebreak_handler()
 {
-    auto cycles = SIM.cycles();
-    auto elapsed_time = SIM.elapsed_time();
-
-    printf("ebreak after %lu cycles\n", cycles);
-    printf("elapsed time: %lu us\n", elapsed_time);
-
-    double cycle_per_us = static_cast<double>(elapsed_time) / static_cast<double>(cycles);
-    printf("cycle per us: %f\n", cycle_per_us);
-
     auto a0 = SIM.cpu().reg(10);
     if (a0 == 0)
         printf("\33[1;32mHIT GOOD TRAP\33[0m\n");
     else
         printf("\33[1;41mHIT BAD TRAP\33[0m, a0=%d\n", a0);
+
+    printf("Ebreak after %lu cycles\n", SIM.cycles());
+    printf("Statistics:\n");
+    SIM.dump_statistics(stdout);
 
     throw EBreakException(static_cast<int>(a0));
 }

@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import top.CoreParams
 import amba._
+import utils.{DbgPreserve, PerfCounter}
 
 class IFUOut(
   implicit p: CoreParams)
@@ -28,11 +29,11 @@ class IFU(
   io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
   io.mem.ar.bits.burst := 0.U
 
-  io.mem.aw.valid := false.B
-  io.mem.aw.bits  := DontCare
-  io.mem.w.valid  := false.B
-  io.mem.w.bits   := DontCare
-  io.mem.b.ready  := false.B
+  io.mem.aw.valid    := false.B
+  io.mem.aw.bits     := DontCare
+  io.mem.w.valid     := false.B
+  io.mem.w.bits      := DontCare
+  io.mem.b.ready     := false.B
   io.mem.w.bits.last := true.B
 
   val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(4)
@@ -80,9 +81,6 @@ class IFU(
   //                     ^
   //                     |
   //          difftest_step is called here
-  val difftest_ready = RegNext((false.B ## io.in.valid))
-  // An assert to avoid optimization by Verilator when trace is disabled.
-  assert(!difftest_ready(1))
-  // A dontTouch to avoid optimization by Chisel.
-  dontTouch(difftest_ready)
+  DbgPreserve(RegNext(io.in.valid), "difftest_ready")
+  PerfCounter(io.mem.r.fire, "ifu_fetched")
 }
