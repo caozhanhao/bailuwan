@@ -80,6 +80,7 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     b.ifu_fetched = CORE(IFU__DOT__c_1__DOT__ifu_fetched);
     b.lsu_read = CORE(EXU__DOT__lsu__DOT__c__DOT__lsu_read);
     b.exu_done = CORE(EXU__DOT__c__DOT__exu_done);
+
     b.alu_ops = CORE(IDU__DOT__c__DOT__alu_ops);
     b.br_ops = CORE(IDU__DOT__c_1__DOT__br_ops);
     b.lsu_ops = CORE(IDU__DOT__c_2__DOT__lsu_ops);
@@ -87,7 +88,12 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     b.other_ops = CORE(IDU__DOT__c_4__DOT__other_ops);
     b.all_ops = CORE(IDU__DOT__c_5__DOT__all_ops);
 
-    
+    b.alu_cycles = CORE(EXU__DOT__c_1__DOT__alu_cycles);
+    b.br_cycles = CORE(EXU__DOT__c_2__DOT__br_cycles);
+    b.lsu_cycles = CORE(EXU__DOT__c_3__DOT__lsu_cycles);
+    b.csr_cycles = CORE(EXU__DOT__c_4__DOT__csr_cycles);
+    b.other_cycles = CORE(EXU__DOT__c_5__DOT__other_cycles);
+    b.all_cycles = CORE(EXU__DOT__c_6__DOT__all_cycles);
 
 #undef CORE
 }
@@ -168,24 +174,13 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(all_ops);
 #undef PERF
 
-    auto alu_cnt = *b.alu_ops;
-    auto br_cnt = *b.br_ops;
-    auto lsu_cnt = *b.lsu_ops;
-    auto csr_cnt = *b.csr_ops;
-    auto other_cnt = *b.other_ops;
-    auto all_cnt = *b.all_ops;
 
-    auto alu_cycles = *b.alu_cycles;
-    auto br_cycles = *b.br_cycles;
-    auto lsu_cycles = *b.lsu_cycles;
-    auto csr_cycles = *b.csr_cycles;
-    auto other_cycles = *b.other_cycles;
-    auto all_cycles = *b.all_cycles;
+    auto all_cnt_d = static_cast<double>(*b.alu_ops);
+    auto all_cycles_d = static_cast<double>(*b.all_cycles);
 
-    assert(all_cnt == alu_cnt + br_cnt + lsu_cnt + csr_cnt + other_cnt && "Bad perf counters (count mismatch)");
-
-#define PERF(name) fprintf(stream, STRINGIFY(name) "_ops = %lu (%f%%)\n", \
-    name, 100.0 * (static_cast<double>(name) / static_cast<double>(all)))
+#define PERF(name) fprintf(stream, STRINGIFY(name) ": count = %lu (%f%%), avg cycles = %f\n", \
+    *b.name##_cycles, 100.0 * (static_cast<double>(*b.name##_ops) / all_cnt_d),\
+    (static_cast<double>(*b.name##_cycles) / all_cycles_d))
     PERF(alu);
     PERF(br);
     PERF(lsu);
