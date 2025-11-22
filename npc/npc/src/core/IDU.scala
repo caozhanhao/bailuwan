@@ -198,19 +198,19 @@ class IDU(
 
   // Rising edge
   val counter_inc = io.in.valid && !RegNext(io.in.valid)
-  def count_if(b: Bool) = counter_inc && b
+  def once(b: Bool) = counter_inc && b
 
-  PerfCounter(count_if(exec_type === ExecType.ALU && br_op === BrOp.Nop), "alu_ops")
-  PerfCounter(count_if(br_op =/= BrOp.Nop), "br_ops")
-  PerfCounter(count_if(exec_type === ExecType.LSU), "lsu_ops")
-  PerfCounter(count_if(exec_type === ExecType.CSR), "csr_ops")
+  PerfCounter(once(exec_type === ExecType.ALU && br_op === BrOp.Nop), "alu_ops")
+  PerfCounter(once(br_op =/= BrOp.Nop), "br_ops")
+  PerfCounter(once(exec_type === ExecType.LSU), "lsu_ops")
+  PerfCounter(once(exec_type === ExecType.CSR), "csr_ops")
   PerfCounter(
-    count_if(
+    once(
       exec_type =/= ExecType.ALU &&
         exec_type =/= ExecType.LSU &&
         exec_type =/= ExecType.CSR
     ),
     "other_ops"
   )
-  PerfCounter(count_if(true.B), "all_ops")
+  PerfCounter(once(true.B), "all_ops")
 }

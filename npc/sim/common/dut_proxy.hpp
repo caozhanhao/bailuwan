@@ -68,12 +68,20 @@ class CPUProxy
         uint64_t* ifu_fetched;
         uint64_t* lsu_read;
         uint64_t* exu_done;
+
         uint64_t* alu_ops;
         uint64_t* br_ops;
         uint64_t* lsu_ops;
         uint64_t* csr_ops;
         uint64_t* other_ops;
         uint64_t* all_ops;
+
+        uint64_t* alu_cycles;
+        uint64_t* br_cycles;
+        uint64_t* lsu_cycles;
+        uint64_t* csr_cycles;
+        uint64_t* other_cycles;
+        uint64_t* all_cycles;
     } bindings;
 
 public:

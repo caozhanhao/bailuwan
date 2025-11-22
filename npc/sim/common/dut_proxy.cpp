@@ -87,6 +87,8 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     b.other_ops = CORE(IDU__DOT__c_4__DOT__other_ops);
     b.all_ops = CORE(IDU__DOT__c_5__DOT__all_ops);
 
+    
+
 #undef CORE
 }
 
@@ -166,13 +168,21 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(all_ops);
 #undef PERF
 
-    auto alu = *b.alu_ops;
-    auto br = *b.br_ops;
-    auto lsu = *b.lsu_ops;
-    auto csr = *b.csr_ops;
-    auto other = *b.other_ops;
-    auto all = *b.all_ops;
-    assert(all == alu + br + lsu + csr + other && "Bad perf counters");
+    auto alu_cnt = *b.alu_ops;
+    auto br_cnt = *b.br_ops;
+    auto lsu_cnt = *b.lsu_ops;
+    auto csr_cnt = *b.csr_ops;
+    auto other_cnt = *b.other_ops;
+    auto all_cnt = *b.all_ops;
+
+    auto alu_cycles = *b.alu_cycles;
+    auto br_cycles = *b.br_cycles;
+    auto lsu_cycles = *b.lsu_cycles;
+    auto csr_cycles = *b.csr_cycles;
+    auto other_cycles = *b.other_cycles;
+    auto all_cycles = *b.all_cycles;
+
+    assert(all_cnt == alu_cnt + br_cnt + lsu_cnt + csr_cnt + other_cnt && "Bad perf counters (count mismatch)");
 
 #define PERF(name) fprintf(stream, STRINGIFY(name) "_ops = %lu (%f%%)\n", \
     name, 100.0 * (static_cast<double>(name) / static_cast<double>(all)))

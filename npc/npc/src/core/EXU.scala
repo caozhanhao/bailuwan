@@ -162,4 +162,15 @@ class EXU(
   io.out.valid := io.in.valid && lsu_valid
 
   PerfCounter(io.out.valid, "exu_done")
+  PerfCounter(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop, "alu_cycles")
+  PerfCounter(decoded.br_op =/= BrOp.Nop, "br_cycles")
+  PerfCounter(exec_type === ExecType.LSU, "lsu_cycles")
+  PerfCounter(exec_type === ExecType.CSR, "csr_cycles")
+  PerfCounter(
+    exec_type =/= ExecType.ALU &&
+      exec_type =/= ExecType.LSU &&
+      exec_type =/= ExecType.CSR,
+    "other_cycles"
+  )
+  PerfCounter(true.B, "all_cycles")
 }
