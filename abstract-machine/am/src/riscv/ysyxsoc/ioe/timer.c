@@ -3,7 +3,7 @@
 void __am_timer_init() {
 }
 
-#define RTC_MMIO 0xa0000048
+#define RTC_MMIO 0x02000000
 
 #define RTC_READ(offset) *(volatile uint32_t*)(RTC_MMIO + offset)
 
@@ -11,15 +11,18 @@ void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
   uint32_t lo = RTC_READ(0);
   uint32_t hi = RTC_READ(4);
   uint64_t mtime = ((uint64_t)hi << 32) | lo;
-  const uint64_t cycle_per_us = 7;
+
+  // cycle_per_us=7 if trace is enabled
+  const uint64_t cycle_per_us = 1;
+
   uptime->us = mtime * cycle_per_us;
 }
 
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {
-  rtc->second = RTC_READ(8);
-  rtc->minute = RTC_READ(12);
-  rtc->hour   = RTC_READ(16);
-  rtc->day    = RTC_READ(20);
-  rtc->month  = RTC_READ(24);
-  rtc->year   = RTC_READ(28);
+  rtc->second = 0;
+  rtc->minute = 0;
+  rtc->hour   = 0;
+  rtc->day    = 0;
+  rtc->month  = 0;
+  rtc->year   = 1900;
 }

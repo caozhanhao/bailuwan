@@ -43,15 +43,16 @@ void *malloc(size_t size) {
   if (alloc_base == -1)
     alloc_base = ROUNDUP(heap.start, 8);
 
-  size  = (size_t)ROUNDUP(size, 8);
+  size = (size_t)ROUNDUP(size, 8);
 
-  uintptr_t old_base = alloc_base;
-  alloc_base += size;
-
-  if ((uintptr_t)heap.start <= alloc_base && alloc_base < (uintptr_t)heap.end)
+  uintptr_t new_base = alloc_base + size;
+  if (new_base > (uintptr_t)heap.end)
     return NULL;
 
-  return (void*)old_base;
+  uintptr_t ptr = alloc_base;
+  alloc_base = new_base;
+
+  return (void *)ptr;
 }
 
 void free(void *ptr) {

@@ -406,7 +406,7 @@ int main(int argc, char* argv[])
         {
             Log("Terminating due to a verilator error.");
             printf("PC = " FMT_WORD "\n", SIM.cpu().pc());
-            SIM.cpu().dump(std::cout);
+            SIM.cpu().dump();
             // SIM.cleanup();
         }
     }, nullptr);

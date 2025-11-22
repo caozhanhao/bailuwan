@@ -106,6 +106,9 @@ void print_welcome_msg()
         putch(buf[i]);
 
     putstr(" caozhanhao\n");
+
+    // NVBoard 7-Segment LED
+    outl(0x10002000 + 0x8, 0x25100251);
 }
 
 void _trm_init()
