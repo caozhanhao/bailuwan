@@ -171,7 +171,7 @@ void CPUProxy::dump(FILE* stream)
     dump_gprs(stream);
     fprintf(stream, "CSRs:\n");
     dump_csrs(stream);
-    fprintf(stream, "Performance Counters:\n");
+    fprintf(stream, "Perfeormance Counters:\n");
     dump_perf_counters();
 }
 
