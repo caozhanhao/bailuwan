@@ -12,11 +12,8 @@ void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
   uint32_t hi = RTC_READ(4);
   uint64_t mtime = ((uint64_t)hi << 32) | lo;
 
-#ifdef TRACE
-  const uint64_t cycle_per_us = 7;
-#else
+  // cycle_per_us=7 if trace is enabled
   const uint64_t cycle_per_us = 1;
-#endif
 
   uptime->us = mtime * cycle_per_us;
 }
