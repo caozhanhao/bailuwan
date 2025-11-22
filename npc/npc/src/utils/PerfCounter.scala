@@ -3,21 +3,43 @@ package utils
 import chisel3._
 import chisel3.util._
 
-class PerfCounter extends Module {
+class PerfCounter(name: String) extends BlackBox with HasBlackBoxInline {
   val io = IO(new Bundle {
-    val cond = Input(Bool())
-    val out = Output(UInt(64.W))
+    val clock = Input(Clock())
+    val reset = Input(Reset())
+    val cond  = Input(Bool())
   })
 
-  val reg = RegInit(0.U(64.W))
-  reg := Mux(io.cond, reg + 1.U, reg)
-  io.out := reg
+  setInline(
+    s"$name.sv",
+    s"""
+       |module $name (
+       |    input clock,
+       |    input reset,
+       |    input cond
+       |);
+       |
+       |`ifdef VERILATOR
+       |  reg [63:0] count /* verilator public_flat_rd */;
+       |
+       |  always @(posedge clock) begin
+       |    if (reset)
+       |      count <= 64'd0;
+       |    else if (cond)
+       |      count <= count + 64'd1;
+       |  end
+       |`endif
+       |
+       |endmodule
+       |""".stripMargin
+  )
 }
 
 object PerfCounter {
-  def apply(cond: Bool): UInt = {
-    val perf = Module(new PerfCounter)
-    perf.io.cond := cond
-    perf.io.out
+  def apply(cond: Bool, name: String): Unit = {
+    val c = Module(new PerfCounter(name))
+    c.io.clock := Module.clock
+    c.io.reset := Module.reset
+    c.io.cond  := cond
   }
 }

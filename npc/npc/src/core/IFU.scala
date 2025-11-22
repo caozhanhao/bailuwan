@@ -88,10 +88,6 @@ class IFU(
     // A dontTouch to avoid optimization by Chisel.
     dontTouch(difftest_ready)
 
-    // val fetched_cnt = PerfCounter(io.mem.r.fire)
-    val perf = Module(new PerfCounter)
-    perf.io.cond := io.mem.r.fire
-    val fetched_cnt = perf.io.out
-    dontTouch(fetched_cnt)
+    PerfCounter(io.mem.r.fire, "ifu_fetched")
   }
 }
