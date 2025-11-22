@@ -4,7 +4,8 @@ import chisel3._
 import chisel3.util._
 import top.CoreParams
 import amba._
-import utils._
+import utils.DbgExpose
+import utils.PerfCounter
 
 class IFUOut(
   implicit p: CoreParams)
@@ -71,23 +72,18 @@ class IFU(
 
   assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x, resp=${fault_resp}")
 
-  if (p.Debug) {
-    // Difftest got ready after every pc advance (one instruction done),
-    // which is just in.valid delayed one cycle.
-    //               ___________
-    //   ready      |          |
-    //              _____       _____
-    //   clock     |     |_____|     |_____
-    //              cycle 1        cycle 2
-    //                     ^
-    //                     |
-    //          difftest_step is called here
-    val difftest_ready = RegNext((false.B ## io.in.valid))
-    // An assert to avoid optimization by Verilator when trace is disabled.
-    assert(!difftest_ready(1))
-    // A dontTouch to avoid optimization by Chisel.
-    dontTouch(difftest_ready)
+  // Difftest got ready after every pc advance (one instruction done),
+  // which is just in.valid delayed one cycle.
+  //               ___________
+  //   ready      |          |
+  //              _____       _____
+  //   clock     |     |_____|     |_____
+  //              cycle 1        cycle 2
+  //                     ^
+  //                     |
+  //          difftest_step is called here
+  DbgExpose(RegNext(io.in.valid), "difftest_ready")
 
-    PerfCounter(io.mem.r.fire, "ifu_fetched")
-  }
+  // Perf counters
+  PerfCounter(io.mem.r.fire, "ifu_fetched")
 }

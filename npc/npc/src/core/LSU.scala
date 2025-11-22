@@ -6,6 +6,7 @@ import constants._
 import top.CoreParams
 import utils.Utils._
 import amba._
+import utils.PerfCounter
 
 class LSU(
   implicit p: CoreParams,
@@ -181,4 +182,6 @@ class LSU(
   assert(!misaligned, cf"LSU: Misaligned access at 0x${io.addr}%x")
   assert(r_state =/= r_fault, cf"LSU: Read fault at 0x${rfault_addr}%x, resp=${rfault_resp}")
   assert(w_state =/= w_fault, cf"LSU: Write fault at 0x${wfault_addr}%x, resp=${wfault_resp}")
+
+  PerfCounter(io.mem.r.fire, "ifu_fetched")
 }

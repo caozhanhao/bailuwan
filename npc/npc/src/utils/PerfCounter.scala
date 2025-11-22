@@ -2,9 +2,10 @@ package utils
 
 import chisel3._
 import chisel3.util._
+import top.CoreParams
 
 class PerfCounter(name: String) extends BlackBox with HasBlackBoxInline {
-  val io = IO(new Bundle {
+  val io                   = IO(new Bundle {
     val clock = Input(Clock())
     val reset = Input(Reset())
     val cond  = Input(Bool())
@@ -37,10 +38,17 @@ class PerfCounter(name: String) extends BlackBox with HasBlackBoxInline {
 }
 
 object PerfCounter {
-  def apply(cond: Bool, name: String): Unit = {
-    val c = Module(new PerfCounter(name))
-    c.io.clock := Module.clock
-    c.io.reset := Module.reset
-    c.io.cond  := cond
+  def apply(
+    cond:       Bool,
+    name:       String
+  )(
+    implicit p: CoreParams
+  ): Unit = {
+    if (p.Debug) {
+      val c = Module(new PerfCounter(name))
+      c.io.clock := Module.clock
+      c.io.reset := Module.reset
+      c.io.cond  := cond
+    }
   }
 }
