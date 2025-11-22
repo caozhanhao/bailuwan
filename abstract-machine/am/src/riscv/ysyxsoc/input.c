@@ -24,8 +24,9 @@ static int keymap_ext[256] = {
 #undef AM_EXT_KEY_ENTRY
 
 void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
-  // kbd->keycode = AM_KEY_NONE;
-  // kbd->keydown = 0;
+  // Attention: Initialize kbd first in case `inb(PS2_KEYBOARD_BASE)` is 0.
+  kbd->keycode = AM_KEY_NONE;
+  kbd->keydown = 0;
 
   bool keydown = true;
   bool ext = false;
