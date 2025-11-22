@@ -1,6 +1,5 @@
 top=ysyxSoCFull
 
-# VGA_CLK is set to clock
 externalPins_vga_vsync VGA_VSYNC
 externalPins_vga_hsync VGA_HSYNC
 externalPins_vga_valid VGA_BLANK_N

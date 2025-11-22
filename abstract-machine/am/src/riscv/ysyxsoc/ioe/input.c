@@ -1,4 +1,4 @@
-#include "../riscv.h"
+#include "../../riscv.h"
 
 #include <am.h>
 #include <amdev.h>
