@@ -119,7 +119,7 @@ static void checkregs(diff_context_t* ref)
     {
         sdb_state = SDBState::Abort;
         printf("Test failed at pc = " FMT_WORD "\n", cpu.pc());
-        cpu.dump(std::cout);
+        cpu.dump();
     }
 }
 
