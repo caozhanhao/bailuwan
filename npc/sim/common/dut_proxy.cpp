@@ -76,7 +76,6 @@ void CPUProxy::bind(TOP_NAME* this_dut)
 #undef CSR_TABLE_ENTRY
 #undef CSR
 
-
     // Perf counters
     b.ifu_fetched = CORE(IFU__DOT__c_1__DOT__ifu_fetched);
     b.lsu_read = CORE(EXU__DOT__lsu__DOT__c__DOT__lsu_read);
@@ -149,6 +148,20 @@ void CPUProxy::dump_csrs(FILE* stream)
     }
 }
 
+void CPUProxy::dump_perf_counters(FILE* stream)
+{
+    auto& b = bindings;
+#define PERF(name) fprintf(stream, STRINGIFY(name) " = %lu\n", *b.name)
+    PERF(ifu_fetched);
+    PERF(lsu_read);
+    PERF(exu_done);
+    PERF(alu_op);
+    PERF(lsu_op);
+    PERF(csr_op);
+#undef PERF
+}
+
+
 void CPUProxy::dump(FILE* stream)
 {
     fprintf(stream, "Dumping CPU state:\n");
@@ -158,6 +171,8 @@ void CPUProxy::dump(FILE* stream)
     dump_gprs(stream);
     fprintf(stream, "CSRs:\n");
     dump_csrs(stream);
+    fprintf(stream, "Performance Counters:\n");
+    dump_perf_counters();
 }
 
 
