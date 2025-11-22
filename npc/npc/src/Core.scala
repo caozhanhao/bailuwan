@@ -94,7 +94,7 @@ class Core(
   arbiter.io.slave <> xbar.io.master
 
   val clint = Module(new CLINT())
-  xbar.io.slaves(0) <> io.master
+  xbar.io.slaves(0) <> io.mast  er
   xbar.io.slaves(1) <> clint.io
   arbiter.io.slave <> io.master
 }
