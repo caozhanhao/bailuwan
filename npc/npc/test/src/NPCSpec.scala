@@ -16,8 +16,6 @@ class RV32EEmu(program: Seq[Byte]) {
 }
 
 class NPCTestTop extends Module {
-  val npc = Module(new Top)
-  npc.io.mem.inst := 0.U
 }
 
 class NPCSpec extends AnyFreeSpec with Matchers {

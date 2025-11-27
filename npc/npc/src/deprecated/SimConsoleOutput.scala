@@ -1,8 +1,7 @@
-package core
+package deprecated
 
-import chisel3._
-import chisel3.util._
 import amba._
+import chisel3._
 
 class SimConsoleOutput(
   implicit val axi_prop: AXIProperty)
