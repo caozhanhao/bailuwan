@@ -85,33 +85,40 @@ void bp_update() {
     bp_update_one(p);
 }
 
-const char* ftrace_search(uint32_t pc);
-void bp_display() {
+const char* ftrace_search(uint32_t pc, uint32_t* entry_addr);
+
+void bp_display()
+{
   BP* buffer[NR_BP] = {};
   int buffer_pos = 0;
-  for (BP *p = head; p != NULL; p = p->next)
+  for (BP* p = head; p != nullptr; p = p->next)
     buffer[buffer_pos++] = p;
 
-  printf("%-6s %-10s %s\n", "Num", "Func", "What");
-  for (int i = buffer_pos - 1; i >= 0; --i) {
-    BP *p = buffer[i];
+  printf("%-6s %s\n", "Num", "What");
+  for (int i = buffer_pos - 1; i >= 0; --i)
+  {
+    BP* p = buffer[i];
 
-    const char* func = ftrace_search(p->addr);
-    printf("%-6d %-10s " FMT_PADDR "\n", p->NO, func ? func : "???", p->addr);
+    uint32_t entry_addr;
+    const char* func = ftrace_search(p->addr, &entry_addr);
+    if (func)
+      printf("%-6d " FMT_WORD " <@%s+0x%x>\n", p->NO, p->addr, func, p->addr - entry_addr);
+    else
+      printf("%-6d " FMT_WORD "\n", p->NO, p->addr);
   }
 }
 
-void bp_create(word_t addr) {
-  if (!in_pmem(addr)) {
-    printf("Bad address to watch: " FMT_WORD "\n", addr);
-    return;
-  }
-
-  BP *p = new_bp();
+void bp_create(word_t addr)
+{
+  BP* p = new_bp();
   p->addr = addr;
 
-  const char* func = ftrace_search(addr);
-  printf("Breakpoint %d: " FMT_WORD " (func: @%s)\n", p->NO, addr, func ? func : "???");
+  uint32_t entry_addr;
+  const char* func = ftrace_search(addr, &entry_addr);
+  if (func)
+    printf("Breakpoint %d: " FMT_WORD " <@%s+0x%x>\n", p->NO, addr, func, addr - entry_addr);
+  else
+    printf("Breakpoint %d: " FMT_WORD "\n", p->NO, addr);
   bp_update_one(p);
 }
 

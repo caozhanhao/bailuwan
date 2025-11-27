@@ -304,7 +304,8 @@ int isa_exec_once(Decode *s) {
 }
 
 #ifdef CONFIG_FTRACE
-const char *ftrace_search(uint32_t pc);
+const char *ftrace_search(uint32_t pc, uint32_t *entry_addr);
+
 static int ftrace_dump(Decode *s, int rd, int rs1, word_t imm, char *buf, size_t buf_size) {
   // call:
   //   jal  ra, imm        ->  s->dnpc = s->pc + imm;
@@ -318,24 +319,34 @@ static int ftrace_dump(Decode *s, int rd, int rs1, word_t imm, char *buf, size_t
   bool is_ret = rd == 0 && rs1 == 1 && imm == 0;
 
   if (!is_call && !is_ret) {
-    Log("Unrecognized jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
+    // Log("Unrecognized jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
     return -1;
   }
   if (is_call && is_ret) {
-    Log("Ambiguous jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
+    // Log("Ambiguous jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
     return -1;
   }
 
-  static int depth = 0;
-  depth = is_call ? depth + 1 : depth - 1;
-
   if (is_call) {
-    const char *callee = ftrace_search(s->dnpc);
-    snprintf(buf, buf_size, FMT_WORD ": %*s%s [%s@" FMT_WORD "], depth=%d", s->pc, depth * 2, "",
-             rd == 1 ? "call" : "tail", callee, s->dnpc, depth);
+    uint32_t entry_addr;
+    const char *callee = ftrace_search(s->dnpc, &entry_addr);
+    if (callee == nullptr) {
+      Log("ftrace: Unknown jump at " FMT_WORD, s->dnpc);
+      return -1;
+    }
+
+    // Not a function call
+    if (s->dnpc != entry_addr)
+      return -1;
+
+    snprintf(buf, buf_size, FMT_WORD ": %s [%s@" FMT_WORD "]", s->pc, (rd == 1 ? "call" : "tail"), callee, entry_addr);
   } else if (is_ret) {
-    const char *callee = ftrace_search(s->pc);
-    snprintf(buf, buf_size, FMT_WORD ": %*sret [%s], depth=%d", s->pc, (depth + 1) * 2, "", callee, depth + 1);
+    const char *callee = ftrace_search(s->pc, nullptr);
+    if (callee == nullptr) {
+      Log("ftrace: Unknown function at " FMT_WORD, s->pc);
+      return -1;
+    }
+    snprintf(buf, buf_size, FMT_WORD ": ret [%s]", s->pc, callee);
   } else {
     panic("Unreachable");
   }

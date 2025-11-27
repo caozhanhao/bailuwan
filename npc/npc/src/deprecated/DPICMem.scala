@@ -1,8 +1,8 @@
-package core
+package deprecated
 
+import amba._
 import chisel3._
 import chisel3.util._
-import amba._
 
 class PMemReadDPICWrapper extends HasBlackBoxInline {
   val io = IO(new Bundle {
