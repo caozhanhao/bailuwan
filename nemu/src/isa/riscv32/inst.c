@@ -319,11 +319,11 @@ static int ftrace_dump(Decode *s, int rd, int rs1, word_t imm, char *buf, size_t
   bool is_ret = rd == 0 && rs1 == 1 && imm == 0;
 
   if (!is_call && !is_ret) {
-    Log("Unrecognized jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
+    // Log("Unrecognized jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
     return -1;
   }
   if (is_call && is_ret) {
-    Log("Ambiguous jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
+    // Log("Ambiguous jal/jalr: rd=%d, rs1=%d, imm=" FMT_WORD, rd, rs1, imm);
     return -1;
   }
 
