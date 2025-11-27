@@ -51,11 +51,11 @@ int main(int argc, char* argv[])
     }
     catch (EBreakException& e)
     {
+        SIM.cleanup();
         exit(e.get_code());
     }
 
-    printf("Simulation terminated after %lu cycles\n", SIM.cycles());
+    // never reach here
 
-    SIM.cleanup();
     return 0;
 }
