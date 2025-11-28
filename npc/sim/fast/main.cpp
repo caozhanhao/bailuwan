@@ -44,6 +44,9 @@ int main(int argc, char* argv[])
     // Simulate
     printf("Fast simulation started.\n");
 
+    void bind_by(TOP_NAME* dut);
+    bind_by(&DUT);
+
     try
     {
         while (true)

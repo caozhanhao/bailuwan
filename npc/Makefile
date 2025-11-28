@@ -81,7 +81,7 @@ SOC_VINC_FLAGS += $(addprefix +incdir+, $(SOC_VINC_PATH))
 
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert \
-				 --autoflush --timescale "1ns/1ns" --no-timing -Wno-fatal --dump-tree-json
+				 --autoflush --timescale "1ns/1ns" --no-timing -Wno-fatal
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
