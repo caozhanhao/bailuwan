@@ -92,8 +92,8 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     b.br_cycles = CORE(EXU__DOT__c_2__DOT__br_cycles);
     b.lsu_cycles = CORE(EXU__DOT__c_3__DOT__lsu_cycles);
     b.csr_cycles = CORE(EXU__DOT__c_4__DOT__csr_cycles);
-    b.wait_cycles = CORE(EXU__DOT__c_5__DOT__other_cycles);
-    b.other_cycles = CORE(EXU__DOT__c_6__DOT__wait_cycles);
+    b.other_cycles = CORE(EXU__DOT__c_5__DOT__other_cycles);
+    b.wait_cycles = CORE(EXU__DOT__c_6__DOT__wait_cycles);
     b.all_cycles = CORE(EXU__DOT__c_7__DOT__all_cycles);
 
 #undef CORE
