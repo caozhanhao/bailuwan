@@ -161,14 +161,14 @@ class EXU(
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid && lsu_valid
 
-  def once(b: Bool) = io.in.fire && b
+  def clean(b: Bool) = io.in.fire && b
 
   PerfCounter(io.out.valid, "exu_done")
-  PerfCounter(once(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_cycles")
-  PerfCounter(once(decoded.br_op =/= BrOp.Nop), "br_cycles")
-  PerfCounter(once(exec_type === ExecType.LSU), "lsu_cycles")
-  PerfCounter(once(exec_type === ExecType.CSR), "csr_cycles")
-  PerfCounter(once(
+  PerfCounter(clean(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_cycles")
+  PerfCounter(clean(decoded.br_op =/= BrOp.Nop), "br_cycles")
+  PerfCounter(clean(exec_type === ExecType.LSU), "lsu_cycles")
+  PerfCounter(clean(exec_type === ExecType.CSR), "csr_cycles")
+  PerfCounter(clean(
     exec_type =/= ExecType.ALU &&
       exec_type =/= ExecType.LSU &&
       exec_type =/= ExecType.CSR),
