@@ -19,7 +19,7 @@ const char* gpr_names[32] = {
 
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
-    auto scope_map = Verilated::scopeNameMap();
+    auto scope_map = this_dut->contextp()->scopeNameMap();
     assert(scope_map && "Verilated::scopeNameMap() == nullptr");
 
     auto find_signal = [&](const std::string& target) -> void*
