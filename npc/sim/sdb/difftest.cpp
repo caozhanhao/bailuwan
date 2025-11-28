@@ -123,8 +123,6 @@ static void checkregs(diff_context_t* ref)
     }
 }
 
-// Attention: trace_and_difftest runs after each cycle, which means curr_inst
-//            hasn't been executed yet. So it is `should_skip_next`.
 static int accessing_device = false;
 
 static bool is_accessing_device()
