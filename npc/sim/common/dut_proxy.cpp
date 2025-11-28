@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <type_traits>
 
 TOP_NAME DUT;
 SimHandle SIM;
@@ -39,36 +40,43 @@ void CPUProxy::bind(TOP_NAME* this_dut)
         return nullptr;
     };
 
-#define BIND_SIGNAL(name, signal_name) bindings.name = reinterpret_cast<decltype(bindings.name)>(find_signal(signal_name));
+#define BIND_SIGNAL(name, signal_name) bindings.name = static_cast<std::remove_reference_t<decltype(bindings.name)>>(find_signal(signal_name));
 
-    // BIND_SIGNAL(gprs, "regs")
+    // GPR
+    auto verilated_regs = static_cast<uint32_t*>(find_signal("regs"));
+    for (size_t i = 0; i < 16; ++i)
+        bindings.gprs[i] = &verilated_regs[i];
+
     BIND_SIGNAL(pc, "pc")
     BIND_SIGNAL(ifu_state, "ifu_state")
     BIND_SIGNAL(dnpc, "dnpc")
     BIND_SIGNAL(inst, "inst")
     BIND_SIGNAL(difftest_ready, "difftest_ready")
 
-    // CSRS
+    // Perf Counter
+    BIND_SIGNAL(ifu_fetched, "ifu_fetched")
+    BIND_SIGNAL(lsu_read, "lsu_read")
+    BIND_SIGNAL(exu_done, "exu_done")
+    BIND_SIGNAL(alu_ops, "alu_ops")
+    BIND_SIGNAL(br_ops, "br_ops")
+    BIND_SIGNAL(lsu_ops, "lsu_ops")
+    BIND_SIGNAL(csr_ops, "csr_ops")
+    BIND_SIGNAL(other_ops, "other_ops")
+    BIND_SIGNAL(all_ops, "all_ops")
+    BIND_SIGNAL(alu_cycles, "alu_cycles")
+    BIND_SIGNAL(br_cycles, "br_cycles")
+    BIND_SIGNAL(lsu_cycles, "lsu_cycles")
+    BIND_SIGNAL(csr_cycles, "csr_cycles")
+    BIND_SIGNAL(other_cycles, "other_cycles")
+    BIND_SIGNAL(wait_cycles, "wait_cycles")
+    BIND_SIGNAL(all_cycles, "all_cycles")
 
-    // Perf counters
-    b.ifu_fetched = CORE(IFU__DOT__c_1__DOT__ifu_fetched);
-    b.lsu_read = CORE(EXU__DOT__lsu__DOT__c__DOT__lsu_read);
-    b.exu_done = CORE(EXU__DOT__c__DOT__exu_done);
+    // CSR
+#define CSR_TABLE_ENTRY(name, idx) BIND_SIGNAL(csrs[idx], STRINGIFY(name))
+    CSR_TABLE
+#undef CSR_TABLE_ENTRY
 
-    b.alu_ops = CORE(IDU__DOT__c__DOT__alu_ops);
-    b.br_ops = CORE(IDU__DOT__c_1__DOT__br_ops);
-    b.lsu_ops = CORE(IDU__DOT__c_2__DOT__lsu_ops);
-    b.csr_ops = CORE(IDU__DOT__c_3__DOT__csr_ops);
-    b.other_ops = CORE(IDU__DOT__c_4__DOT__other_ops);
-    b.all_ops = CORE(IDU__DOT__c_5__DOT__all_ops);
-
-    b.alu_cycles = CORE(EXU__DOT__c_1__DOT__alu_cycles);
-    b.br_cycles = CORE(EXU__DOT__c_2__DOT__br_cycles);
-    b.lsu_cycles = CORE(EXU__DOT__c_3__DOT__lsu_cycles);
-    b.csr_cycles = CORE(EXU__DOT__c_4__DOT__csr_cycles);
-    b.other_cycles = CORE(EXU__DOT__c_5__DOT__other_cycles);
-    b.wait_cycles = CORE(EXU__DOT__c_6__DOT__wait_cycles);
-    b.all_cycles = CORE(EXU__DOT__c_7__DOT__all_cycles);
+#undef BIND_SIGNAL
 }
 
 uint32_t CPUProxy::curr_inst() const
