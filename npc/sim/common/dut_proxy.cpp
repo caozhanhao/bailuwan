@@ -42,36 +42,24 @@ void CPUProxy::bind(TOP_NAME* this_dut)
 
 #define BIND_SIGNAL(name, signal_name) bindings.name = static_cast<std::remove_reference_t<decltype(bindings.name)>>(find_signal(signal_name));
 
-    // GPR
+    // GPRs
     auto verilated_regs = static_cast<uint32_t*>(find_signal("regs"));
     for (size_t i = 0; i < 16; ++i)
         bindings.gprs[i] = &verilated_regs[i];
 
+    // Normal Signals
     BIND_SIGNAL(pc, "pc")
     BIND_SIGNAL(ifu_state, "ifu_state")
     BIND_SIGNAL(dnpc, "dnpc")
     BIND_SIGNAL(inst, "inst")
     BIND_SIGNAL(difftest_ready, "difftest_ready")
 
-    // Perf Counter
-    BIND_SIGNAL(ifu_fetched, "ifu_fetched")
-    BIND_SIGNAL(lsu_read, "lsu_read")
-    BIND_SIGNAL(exu_done, "exu_done")
-    BIND_SIGNAL(alu_ops, "alu_ops")
-    BIND_SIGNAL(br_ops, "br_ops")
-    BIND_SIGNAL(lsu_ops, "lsu_ops")
-    BIND_SIGNAL(csr_ops, "csr_ops")
-    BIND_SIGNAL(other_ops, "other_ops")
-    BIND_SIGNAL(all_ops, "all_ops")
-    BIND_SIGNAL(alu_cycles, "alu_cycles")
-    BIND_SIGNAL(br_cycles, "br_cycles")
-    BIND_SIGNAL(lsu_cycles, "lsu_cycles")
-    BIND_SIGNAL(csr_cycles, "csr_cycles")
-    BIND_SIGNAL(other_cycles, "other_cycles")
-    BIND_SIGNAL(wait_cycles, "wait_cycles")
-    BIND_SIGNAL(all_cycles, "all_cycles")
+    // Perf Counters
+#define PERF_COUNTER_TABLE_ENTRY(name) BIND_SIGNAL(name, STRINGIFY(name))
+    PERF_COUNTER_TABLE
+#undef PERF_COUNTER_TABLE_ENTRY
 
-    // CSR
+    // CSRs
 #define CSR_TABLE_ENTRY(name, idx) BIND_SIGNAL(csrs[idx], STRINGIFY(name))
     CSR_TABLE
 #undef CSR_TABLE_ENTRY
