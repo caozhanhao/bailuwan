@@ -1,5 +1,9 @@
 #include "config.hpp"
 #include "dut_proxy.hpp"
+
+#include <verilated.h>
+#include <verilated_syms.h>
+
 #include <iostream>
 #include <iomanip>
 
@@ -14,89 +18,57 @@ const char* gpr_names[32] = {
 
 void CPUProxy::bind(TOP_NAME* this_dut)
 {
-//     auto& b = bindings;
-// #define CORE(x) &this_dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__core__DOT__##x
-//
-//     // GPRs
-// #define BIND(reg) b.gprs[reg] = CORE(RegFile__DOT__regs_##reg);
-//     BIND(0)
-//     BIND(1)
-//     BIND(2)
-//     BIND(3)
-//     BIND(4)
-//     BIND(5)
-//     BIND(6)
-//     BIND(7)
-//     BIND(8)
-//     BIND(9)
-//     BIND(10)
-//     BIND(11)
-//     BIND(12)
-//     BIND(13)
-//     BIND(14)
-//     BIND(15)
-// #undef BIND
-//
-//     b.pc = CORE(IFU__DOT__pc);
-//     b.ifu_state = CORE(IFU__DOT__state);
-//     b.dnpc = CORE(_WBU_io_out_bits_dnpc);
-//     b.inst = CORE(IDU__DOT__inst);
-//     b.difftest_ready = CORE(IFU__DOT__c__DOT__difftest_ready);
-//
-//     // CSRS
-//
-//     // We can't use CSR_TABLE_ENTRY here because some csr needs special handling
-// #define BIND(name) b.csrs[CSR_##name] = CORE(EXU__DOT__csr_file__DOT__##name);
-//
-//     BIND(mstatus)
-//     BIND(mtvec)
-//     BIND(mepc)
-//     BIND(mcause)
-//
-// #undef BIND
-//     auto mcycle = CORE(EXU__DOT__csr_file__DOT__mcycle);
-//     static uint32_t mvendorid = 0x79737978;
-//     static uint32_t marchid = 25100251;
-//
-//     uint32_t* mcycle32 = reinterpret_cast<uint32_t*>(mcycle);
-//     b.csrs[CSR_mcycle] = mcycle32;
-//     b.csrs[CSR_mcycleh] = mcycle32 + 1;
-//     b.csrs[CSR_mvendorid] = &mvendorid;
-//     b.csrs[CSR_marchid] = &marchid;
-//
-//     // Safety checks
-// #define CSR(x) TOSTRING(x)
-//     // It will be expanded to
-//     //     (static_cast<bool>(csr_bindings[0x300] != nullptr && "mstatus" " not initialized.")
-//     // ? void(0)
-//     // : __assert_fail("csr_bindings[0x300] != nullptr && CSR(mstatus) \" is not initialized.\"", __builtin_FILE(),
-//     //                 __builtin_LINE(), __PRETTY_FUNCTION__));
-// #define CSR_TABLE_ENTRY(name, idx) assert(b.csrs[idx] != nullptr && CSR(name) " is not initialized.");
-//     CSR_TABLE
-// #undef CSR_TABLE_ENTRY
-// #undef CSR
-//
-//     // Perf counters
-//     b.ifu_fetched = CORE(IFU__DOT__c_1__DOT__ifu_fetched);
-//     b.lsu_read = CORE(EXU__DOT__lsu__DOT__c__DOT__lsu_read);
-//     b.exu_done = CORE(EXU__DOT__c__DOT__exu_done);
-//
-//     b.alu_ops = CORE(IDU__DOT__c__DOT__alu_ops);
-//     b.br_ops = CORE(IDU__DOT__c_1__DOT__br_ops);
-//     b.lsu_ops = CORE(IDU__DOT__c_2__DOT__lsu_ops);
-//     b.csr_ops = CORE(IDU__DOT__c_3__DOT__csr_ops);
-//     b.other_ops = CORE(IDU__DOT__c_4__DOT__other_ops);
-//     b.all_ops = CORE(IDU__DOT__c_5__DOT__all_ops);
-//
-//     b.alu_cycles = CORE(EXU__DOT__c_1__DOT__alu_cycles);
-//     b.br_cycles = CORE(EXU__DOT__c_2__DOT__br_cycles);
-//     b.lsu_cycles = CORE(EXU__DOT__c_3__DOT__lsu_cycles);
-//     b.csr_cycles = CORE(EXU__DOT__c_4__DOT__csr_cycles);
-//     b.other_cycles = CORE(EXU__DOT__c_5__DOT__other_cycles);
-//     b.wait_cycles = CORE(EXU__DOT__c_6__DOT__wait_cycles);
-//     b.all_cycles = CORE(EXU__DOT__c_7__DOT__all_cycles);
-//
-// #undef CORE
+    auto scope_map = Verilated::scopeNameMap();
+    assert(scope_map && "Verilated::scopeNameMap() == nullptr");
+
+    auto find_signal = [&](const std::string& target) -> void*
+    {
+        for (auto& [scope_name, scope] : *scope_map)
+        {
+            auto exposed_name = "exposed_signal_" + target;
+            if (auto varsp = scope->varsp())
+            {
+                for (const auto& [name, var] : *varsp)
+                {
+                    if (exposed_name == name)
+                        return var.datap();
+                }
+            }
+        }
+        assert(false && "Can not find signal");
+        return nullptr;
+    };
+
+#define BIND_SIGNAL(name, signal_name) bindings.name = reinterpret_cast<decltype(bindings.name)>(find_signal(signal_name));
+
+    // BIND_SIGNAL(gprs, "regs")
+    BIND_SIGNAL(pc, "pc")
+    BIND_SIGNAL(ifu_state, "ifu_state")
+    BIND_SIGNAL(dnpc, "dnpc")
+    BIND_SIGNAL(inst, "inst")
+    BIND_SIGNAL(difftest_ready, "difftest_ready")
+
+    // CSRS
+
+    // Perf counters
+    b.ifu_fetched = CORE(IFU__DOT__c_1__DOT__ifu_fetched);
+    b.lsu_read = CORE(EXU__DOT__lsu__DOT__c__DOT__lsu_read);
+    b.exu_done = CORE(EXU__DOT__c__DOT__exu_done);
+
+    b.alu_ops = CORE(IDU__DOT__c__DOT__alu_ops);
+    b.br_ops = CORE(IDU__DOT__c_1__DOT__br_ops);
+    b.lsu_ops = CORE(IDU__DOT__c_2__DOT__lsu_ops);
+    b.csr_ops = CORE(IDU__DOT__c_3__DOT__csr_ops);
+    b.other_ops = CORE(IDU__DOT__c_4__DOT__other_ops);
+    b.all_ops = CORE(IDU__DOT__c_5__DOT__all_ops);
+
+    b.alu_cycles = CORE(EXU__DOT__c_1__DOT__alu_cycles);
+    b.br_cycles = CORE(EXU__DOT__c_2__DOT__br_cycles);
+    b.lsu_cycles = CORE(EXU__DOT__c_3__DOT__lsu_cycles);
+    b.csr_cycles = CORE(EXU__DOT__c_4__DOT__csr_cycles);
+    b.other_cycles = CORE(EXU__DOT__c_5__DOT__other_cycles);
+    b.wait_cycles = CORE(EXU__DOT__c_6__DOT__wait_cycles);
+    b.all_cycles = CORE(EXU__DOT__c_7__DOT__all_cycles);
 }
 
 uint32_t CPUProxy::curr_inst() const
@@ -192,7 +164,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(Branch, br);
     PERF(LSU, lsu);
     PERF(CSR, csr);
-    PERF(Other,other);
+    PERF(Other, other);
 #undef PERF
     fprintf(stream, "+----------+----------+--------+------------+\n");
 }

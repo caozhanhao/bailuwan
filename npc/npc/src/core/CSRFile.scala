@@ -24,8 +24,8 @@ class CSRFile(
   })
 
   // ysyx_25100251 caozhanhao
-  val mvendorid = 0x79737978.U
-  val marchid   = 25100251.U
+  val mvendorid = 0x79737978.U(32.W)
+  val marchid   = 25100251.U(32.W)
 
   val mstatus_init_val = if (p.XLEN == 32) 0x1800.U(32.W) else 0xa00001800L.U(64.W)
 
