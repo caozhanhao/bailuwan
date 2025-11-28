@@ -161,7 +161,7 @@ class EXU(
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid && lsu_valid
 
-  def clean(b: Bool) = io.in.fire && b
+  def clean(b: Bool) = io.in.valid && b
 
   PerfCounter(io.out.valid, "exu_done")
   PerfCounter(clean(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_cycles")
