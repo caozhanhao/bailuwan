@@ -2,6 +2,7 @@ package core
 
 import chisel3._
 import top.CoreParams
+import utils.SignalProbe
 
 class RegFile(
   implicit p: CoreParams)
@@ -24,4 +25,6 @@ class RegFile(
 
   io.rs1_data := regs(io.rs1_addr(3, 0))
   io.rs2_data := regs(io.rs2_addr(3, 0))
+
+  SignalProbe(regs, "regs")
 }

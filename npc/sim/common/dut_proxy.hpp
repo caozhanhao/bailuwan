@@ -2,7 +2,6 @@
 #define COMMON_DUT_PROXY_HPP
 
 #include "VysyxSoCFull.h"
-#include "VysyxSoCFull___024root.h"
 #include "utils/macro.hpp"
 #include "config.hpp"
 
@@ -52,37 +51,43 @@ enum CSR
 #undef CSR_TABLE_ENTRY
 };
 
+#define PERF_COUNTER_TABLE \
+PERF_COUNTER_TABLE_ENTRY(ifu_fetched) \
+PERF_COUNTER_TABLE_ENTRY(lsu_read) \
+PERF_COUNTER_TABLE_ENTRY(exu_done) \
+PERF_COUNTER_TABLE_ENTRY(alu_ops) \
+PERF_COUNTER_TABLE_ENTRY(br_ops) \
+PERF_COUNTER_TABLE_ENTRY(lsu_ops) \
+PERF_COUNTER_TABLE_ENTRY(csr_ops) \
+PERF_COUNTER_TABLE_ENTRY(other_ops) \
+PERF_COUNTER_TABLE_ENTRY(all_ops) \
+PERF_COUNTER_TABLE_ENTRY(alu_cycles) \
+PERF_COUNTER_TABLE_ENTRY(br_cycles) \
+PERF_COUNTER_TABLE_ENTRY(lsu_cycles) \
+PERF_COUNTER_TABLE_ENTRY(csr_cycles) \
+PERF_COUNTER_TABLE_ENTRY(other_cycles) \
+PERF_COUNTER_TABLE_ENTRY(wait_cycles) \
+PERF_COUNTER_TABLE_ENTRY(all_cycles)
+
 class CPUProxy
 {
     struct Bindings
     {
+        // Registers
+        uint32_t* gprs[16];
+        uint32_t* csrs[4096];
+
+        // Normal Signals
         uint32_t* pc;
         uint32_t* dnpc;
         uint32_t* inst;
         uint8_t* difftest_ready;
         uint8_t* ifu_state;
-        uint32_t* gprs[16];
-        uint32_t* csrs[4096];
 
         // Perf Counters
-        uint64_t* ifu_fetched;
-        uint64_t* lsu_read;
-        uint64_t* exu_done;
-
-        uint64_t* alu_ops;
-        uint64_t* br_ops;
-        uint64_t* lsu_ops;
-        uint64_t* csr_ops;
-        uint64_t* other_ops;
-        uint64_t* all_ops;
-
-        uint64_t* alu_cycles;
-        uint64_t* br_cycles;
-        uint64_t* lsu_cycles;
-        uint64_t* csr_cycles;
-        uint64_t* other_cycles;
-        uint64_t* wait_cycles;
-        uint64_t* all_cycles;
+#define PERF_COUNTER_TABLE_ENTRY(name) uint64_t* name;
+        PERF_COUNTER_TABLE
+#undef PERF_COUNTER_TABLE_ENTRY
     } bindings;
 
 public:

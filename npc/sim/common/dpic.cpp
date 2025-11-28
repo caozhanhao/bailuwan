@@ -73,7 +73,8 @@ void psram_write(int waddr, char wdata)
 // If id[0] is high, the access targets the high 16 bits; otherwise it targets the low 16 bits.
 static uint32_t convert_sdram_addr(int addr, char id)
 {
-    auto npc_addr = (BITS(addr, 24, 12) << 13) | (BITS(id, 1, 1) << 12) | (BITS(addr, 11, 2) << 2);
+    auto npc_addr = (BITS(addr, 24, 12) << 13) | (BITS(id, 1, 1) << 12)
+                                    | (BITS(addr, 11, 2) << 2);
 
     // little-endian
     npc_addr += BITS(id, 0, 0) * 2;

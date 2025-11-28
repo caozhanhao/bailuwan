@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import constants.CSR
 import top.CoreParams
+import utils.SignalProbe
 
 class CSRFile(
   implicit p: CoreParams)
@@ -23,8 +24,8 @@ class CSRFile(
   })
 
   // ysyx_25100251 caozhanhao
-  val mvendorid = 0x79737978.U
-  val marchid   = 25100251.U
+  val mvendorid = 0x79737978.U(32.W)
+  val marchid   = 25100251.U(32.W)
 
   val mstatus_init_val = if (p.XLEN == 32) 0x1800.U(32.W) else 0xa00001800L.U(64.W)
 
@@ -44,14 +45,17 @@ class CSRFile(
   mepc   := Mux(io.has_intr, io.epc, writable(CSR.mepc, mepc))
   mcause := Mux(io.has_intr, io.cause, writable(CSR.mcause, mcause))
 
+  val mcycle_read_val  = (if (p.XLEN == 32) mcycle(31, 0) else mcycle)
+  val mcycleh_read_val = (if (p.XLEN == 32) mcycle(63, 32) else 0.U)
+
   val read_data = MuxLookup(io.read_addr, 0.U)(
     Seq(
       CSR.mstatus   -> mstatus,
       CSR.mtvec     -> mtvec,
       CSR.mepc      -> mepc,
       CSR.mcause    -> mcause,
-      CSR.mcycle    -> (if (p.XLEN == 32) mcycle(31, 0) else mcycle),
-      CSR.mcycleh   -> (if (p.XLEN == 32) mcycle(63, 32) else 0.U),
+      CSR.mcycle    -> mcycle_read_val,
+      CSR.mcycleh   -> mcycleh_read_val,
       CSR.mvendorid -> mvendorid,
       CSR.marchid   -> marchid
     )
@@ -60,4 +64,13 @@ class CSRFile(
   // printf("[CSR] read_addr: %x, read_data: %x\n", io.read_addr, read_data)
 
   io.read_data := Mux(io.read_enable, read_data, 0.U)
+
+  SignalProbe(mstatus, "mstatus")
+  SignalProbe(mtvec, "mtvec")
+  SignalProbe(mepc, "mepc")
+  SignalProbe(mcause, "mcause")
+  SignalProbe(mcycle_read_val, "mcycle")
+  SignalProbe(mcycleh_read_val, "mcycleh")
+  SignalProbe(mvendorid, "mvendorid")
+  SignalProbe(marchid, "marchid")
 }

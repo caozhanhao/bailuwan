@@ -11,7 +11,7 @@ class PerfCounter(name: String) extends BlackBox with HasBlackBoxInline {
     val cond  = Input(Bool())
   })
   override def desiredName = s"PerfCounter_$name"
-
+  val wire_name = s"exposed_signal_$name"
   setInline(
     s"PerfCounter_$name.sv",
     s"""
@@ -22,13 +22,13 @@ class PerfCounter(name: String) extends BlackBox with HasBlackBoxInline {
        |);
        |
        |`ifdef VERILATOR
-       |  reg [63:0] $name /* verilator public_flat_rd */;
+       |  reg [63:0] $wire_name /* verilator public_flat_rd */;
        |
        |  always @(posedge clock) begin
        |    if (reset)
-       |      $name <= 64'd0;
+       |      $wire_name <= 64'd0;
        |    else if (cond)
-       |      $name <= $name + 64'd1;
+       |      $wire_name <= $wire_name + 64'd1;
        |  end
        |`endif
        |

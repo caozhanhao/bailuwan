@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import constants._
 import top.CoreParams
+import utils.SignalProbe
 
 class WBUOut(
   implicit p: CoreParams)
@@ -55,4 +56,6 @@ class WBU(
   // In valid -> Out Valid, thus In Ready
   io.in.ready  := io.in.valid
   io.out.valid := io.in.valid
+
+  SignalProbe(dnpc, "dnpc")
 }
