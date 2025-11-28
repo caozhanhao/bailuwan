@@ -174,6 +174,6 @@ class EXU(
       exec_type =/= ExecType.CSR),
     "other_cycles"
   )
-  PerfCounter(!io.in.fire && !reset.asBool, "wait_cycles")
+  PerfCounter(!io.in.fire, "wait_cycles")
   PerfCounter(true.B, "all_cycles")
 }
