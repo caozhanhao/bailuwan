@@ -6,9 +6,13 @@
 
 void bind_by(TOP_NAME* dut) {
     auto scope_map = Verilated::scopeNameMap();
+    assert(scope_map);
     for (auto& [scope_name, scope] : *scope_map)
     {
-        for (const auto& [name, var] : *scope->varsp()) {
+        auto varsp = scope->varsp();
+        if (!varsp)
+            continue;
+        for (const auto& [name, var] : *varsp) {
             printf("name: %s\n", name);
         }
     }
