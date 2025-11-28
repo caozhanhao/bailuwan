@@ -5,6 +5,7 @@
 #include "utils/macro.hpp"
 
 void bind_by(TOP_NAME* dut) {
+    Verilated::scopesDump();
     auto scope = Verilated::scopeFind("ysyxSocFull");
 
     for (const auto& [name, var] : *scope->varsp()) {
