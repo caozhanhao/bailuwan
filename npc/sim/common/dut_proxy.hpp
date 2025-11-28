@@ -81,6 +81,7 @@ class CPUProxy
         uint64_t* lsu_cycles;
         uint64_t* csr_cycles;
         uint64_t* other_cycles;
+        uint64_t* wait_cycles;
         uint64_t* all_cycles;
     } bindings;
 
