@@ -27,7 +27,7 @@ void CPUProxy::bind(TOP_NAME* this_dut)
         if (auto varsp = scope->varsp())
         {
             for (const auto& [name, var] : *varsp)
-                printf("Got: %s in %s", name, scope_name);
+                printf("Got: %s in %s\n", name, scope_name);
         }
     }
 
