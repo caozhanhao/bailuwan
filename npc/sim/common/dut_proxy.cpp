@@ -25,7 +25,6 @@ void CPUProxy::bind(TOP_NAME* this_dut)
     auto find_signal = [&](const std::string& target) -> void*
     {
         auto exposed_name = "exposed_signal_" + target;
-
         for (auto& [scope_name, scope] : *scope_map)
         {
             if (auto varsp = scope->varsp())
