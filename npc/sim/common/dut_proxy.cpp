@@ -31,7 +31,7 @@ void CPUProxy::bind(TOP_NAME* this_dut)
             {
                 if (var_maps.count(name))
                 {
-                    fprintf(stderr, "Multiple signals named %s\n", name);
+                    fprintf(stderr, "CPUProxy::bind: Multiple signals named %s\n", name);
                     assert(false);
                 }
                 var_maps[name] = var.datap();
