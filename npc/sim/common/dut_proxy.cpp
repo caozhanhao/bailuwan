@@ -24,19 +24,17 @@ void CPUProxy::bind(TOP_NAME* this_dut)
 
     auto find_signal = [&](const std::string& target) -> void*
     {
+        auto exposed_name = "exposed_signal_" + target;
+
         for (auto& [scope_name, scope] : *scope_map)
         {
-            auto exposed_name = "exposed_signal_" + target;
             if (auto varsp = scope->varsp())
             {
                 // Since it is a `std::map<const char*, VerilatedVar, VerilatedCStrCmp>` and
                 // the compare is override with strcmp, `find` is fine.
                 auto it = varsp->find(exposed_name.c_str());
                 if (it != varsp->end())
-                {
-                    printf("Found in %s\n", scope_name);
                     return it->second.datap();
-                }
             }
         }
         assert(false && "Can not find signal");
