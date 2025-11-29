@@ -83,7 +83,7 @@ class IFU(
   //          difftest_step is called here
   SignalProbe(RegNext(io.in.valid), "difftest_ready")
   SignalProbe(pc, "pc")
-  SignalProbe(pc, "pc")
+  SignalProbe(pc, "ifu_state")
   SignalProbe(state, "ifu_state")
   PerfCounter(io.mem.r.fire, "ifu_fetched")
 }
