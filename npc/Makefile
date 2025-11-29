@@ -83,7 +83,7 @@ VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert \
 				 --autoflush --timescale "1ns/1ns" --no-timing -Wno-fatal
 INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\"" -DTOP_HEADER="\"V$(TOPNAME).h\""
+CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
 
 ifneq ($(TRACE), notrace)

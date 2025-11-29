@@ -12,8 +12,7 @@ class SignalProbe(name: String, width: Int) extends BlackBox with HasBlackBoxInl
 
   val wire_name = s"exposed_signal_$name"
   setInline(
-    s"SignalProbe_$name" +
-      s".sv",
+    s"SignalProbe_$name.sv",
     s"""
        |module SignalProbe_$name(
        |    input [${width - 1}:0] data
