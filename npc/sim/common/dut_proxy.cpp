@@ -17,7 +17,7 @@ const char* gpr_names[32] = {
     "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
 
-void CPUProxy::bind(TOP_NAME* this_dut)
+void CPUProxy::bind(const TOP_NAME* this_dut)
 {
     auto scope_map = this_dut->contextp()->scopeNameMap();
     assert(scope_map && "scopeNameMap() == nullptr");
@@ -126,13 +126,13 @@ bool CPUProxy::is_inst_valid() const
     return *bindings.ifu_state == 2;
 }
 
-void CPUProxy::dump_gprs(FILE* stream)
+void CPUProxy::dump_gprs(FILE* stream) const
 {
     for (int i = 0; i < 16; i++)
         fprintf(stream, "x%-2d %-5s  0x%08x  %11d\n", i, gpr_names[i], reg(i), reg(i));
 }
 
-void CPUProxy::dump_csrs(FILE* stream)
+void CPUProxy::dump_csrs(FILE* stream) const
 {
     for (int i = 0; i < 4096; i++)
     {
@@ -265,37 +265,37 @@ void DUTMemory::out_of_bound_abort(uint32_t addr)
 }
 
 
-bool DUTMemory::in_mrom(uint32_t addr) const
+bool DUTMemory::in_mrom(uint32_t addr)
 {
     return addr - CONFIG_MROM_BASE < CONFIG_MROM_SIZE;
 }
 
-bool DUTMemory::in_sram(uint32_t addr) const
+bool DUTMemory::in_sram(uint32_t addr)
 {
     return addr - CONFIG_SRAM_BASE < CONFIG_SRAM_SIZE;
 }
 
-bool DUTMemory::in_flash(uint32_t addr) const
+bool DUTMemory::in_flash(uint32_t addr)
 {
     return addr - CONFIG_FLASH_BASE < CONFIG_FLASH_SIZE;
 }
 
-bool DUTMemory::in_psram(uint32_t addr) const
+bool DUTMemory::in_psram(uint32_t addr)
 {
     return addr - CONFIG_PSRAM_BASE < CONFIG_PSRAM_SIZE;
 }
 
-bool DUTMemory::in_sdram(uint32_t addr) const
+bool DUTMemory::in_sdram(uint32_t addr)
 {
     return addr - CONFIG_SDRAM_BASE < CONFIG_SDRAM_SIZE;
 }
 
-bool DUTMemory::in_device(uint32_t addr) const
+bool DUTMemory::in_device(uint32_t addr)
 {
     return !in_mrom(addr) && !in_sram(addr) && !in_flash(addr) && !in_psram(addr) && !in_sdram(addr);
 }
 
-bool DUTMemory::in_sim_mem(uint32_t addr) const
+bool DUTMemory::in_sim_mem(uint32_t addr)
 {
     return in_flash(addr) || in_mrom(addr) || in_psram(addr) || in_sdram(addr);
 }
@@ -361,7 +361,7 @@ void SimHandle::init_sim(TOP_NAME* dut_, const std::string& filename)
     sim_time = 0;
     init_trace();
 
-    memory.init(filename.c_str());
+    memory.init(filename);
 
     boot_timepoint = std::chrono::high_resolution_clock::now();
 

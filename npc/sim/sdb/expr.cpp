@@ -121,13 +121,10 @@ static regex_t re[NR_REGEX] = {};
  */
 void init_regex()
 {
-    int i;
     char error_msg[128];
-    int ret;
-
-    for (i = 0; i < NR_REGEX; i++)
+    for (int i = 0; i < NR_REGEX; i++)
     {
-        ret = regcomp(&re[i], rules[i].regex, REG_EXTENDED);
+        auto ret = regcomp(&re[i], rules[i].regex, REG_EXTENDED);
         if (ret != 0)
         {
             regerror(ret, &re[i], error_msg, 128);
@@ -452,12 +449,9 @@ static word_t eval(int p, int q, bool* success)
         case TK_UNARY_LNOT:
             return (word_t)(!val);
         case TK_UNARY_MINUS:
-            return (word_t)(-(int64_t)val);
+            return static_cast<uint32_t>(-static_cast<int64_t>(val));
         case TK_UNARY_DEREF:
             {
-                // TODO: MMIO
-                // return vaddr_read(val, 4);
-                auto& mem = SIM.mem();
                 if (val % 4 != 0)
                 {
                     Log("dereference unaligned, addr: 0x%x", val);
@@ -465,14 +459,14 @@ static word_t eval(int p, int q, bool* success)
                     return 0;
                 }
 
-                if (!mem.in_sim_mem(val))
+                if (!DUTMemory::in_sim_mem(val))
                 {
                     Log("dereference out of bound, addr: 0x%x", val);
                     *success = false;
                     return 0;
                 }
 
-                return mem.read<uint32_t>(val);
+                return SIM.mem().read<uint32_t>(val);
             }
         default:
             panic("unexpected unary operator");
@@ -514,7 +508,7 @@ static word_t eval(int p, int q, bool* success)
     MAKE_OP(TK_LOR, ||)
 #undef MAKE_OP
     case TK_ASHR:
-        return (word_t)((sword_t)val1 >> val2);
+        return static_cast<uint32_t>(static_cast<int32_t>(val1) >> val2);
     case TK_DIV:
         if (val2 == 0)
         {

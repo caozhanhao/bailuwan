@@ -24,12 +24,12 @@ public:
     {
     }
 
-    const char* what() const noexcept override
+    [[nodiscard]] const char* what() const noexcept override
     {
         return "EBreakException";
     }
 
-    int get_code() const { return code; }
+    [[nodiscard]] int get_code() const { return code; }
 };
 
 #define CSR_TABLE                                                                                                      \
@@ -93,20 +93,20 @@ class CPUProxy
 public:
     CPUProxy() = default;
 
-    void bind(TOP_NAME* dut);
-    void dump_gprs(FILE* stream = stderr);
-    void dump_csrs(FILE* stream = stderr);
+    void bind(const TOP_NAME* dut);
+    void dump_gprs(FILE* stream = stderr) const;
+    void dump_csrs(FILE* stream = stderr) const;
     void dump_perf_counters(FILE* stream = stderr);
     void dump(FILE* stream = stderr);
-    uint32_t pc() const;
-    uint32_t dnpc() const;
-    uint32_t curr_inst() const;
-    uint64_t inst_count() const;
-    uint32_t reg(uint32_t idx) const;
-    uint32_t csr(uint32_t idx) const;
-    bool is_csr_valid(uint32_t idx) const;
-    bool is_ready_for_difftest() const;
-    bool is_inst_valid() const;
+    [[nodiscard]] uint32_t pc() const;
+    [[nodiscard]] uint32_t dnpc() const;
+    [[nodiscard]] uint32_t curr_inst() const;
+    [[nodiscard]] uint64_t inst_count() const;
+    [[nodiscard]] uint32_t reg(uint32_t idx) const;
+    [[nodiscard]] uint32_t csr(uint32_t idx) const;
+    [[nodiscard]] bool is_csr_valid(uint32_t idx) const;
+    [[nodiscard]] bool is_ready_for_difftest() const;
+    [[nodiscard]] bool is_inst_valid() const;
 };
 
 struct DUTMemory
@@ -127,7 +127,7 @@ struct DUTMemory
         return addr & ~(S - 1);
     }
 
-    [[noreturn]] void out_of_bound_abort(uint32_t addr);
+    [[noreturn]] static void out_of_bound_abort(uint32_t addr);
 
     template <typename T>
     T read(uint32_t uaddr)
@@ -181,15 +181,15 @@ struct DUTMemory
         }
     }
 
-    bool in_mrom(uint32_t addr) const;
-    bool in_sram(uint32_t addr) const;
-    bool in_flash(uint32_t addr) const;
-    bool in_psram(uint32_t addr) const;
-    bool in_sdram(uint32_t addr) const;
-    bool in_device(uint32_t addr) const;
-    bool in_sim_mem(uint32_t addr) const; // flash + mrom
-    uint8_t* guest_to_host(uint32_t paddr) const;
-    uint32_t host_to_guest(uint8_t* haddr) const;
+    static bool in_mrom(uint32_t addr);
+    static bool in_sram(uint32_t addr);
+    static bool in_flash(uint32_t addr);
+    static bool in_psram(uint32_t addr);
+    static bool in_sdram(uint32_t addr);
+    static bool in_device(uint32_t addr) ;
+    static bool in_sim_mem(uint32_t addr) ; // flash + mrom
+    [[nodiscard]] uint8_t* guest_to_host(uint32_t paddr) const;
+    [[nodiscard]] uint32_t host_to_guest(uint8_t* haddr) const;
 };
 
 class SimHandle
@@ -216,12 +216,12 @@ public:
 
     void dump_statistics(FILE* stream = stderr);
 
-    uint64_t cycles() const { return cycle_counter; }
+    [[nodiscard]] uint64_t cycles() const { return cycle_counter; }
     CPUProxy& cpu() { return cpu_proxy; }
     DUTMemory& mem() { return memory; }
-    const auto& boot_tp() const { return boot_timepoint; }
+    [[nodiscard]] const auto& boot_tp() const { return boot_timepoint; }
 
-    uint64_t elapsed_time() const
+    [[nodiscard]] uint64_t elapsed_time() const
     {
         return std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::high_resolution_clock::now() - boot_timepoint)

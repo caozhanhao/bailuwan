@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cstdint>
 #include <cstdio>
 
 #include "config.hpp"
@@ -15,7 +14,7 @@ void flash_read(int32_t addr, int32_t* data)
     //   By the way, difftest in NEMU does not be affected by this, since the read request is emulated
     //   by NEMU itself, not a APBSPI in ysyxSoC.
 
-    *data = SIM.mem().read<uint32_t>(addr + CONFIG_FLASH_BASE);
+    *data = SIM.mem().read<int32_t>(addr + CONFIG_FLASH_BASE);
 }
 
 void mrom_read(int32_t addr, int32_t* data)

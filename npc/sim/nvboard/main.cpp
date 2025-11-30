@@ -10,11 +10,11 @@ void nvboard_bind_all_pins(TOP_NAME* top);
 // Compatible with SDB
 static void parse_args(int argc, char* argv[])
 {
-    const struct option table[] = {
+    constexpr option table[] = {
         {"batch", no_argument, nullptr, 'b'},
         {"elf", required_argument, nullptr, 'e'},
         {"help", no_argument, nullptr, 'h'},
-        {0, 0, nullptr, 0},
+        {nullptr, 0, nullptr, 0},
     };
     int o;
     while ((o = getopt_long(argc, argv, "-bhe:", table, nullptr)) != -1)

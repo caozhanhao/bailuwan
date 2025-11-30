@@ -49,8 +49,7 @@ void init_difftest(size_t img_size)
 {
     const char* ref_so_file = "sim/common/lib/riscv32-nemu-interpreter-so";
 
-    void* handle;
-    handle = dlopen(ref_so_file, RTLD_LAZY);
+    auto handle = dlopen(ref_so_file, RTLD_LAZY);
     assert(handle);
 
     ref_difftest_memcpy = reinterpret_cast<difftest_memcpy_t>(dlsym(handle, "difftest_memcpy"));

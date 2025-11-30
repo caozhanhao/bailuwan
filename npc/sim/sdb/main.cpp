@@ -33,8 +33,7 @@ static char* rl_gets()
     // default to use the last command
     if (line_read && line_read[0] == '\0')
     {
-        HIST_ENTRY* prev = previous_history();
-        if (prev)
+        if (auto prev = previous_history())
             line_read = strdup(prev->line);
     }
 
@@ -121,16 +120,14 @@ static int cmd_x(char* args)
         return 0;
     }
 
-    auto& mem = SIM.mem();
-
-    if (!mem.in_sim_mem(res) || !mem.in_sim_mem(res + 4 * n))
+    if (!DUTMemory::in_sim_mem(res) || !DUTMemory::in_sim_mem(res + 4 * n))
     {
         printf("x: Address out of range.\n");
         return 0;
     }
 
     for (word_t i = 0; i < n; i++)
-        printf("0x%x: 0x%08x\n", res + i * 4, mem.read<uint32_t>(res + i * 4));
+        printf("0x%x: 0x%08x\n", res + i * 4, SIM.mem().read<uint32_t>(res + i * 4));
 
     return 0;
 }
@@ -181,7 +178,7 @@ static int cmd_d(char* args)
     }
 
     char* endptr;
-    int n = (int)strtoll(args, &endptr, 10);
+    int n = static_cast<int>(strtoll(args, &endptr, 10));
     if (endptr == args)
     {
         printf("d: Expected a number.\n");
@@ -207,7 +204,7 @@ static int cmd_b(char* args)
     }
 
     char* endptr;
-    int given_addr = (int)strtoll(args, &endptr, 16);
+    int given_addr = static_cast<int>(strtoll(args, &endptr, 16));
     if (endptr == args)
     {
         word_t addr = ftrace_get_address_of(args);
@@ -355,11 +352,11 @@ static char* img_file = nullptr;
 
 static int parse_args(int argc, char* argv[])
 {
-    const struct option table[] = {
+    constexpr option table[] = {
         {"batch", no_argument, nullptr, 'b'},
         {"elf", required_argument, nullptr, 'e'},
         {"help", no_argument, nullptr, 'h'},
-        {0, 0, nullptr, 0},
+        {nullptr, 0, nullptr, 0},
     };
     int o;
     while ((o = getopt_long(argc, argv, "-bhe:", table, nullptr)) != -1)
@@ -426,14 +423,11 @@ int main(int argc, char* argv[])
     SIM.init_sim(&DUT, img_file);
     SIM.reset(10);
 
-    // ATTENTION: Initialize difftest after the dut reset.
     IFDEF(CONFIG_DIFFTEST, init_difftest(SIM.mem().inst_memory_size));
 
 
     if (elf_file)
-    {
         IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
-    }
 
     sdb_mainloop();
 
