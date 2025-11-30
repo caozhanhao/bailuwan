@@ -10,12 +10,10 @@
 
 void Disassembler::init()
 {
-    void* dl_handle;
-    dl_handle = dlopen("sim/common/lib/libcapstone.so.5", RTLD_LAZY);
+    auto dl_handle = dlopen("sim/common/lib/libcapstone.so.5", RTLD_LAZY);
     assert(dl_handle);
 
-    opendl_t cs_open_dl = NULL;
-    cs_open_dl = reinterpret_cast<opendl_t>(dlsym(dl_handle, "cs_open"));
+    auto cs_open_dl = reinterpret_cast<opendl_t>(dlsym(dl_handle, "cs_open"));
     assert(cs_open_dl);
 
     cs_disasm_dl = reinterpret_cast<decltype(cs_disasm_dl)>(dlsym(dl_handle, "cs_disasm"));
@@ -33,7 +31,7 @@ std::string Disassembler::disassemble(uint32_t pc, uint32_t inst) const
     char buffer[128];
 
     cs_insn* insn;
-    uint8_t* code = reinterpret_cast<uint8_t*>(&inst);
+    auto* code = reinterpret_cast<uint8_t*>(&inst);
     size_t count = cs_disasm_dl(handle, code, 4, pc, 0, &insn);
     if (count != 1)
     {
@@ -47,5 +45,5 @@ std::string Disassembler::disassemble(uint32_t pc, uint32_t inst) const
         snprintf(buffer + ret, 128 - ret, "\t%s", insn->op_str);
     cs_free_dl(insn, count);
 
-    return std::string(buffer);
+    return {buffer};
 }

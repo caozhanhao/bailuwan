@@ -30,8 +30,7 @@ static BP *head = nullptr, *free_ = nullptr;
 
 void init_bp_pool()
 {
-    int i;
-    for (i = 0; i < NR_BP; i++)
+    for (int i = 0; i < NR_BP; i++)
     {
         // To avoid conflict with watch points, the NO of breakpoints starts from NR_WP.
         bp_pool[i].NO = NR_WP + i;
@@ -95,8 +94,6 @@ void bp_update()
         bp_update_one(p);
 }
 
-const char* ftrace_search(uint32_t pc, uint32_t* entry_addr);
-
 void bp_display()
 {
     BP* buffer[NR_BP] = {};
@@ -110,8 +107,7 @@ void bp_display()
         BP* p = buffer[i];
 
         uint32_t entry_addr;
-        const char* func = ftrace_search(p->addr, &entry_addr);
-        if (func)
+        if (auto func = ftrace_search(p->addr, &entry_addr))
             printf("%-6d " FMT_WORD " <@%s+0x%x>\n", p->NO, p->addr, func, p->addr - entry_addr);
         else
             printf("%-6d " FMT_WORD "\n", p->NO, p->addr);
@@ -124,8 +120,7 @@ void bp_create(word_t addr)
     p->addr = addr;
 
     uint32_t entry_addr;
-    const char* func = ftrace_search(addr, &entry_addr);
-    if (func)
+    if (auto func = ftrace_search(addr, &entry_addr))
         printf("Breakpoint %d: " FMT_WORD " <@%s+0x%x>\n", p->NO, addr, func, addr - entry_addr);
     else
         printf("Breakpoint %d: " FMT_WORD "\n", p->NO, addr);

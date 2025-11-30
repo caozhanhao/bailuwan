@@ -28,18 +28,17 @@ typedef struct watchpoint
 } WP;
 
 static WP wp_pool[NR_WP] = {};
-static WP *head = NULL, *free_ = NULL;
+static WP *head = nullptr, *free_ = nullptr;
 
 void init_wp_pool()
 {
-  int i;
-  for (i = 0; i < NR_WP; i++)
+  for (int i = 0; i < NR_WP; i++)
   {
     wp_pool[i].NO = i;
-    wp_pool[i].next = (i == NR_WP - 1 ? NULL : &wp_pool[i + 1]);
+    wp_pool[i].next = (i == NR_WP - 1 ? nullptr : &wp_pool[i + 1]);
   }
 
-  head = NULL;
+  head = nullptr;
   free_ = wp_pool;
 }
 
@@ -55,7 +54,7 @@ WP* new_wp()
 
 void free_wp(WP* wp)
 {
-  Assert(wp, "Watchpoint is NULL");
+  Assert(wp, "Watchpoint is nullptr");
 
   free(wp->expr);
 
@@ -67,7 +66,7 @@ void free_wp(WP* wp)
     return;
   }
 
-  for (WP* p = head; p != NULL; p = p->next)
+  for (WP* p = head; p != nullptr; p = p->next)
   {
     if (p->next == wp)
     {
@@ -116,7 +115,7 @@ void wp_update_one(WP* p)
 
 void wp_update()
 {
-  for (WP* p = head; p != NULL; p = p->next)
+  for (WP* p = head; p != nullptr; p = p->next)
     wp_update_one(p);
 }
 
@@ -124,7 +123,7 @@ void wp_display()
 {
   WP* buffer[NR_WP] = {};
   int buffer_pos = 0;
-  for (WP* p = head; p != NULL; p = p->next)
+  for (WP* p = head; p != nullptr; p = p->next)
     buffer[buffer_pos++] = p;
 
   printf("%-6s %-15s %s\n", "Num", "LastValue", "What");

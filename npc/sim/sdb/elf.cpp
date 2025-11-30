@@ -33,7 +33,7 @@ size_t ftrace_size = 0;
 static void* read_chunk(FILE* fp, size_t off, size_t sz)
 {
     void* buf = malloc(sz);
-    if (fseek(fp, (long)off, SEEK_SET) != 0)
+    if (fseek(fp, static_cast<long>(off), SEEK_SET) != 0)
     {
         free(buf);
         panic("fseek fail");
@@ -119,7 +119,7 @@ void init_ftrace(const char* file)
     Assert(eh.e_shnum > 0, "todo: SHN_LORESERVE");
 
     // read all section headers
-    Elf32_Shdr* shdrs = (Elf32_Shdr*)read_chunk(fp, eh.e_shoff, eh.e_shentsize * eh.e_shnum);
+    auto* shdrs = static_cast<Elf32_Shdr*>(read_chunk(fp, eh.e_shoff, eh.e_shentsize * eh.e_shnum));
 
     // find SHT_SYMTAB / SHT_DYNSYM
     for (int i = 0; i < eh.e_shnum; i++)
@@ -135,12 +135,12 @@ void init_ftrace(const char* file)
             uint32_t stridx = shdrs[i].sh_link;
             uint32_t str_off = shdrs[stridx].sh_offset;
             uint32_t str_size = shdrs[stridx].sh_size;
-            char* strtab = (char*)read_chunk(fp, str_off, str_size);
+            char* strtab = static_cast<char*>(read_chunk(fp, str_off, str_size));
 
             for (uint32_t si = 0; si < num_ents; si++)
             {
                 Elf32_Sym sym;
-                memcpy(&sym, (char*)section + si * sz_ent, sizeof(sym));
+                memcpy(&sym, static_cast<char*>(section) + si * sz_ent, sizeof(sym));
                 unsigned char st_type = ELF32_ST_TYPE(sym.st_info);
                 if (st_type == STT_FUNC && sym.st_shndx != SHN_UNDEF)
                 {
