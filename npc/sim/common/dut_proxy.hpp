@@ -218,7 +218,7 @@ class SimHandle
     void cleanup_trace();
 
 #ifdef BAILUWAN_SIM_MODE
-    static constexpr auto mode = BAILUWAN_SIM_MODE;
+    static constexpr auto mode = STRINGIFY(BAILUWAN_SIM_MODE);
 #else
 #error "Unknown simulation mode"
 #endif
