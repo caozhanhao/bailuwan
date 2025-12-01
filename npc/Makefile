@@ -17,7 +17,7 @@ IMG ?=
 ifneq ($(findstring $(MAKECMDGOALS),sim),)
 
 ### Print build info message
-$(info # Building BaiLuWan [$(HW)] [Trace: $(TRACE)] [img: $(IMG)])
+$(info \# Building BaiLuWan [$(HW)] [Trace: $(TRACE)] [img: $(IMG)])
 
 ### Check: environment variable `HW` must be in the supported list
 HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))
