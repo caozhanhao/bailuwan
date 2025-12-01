@@ -75,6 +75,7 @@ PERF_COUNTER_TABLE_ENTRY(all_cycles)
 class CPUProxy
 {
     friend class SimHandle;
+
     struct Bindings
     {
         // Registers
@@ -196,8 +197,8 @@ struct DUTMemory
     static bool in_flash(uint32_t addr);
     static bool in_psram(uint32_t addr);
     static bool in_sdram(uint32_t addr);
-    static bool in_device(uint32_t addr) ;
-    static bool in_sim_mem(uint32_t addr) ; // flash + mrom
+    static bool in_device(uint32_t addr);
+    static bool in_sim_mem(uint32_t addr); // flash + mrom
     [[nodiscard]] uint8_t* guest_to_host(uint32_t paddr) const;
     [[nodiscard]] uint32_t host_to_guest(uint8_t* haddr) const;
 };
@@ -215,6 +216,18 @@ class SimHandle
 
     void init_trace();
     void cleanup_trace();
+
+    static constexpr auto mode =
+#if defined(BAILUWAN_SIM_FAST)
+    "fast"
+#elif defined(BAILUWAN_SIM_NVBOARD)
+    "nvboard"
+#elif defined(BAILUWAN_SIM_SDB)
+    "sdb"
+#else
+#error "Unknown simulation mode"
+#endif
+    ;
 
 public:
     SimHandle() = default;

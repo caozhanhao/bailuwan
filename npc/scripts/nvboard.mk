@@ -1,3 +1,4 @@
+CXXFLAGS += -DBAILUWAN_SIM_NVBOARD
 # constraint file
 NXDC_FILES = ./sim/nvboard/top.nxdc
 SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
