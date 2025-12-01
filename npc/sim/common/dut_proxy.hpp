@@ -222,7 +222,6 @@ class SimHandle
 #else
 #error "Unknown simulation mode"
 #endif
-    ;
 
 public:
     SimHandle() = default;
