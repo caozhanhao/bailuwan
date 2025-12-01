@@ -7,7 +7,7 @@
 #include <getopt.h>
 
 static const char* img_file = nullptr;
-static const char* statistic_file = nullptr;
+static const char* statistics_file = nullptr;
 
 // Compatible with SDB
 static void parse_args(int argc, char* argv[])
@@ -16,7 +16,7 @@ static void parse_args(int argc, char* argv[])
         {"batch", no_argument, nullptr, 'b'},
         {"elf", required_argument, nullptr, 'e'},
         {"help", no_argument, nullptr, 'h'},
-        {"statistic", no_argument, nullptr, 's'},
+        {"statistics", no_argument, nullptr, 's'},
         {nullptr, 0, nullptr, 0},
     };
     int o;
@@ -29,14 +29,14 @@ static void parse_args(int argc, char* argv[])
             printf("Ignoring option -%c\n", o);
             break;
         case 's':
-            statistic_file = optarg;
+            statistics_file = optarg;
             break;
         case 1:
             img_file = optarg;
             return;
         default:
             printf("Usage: %s [filename]\n", argv[0]);
-            printf("\t-s,--statistic=STATISTIC_FILE Save statistics to file.\n");
+            printf("\t-s,--statistics=STATISTIC_FILE   Save statistics to file.\n");
             exit(0);
         }
     }
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
     Verilated::commandArgs(argc, argv);
     parse_args(argc, argv);
     // INIT
-    SIM.init_sim(&DUT, img_file, statistic_file);
+    SIM.init_sim(&DUT, img_file, statistics_file);
     SIM.reset(10);
 
     // Simulate

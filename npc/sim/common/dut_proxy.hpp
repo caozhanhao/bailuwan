@@ -212,7 +212,7 @@ class SimHandle
     IFDEF(TRACE, TFP_TYPE* tfp{});
     std::chrono::high_resolution_clock::time_point boot_timepoint;
     std::string img_path;
-    std::string statistic_path;
+    std::string statistics_path;
 
     void init_trace();
     void cleanup_trace();
@@ -226,7 +226,7 @@ class SimHandle
 public:
     SimHandle() = default;
 
-    void init_sim(TOP_NAME* dut_, const char* img_path_, const char* statistic_path_);
+    void init_sim(TOP_NAME* dut_, const char* img_path_, const char* statistics_path_);
     void cleanup();
     void single_cycle();
     void reset(int n);

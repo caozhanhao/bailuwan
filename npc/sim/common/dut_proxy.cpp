@@ -364,13 +364,13 @@ void SimHandle::cleanup_trace()
 #endif
 }
 
-void SimHandle::init_sim(TOP_NAME* dut_, const char* img_path_, const char* statistic_path_)
+void SimHandle::init_sim(TOP_NAME* dut_, const char* img_path_, const char* statistics_path_)
 {
     // img_path can not be null
     assert(img_path_ != nullptr);
     img_path = img_path_;
     // statistic_path is optional
-    statistic_path = statistic_path_ ? statistic_path_ : "";
+    statistics_path = statistics_path_ ? statistics_path_ : "";
 
     dut = dut_;
     cpu_proxy.bind(dut_);
@@ -445,15 +445,15 @@ void SimHandle::dump_statistics_json(FILE* stream) const
 {
     if (stream == nullptr)
     {
-        stream = fopen(statistic_path.c_str(), "w");
+        stream = fopen(statistics_path.c_str(), "w");
         if (stream == nullptr)
         {
             fprintf(stderr, "Warning: Can not open statistic file: '%s'. Printing to stderr...\n",
-                statistic_path.c_str());
+                statistics_path.c_str());
             stream = stderr;
         }
         else
-            fprintf(stdout, "Dumping statistic to file: '%s'\n", statistic_path.c_str());
+            fprintf(stdout, "Dumping statistics to file: '%s'\n", statistics_path.c_str());
     }
 
     using KeyT = std::string;
