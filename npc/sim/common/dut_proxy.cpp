@@ -68,12 +68,12 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
     BIND_SIGNAL(difftest_ready, "difftest_ready")
 
     // Perf Counters
-#define PERF_COUNTER_TABLE_ENTRY(name) BIND_SIGNAL(perf_counters.name, STRINGIFY(name))
+#define PERF_COUNTER_TABLE_ENTRY(name) BIND_SIGNAL(perf_counters.name, TOSTRING(name))
     PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
 
     // CSRs
-#define CSR_TABLE_ENTRY(name, idx) BIND_SIGNAL(csrs[idx], STRINGIFY(name))
+#define CSR_TABLE_ENTRY(name, idx) BIND_SIGNAL(csrs[idx], TOSTRING(name))
     CSR_TABLE
 #undef CSR_TABLE_ENTRY
 
@@ -170,7 +170,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     fprintf(stream, "| Type     |    Count | %%      | Avg Cycles |\n");
     fprintf(stream, "+----------+----------+--------+------------+\n");
 #define PERF(display_name, name)  fprintf(stream, "| %-8s | %8lu | %05.2f%% | %10.2f |\n", \
-    STRINGIFY(display_name), \
+    TOSTRING(display_name), \
     *b.name##_ops, \
     100.0 * (static_cast<double>(*b.name##_ops) / all_ops_d), \
     (static_cast<double>(*b.name##_cycles) / static_cast<double>(*b.name##_ops)))
