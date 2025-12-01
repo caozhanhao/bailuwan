@@ -420,9 +420,8 @@ void SimHandle::reset(int n)
 
 void SimHandle::dump_statistics(FILE* stream) const
 {
-    auto inst_count = cpu().inst_count();
-    auto cnt_d = static_cast<double>(inst_count);
-    auto cycles_d = static_cast<double>(cycles());
+    auto cnt_d = static_cast<double>(cpu().inst_count());
+    auto cycles_d = static_cast<double>(cpu().cycle_count());
 
     fprintf(stream, "Elapsed time: %lu us\n", elapsed_time());
 
