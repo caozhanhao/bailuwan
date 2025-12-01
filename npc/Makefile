@@ -130,6 +130,11 @@ sim:
 	$(MAKE) $(BIN)
 	$(BIN) $(ARGS) $(IMG)
 
+### Perf
+perf:
+	$(MAKE) $(BIN)
+	$(BIN) $(ARGS) $(IMG)
+
 ### Chisel Test
 test:
 	./mill -i $(PRJ).test
