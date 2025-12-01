@@ -114,6 +114,7 @@ void ebreak_handler()
     printf("Ebreak after %lu cycles\n", SIM.cycles());
     printf("Statistics:\n");
     SIM.dump_statistics(stdout);
+    SIM.dump_statistics_json(stdout);
 
     throw EBreakException(static_cast<int>(a0));
 }

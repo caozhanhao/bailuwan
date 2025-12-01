@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <type_traits>
+#include <variant>
 
 TOP_NAME DUT;
 SimHandle SIM;
@@ -67,7 +68,7 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
     BIND_SIGNAL(difftest_ready, "difftest_ready")
 
     // Perf Counters
-#define PERF_COUNTER_TABLE_ENTRY(name) BIND_SIGNAL(name, STRINGIFY(name))
+#define PERF_COUNTER_TABLE_ENTRY(name) BIND_SIGNAL(perf_counters.name, STRINGIFY(name))
     PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
 
@@ -86,8 +87,14 @@ uint32_t CPUProxy::curr_inst() const
 
 uint64_t CPUProxy::inst_count() const
 {
-    return *bindings.all_ops;
+    return *bindings.perf_counters.all_ops;
 }
+
+uint64_t CPUProxy::cycle_count() const
+{
+    return *bindings.perf_counters.all_cycles;
+}
+
 
 uint32_t CPUProxy::pc() const
 {
@@ -147,7 +154,7 @@ void CPUProxy::dump_csrs(FILE* stream) const
 
 void CPUProxy::dump_perf_counters(FILE* stream)
 {
-    auto& b = bindings;
+    auto& b = bindings.perf_counters;
 #define PERF(name) fprintf(stream, STRINGIFY(name) " = %lu\n", *b.name)
     PERF(ifu_fetched);
     PERF(lsu_read);
@@ -193,6 +200,8 @@ void CPUProxy::dump(FILE* stream)
 
 void DUTMemory::init(const std::string& filename)
 {
+    image_path = filename;
+
     printf("Initializing memory from %s\n", filename.c_str());
     FILE* fp = fopen(filename.c_str(), "rb");
     assert(fp);
@@ -409,7 +418,7 @@ void SimHandle::reset(int n)
     dut->reset = 0;
 }
 
-void SimHandle::dump_statistics(FILE* stream)
+void SimHandle::dump_statistics(FILE* stream) const
 {
     auto inst_count = cpu().inst_count();
     auto cnt_d = static_cast<double>(inst_count);
@@ -425,4 +434,55 @@ void SimHandle::dump_statistics(FILE* stream)
 
     fprintf(stream, "Perf Counters:\n");
     SIM.cpu().dump_perf_counters(stream);
+}
+
+void SimHandle::dump_statistics_json(FILE* stream) const
+{
+    using KeyT = std::string;
+    using ValT = std::variant<std::string, uint64_t, double>;
+
+    std::vector<std::pair<KeyT, ValT>> data;
+    auto emit = [&](const std::string& name, const ValT& val)
+    {
+        data.emplace_back(name, val);
+    };
+
+    auto& c = SIM.cpu();
+
+    emit("image_path", mem().image_path);
+    emit("elapsed_time", elapsed_time());
+    emit("simulator_cycles", simulator_cycles());
+
+#define PERF_COUNTER_TABLE_ENTRY(name) emit(STRINGIFY(name), *c.bindings.perf_counters.name);
+    PERF_COUNTER_TABLE
+#undef PERF_COUNTER_TABLE_ENTRY
+
+    fprintf(stream, "{");
+    for (auto it = data.begin(); it != data.end(); ++it)
+    {
+        const auto& [key, val] = *it;
+
+        // Ident
+        fprintf(stream, "  ");
+
+        // Key
+        fprintf(stream, "\"%s\": ", key.c_str());
+
+        // Val
+        if (auto str = std::get_if<std::string>(&val))
+            fprintf(stream, "\"%s\"", str->c_str());
+        else if (auto u64 = std::get_if<uint64_t>(&val))
+            fprintf(stream, "%lu", *u64);
+        else if (auto d = std::get_if<double>(&val))
+            fprintf(stream, "%f", *d);
+        else
+            assert(false && "Unknown type.");
+
+        // ,
+        if (std::next(it) != data.end())
+            fprintf(stream, ",\n");
+        else
+            fprintf(stream, "\n");
+    }
+    fprintf(stream, "}");
 }
