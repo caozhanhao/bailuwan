@@ -1,5 +1,8 @@
-#ifndef NPC_CSRC_MACRO_HPP
-#define NPC_CSRC_MACRO_HPP
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
+#ifndef BAILUWAN_MACRO_HPP
+#define BAILUWAN_MACRO_HPP
 
 #include <cstring>
 

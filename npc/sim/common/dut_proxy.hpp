@@ -1,5 +1,8 @@
-#ifndef COMMON_DUT_PROXY_HPP
-#define COMMON_DUT_PROXY_HPP
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
+#ifndef BAILUWAN_COMMON_DUT_PROXY_HPP
+#define BAILUWAN_COMMON_DUT_PROXY_HPP
 
 #include "VysyxSoCFull.h"
 #include "utils/macro.hpp"

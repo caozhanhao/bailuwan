@@ -1,3 +1,8 @@
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
+// SDB is adapted from sdb in NEMU.
+
 #ifndef SDB_HPP
 #define SDB_HPP
 

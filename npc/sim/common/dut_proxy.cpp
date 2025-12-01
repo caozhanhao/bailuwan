@@ -1,3 +1,6 @@
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
 #include "config.hpp"
 #include "dut_proxy.hpp"
 

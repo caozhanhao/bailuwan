@@ -1,4 +1,4 @@
-# Makefile for NPC (New Processor Core) by caozhanhao
+# Makefile for BailuWan (白鹭湾)
 
 ### *Get a more readable version of this Makefile* by `make html` (requires python-markdown)
 html:
@@ -8,7 +8,7 @@ html:
 ## 1. Basic Setup and Checks
 
 ### Project Info
-PRJ = npc
+PRJ = bailuwan
 TOPNAME = ysyxSoCFull
 TRACE ?= notrace
 CYCLES ?= -1
@@ -18,7 +18,7 @@ IMG ?=
 ifneq ($(findstring $(MAKECMDGOALS),sim),)
 
 ### Print build info message
-$(info # Building NPC [$(HW)] [Trace: $(TRACE)] [sim $(CYCLES) cycles] [img: $(IMG)])
+$(info # Building BaiLuWan [$(HW)] [Trace: $(TRACE)] [sim $(CYCLES) cycles] [img: $(IMG)])
 
 ### Check: environment variable `HW` must be in the supported list
 HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))

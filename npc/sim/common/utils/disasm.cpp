@@ -1,3 +1,6 @@
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
 #include <dlfcn.h>
 #include <capstone/capstone.h>
 #include <cassert>

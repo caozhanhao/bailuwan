@@ -1,3 +1,8 @@
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
+// SDB is adapted from sdb in NEMU.
+
 #include "sdb.hpp"
 #include "dut_proxy.hpp"
 

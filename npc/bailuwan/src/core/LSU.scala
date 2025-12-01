@@ -1,0 +1,190 @@
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
+package core
+
+import chisel3._
+import chisel3.util._
+import constants._
+import top.CoreParams
+import utils.Utils._
+import amba._
+import utils.PerfCounter
+
+class LSU(
+  implicit p: CoreParams,
+  axi_prop:   AXIProperty)
+    extends Module {
+  val io = IO(new Bundle {
+    val lsu_op = Input(UInt(LSUOp.WIDTH))
+    val addr   = Input(UInt(p.XLEN.W))
+
+    val write_data = Flipped(Decoupled(UInt(p.XLEN.W)))
+    val read_data  = Decoupled(UInt(p.XLEN.W))
+
+    val mem = new AXI4()
+  })
+
+  io.mem.ar.bits.id    := 0.U
+  io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.ar.bits.burst := 0.U
+
+  io.mem.aw.bits.id    := 0.U
+  io.mem.aw.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.aw.bits.burst := 0.U
+
+  io.mem.w.bits.last := true.B
+
+  assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
+
+  // Read
+
+  val read_enable = MuxLookup(io.lsu_op, false.B)(
+    Seq(
+      LSUOp.LB  -> true.B,
+      LSUOp.LH  -> true.B,
+      LSUOp.LW  -> true.B,
+      LSUOp.LBU -> true.B,
+      LSUOp.LHU -> true.B
+    )
+  )
+
+  val r_idle :: r_wait_mem :: r_wait_ready :: r_fault :: Nil = Enum(4)
+
+  val r_state = RegInit(r_idle)
+  r_state := MuxLookup(r_state, r_idle)(
+    Seq(
+      r_idle       -> Mux(read_enable && io.mem.ar.fire, r_wait_mem, r_idle),
+      r_wait_mem   -> Mux(io.mem.r.fire, Mux(io.mem.r.bits.resp === AXIResp.OKAY, r_wait_ready, r_fault), r_wait_mem),
+      r_wait_ready -> Mux(io.read_data.fire, r_idle, r_wait_ready)
+    )
+  )
+
+  io.mem.ar.bits.addr := io.addr
+  io.mem.ar.valid     := read_enable && r_state === r_idle
+
+  io.mem.r.ready := r_state === r_wait_mem
+
+  val read_reg = Reg(UInt(32.W))
+  read_reg := Mux(io.mem.r.valid, io.mem.r.bits.data, read_reg)
+
+  val lb_sel = MuxLookup(io.addr(1, 0), 0.U(8.W))(
+    Seq(
+      0.U -> read_reg(7, 0),
+      1.U -> read_reg(15, 8),
+      2.U -> read_reg(23, 16),
+      3.U -> read_reg(31, 24)
+    )
+  )
+
+  val lh_sel = MuxLookup(io.addr(1, 0), 0.U(16.W))(
+    Seq(
+      0.U -> read_reg(15, 0),
+      2.U -> read_reg(31, 16)
+    )
+  )
+
+  val selected_loaded_data = MuxLookup(io.lsu_op, 0.U(p.XLEN.W))(
+    Seq(
+      LSUOp.LB  -> sign_extend(lb_sel, p.XLEN),
+      LSUOp.LH  -> sign_extend(lh_sel, p.XLEN),
+      LSUOp.LW  -> read_reg,
+      LSUOp.LBU -> zero_extend(lb_sel, p.XLEN),
+      LSUOp.LHU -> zero_extend(lh_sel, p.XLEN)
+    )
+  )
+
+  io.mem.ar.bits.size := MuxLookup(io.lsu_op, 0.U(3.W))(
+    Seq(
+      LSUOp.LB  -> 0.U(3.W),
+      LSUOp.LH  -> 1.U(3.W),
+      LSUOp.LW  -> 2.U(3.W),
+      LSUOp.LBU -> 0.U(3.W),
+      LSUOp.LHU -> 1.U(3.W)
+    )
+  )
+
+  io.read_data.valid := r_state === r_wait_ready
+  io.read_data.bits  := selected_loaded_data
+
+  // Write
+
+  val write_enable = io.write_data.valid && MuxLookup(io.lsu_op, false.B)(
+    Seq(
+      LSUOp.SB -> true.B,
+      LSUOp.SH -> true.B,
+      LSUOp.SW -> true.B
+    )
+  )
+
+  val write_mask = MuxLookup(io.lsu_op, 0.U(4.W))(
+    Seq(
+      LSUOp.SB -> (0x1.U(4.W) << io.addr(1, 0)).asUInt,
+      LSUOp.SH -> (0x3.U(4.W) << io.addr(1, 0)).asUInt,
+      LSUOp.SW -> 0xf.U(4.W)
+    )
+  )
+
+  val selected_store_data = MuxLookup(io.lsu_op, 0.U(p.XLEN.W))(
+    Seq(
+      LSUOp.SB -> (io.write_data.bits << (io.addr(1, 0) << 3).asUInt).asUInt,
+      LSUOp.SH -> (io.write_data.bits << (io.addr(1, 0) << 3).asUInt).asUInt,
+      LSUOp.SW -> io.write_data.bits
+    )
+  )
+
+  io.mem.aw.bits.size := MuxLookup(io.lsu_op, 0.U(3.W))(
+    Seq(
+      LSUOp.SB -> 0.U(3.W),
+      LSUOp.SH -> 1.U(3.W),
+      LSUOp.SW -> 2.U(3.W)
+    )
+  )
+
+  val w_idle :: w_wait_mem :: w_fault :: Nil = Enum(3)
+
+  val w_state = RegInit(w_idle)
+
+  w_state := MuxLookup(w_state, w_idle)(
+    Seq(
+      w_idle     -> Mux(write_enable && io.mem.aw.fire, w_wait_mem, w_idle),
+      w_wait_mem -> Mux(io.mem.b.fire, Mux(io.mem.b.bits.resp === AXIResp.OKAY, w_idle, w_fault), w_wait_mem)
+    )
+  )
+
+  io.mem.aw.bits.addr := io.addr
+  io.mem.aw.valid     := write_enable && w_state === w_idle
+  io.mem.w.bits.data  := selected_store_data
+  io.mem.w.bits.strb  := write_mask
+  io.mem.w.valid      := w_state === w_idle
+  io.mem.b.ready      := w_state === w_wait_mem
+  io.write_data.ready := io.mem.b.valid
+
+  val rfault_addr = RegInit(0.U(p.XLEN.W))
+  rfault_addr := Mux(io.mem.ar.fire, io.addr, rfault_addr)
+
+  val rfault_resp = RegInit(AXIResp.OKAY)
+  rfault_resp := Mux(io.mem.r.fire, io.mem.r.bits.resp, rfault_resp)
+
+  val wfault_addr = RegInit(0.U(p.XLEN.W))
+  wfault_addr := Mux(io.mem.aw.fire, io.addr, wfault_addr)
+
+  val wfault_resp = RegInit(AXIResp.OKAY)
+  wfault_resp := Mux(io.mem.b.fire, io.mem.b.bits.resp, wfault_resp)
+
+  val misaligned = MuxLookup(io.lsu_op, false.B)(
+    Seq(
+      LSUOp.LH  -> io.addr(0),
+      LSUOp.SH  -> io.addr(0),
+      LSUOp.LHU -> io.addr(0),
+      LSUOp.LW  -> (io.addr(1) | io.addr(0)),
+      LSUOp.SW  -> (io.addr(1) | io.addr(0)),
+    )
+  )
+
+  assert(!misaligned, cf"LSU: Misaligned access at 0x${io.addr}%x")
+  assert(r_state =/= r_fault, cf"LSU: Read fault at 0x${rfault_addr}%x, resp=${rfault_resp}")
+  assert(w_state =/= w_fault, cf"LSU: Write fault at 0x${wfault_addr}%x, resp=${wfault_resp}")
+
+  PerfCounter(io.mem.r.fire, "lsu_read")
+}
