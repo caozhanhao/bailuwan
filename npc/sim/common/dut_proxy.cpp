@@ -453,7 +453,7 @@ void SimHandle::dump_statistics_json(FILE* stream) const
     emit("elapsed_time", elapsed_time());
     emit("simulator_cycles", simulator_cycles());
 
-#define PERF_COUNTER_TABLE_ENTRY(name) emit(STRINGIFY(name), *c.bindings.perf_counters.name);
+#define PERF_COUNTER_TABLE_ENTRY(name) emit(TOSTRING(name), *c.bindings.perf_counters.name);
     PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
 
