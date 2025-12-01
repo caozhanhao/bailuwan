@@ -1,3 +1,6 @@
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 

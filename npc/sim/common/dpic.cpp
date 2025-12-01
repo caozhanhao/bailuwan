@@ -1,3 +1,6 @@
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
 #include <iostream>
 #include <cstdio>
 
@@ -40,7 +43,7 @@ void psram_write(int waddr, char wdata)
 // One chip -> 25-bit -> 32 MB
 // id is used to tell which chip is being accessed.
 //
-// To make the x command in sdb work, we convert the address to the original address issued in NPC.
+// To make the x command in sdb work, we convert the address to the original address issued in CPU.
 //
 // First, in the SDRAM controller, addr[1:0] is ignored and addr[12] is used as a chip select.
 // The address layout (MSB -> LSB) is:

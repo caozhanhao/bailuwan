@@ -1,5 +1,8 @@
-#ifndef NPC_CSRC_DISASM_HPP
-#define NPC_CSRC_DISASM_HPP
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
+#ifndef BAILUWAN_DISASM_HPP
+#define BAILUWAN_DISASM_HPP
 
 #include <string>
 #include <capstone/capstone.h>
