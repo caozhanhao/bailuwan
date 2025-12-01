@@ -6,9 +6,9 @@ package core
 import chisel3._
 import chisel3.util._
 import constants._
-import top.CoreParams
 import utils.{PerfCounter, SignalProbe}
 import utils.Utils._
+import bailuwan.CoreParams
 
 object InstDecodeTable {
   import InstPat._

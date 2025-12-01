@@ -7,7 +7,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.util.MuxLookup
 import constants.ALUOp
-import top.CoreParams
+import bailuwan.CoreParams
 
 class ALU(
   implicit p: CoreParams)

@@ -6,10 +6,10 @@ package core
 import chisel3._
 import chisel3.util._
 import constants._
-import top.CoreParams
 import utils.Utils._
 import amba._
 import utils.PerfCounter
+import bailuwan.CoreParams
 
 class LSU(
   implicit p: CoreParams,

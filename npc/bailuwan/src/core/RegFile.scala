@@ -4,8 +4,8 @@
 package core
 
 import chisel3._
-import top.CoreParams
 import utils.SignalProbe
+import bailuwan.CoreParams
 
 class RegFile(
   implicit p: CoreParams)

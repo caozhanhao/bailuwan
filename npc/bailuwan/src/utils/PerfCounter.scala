@@ -5,7 +5,7 @@ package utils
 
 import chisel3._
 import chisel3.util._
-import top.CoreParams
+import bailuwan.CoreParams
 
 class PerfCounter(name: String) extends BlackBox with HasBlackBoxInline {
   val io                   = IO(new Bundle {

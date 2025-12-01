@@ -1,7 +1,7 @@
 // Copyright (c) 2025 caozhanhao
 // SPDX-License-Identifier: MIT
 
-package top
+package bailuwan
 
 case class CoreParams() {
   val XLEN:        Int     = 32

@@ -16,11 +16,11 @@ object CommonEmitVerilogOptions {
 }
 
 object EmitVerilog extends App {
-  circt.stage.ChiselStage.emitSystemVerilogFile(new top.Top(), args, CommonEmitVerilogOptions.firtool)
+  circt.stage.ChiselStage.emitSystemVerilogFile(new bailuwan.Top(), args, CommonEmitVerilogOptions.firtool)
 }
 
 object Emit4BitALUVerilog extends App {
-  class ALU4BitParams extends top.CoreParams {
+  class ALU4BitParams extends bailuwan.CoreParams {
     override val XLEN: Int = 4
   }
 
