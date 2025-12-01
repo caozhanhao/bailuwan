@@ -111,7 +111,7 @@ void ebreak_handler()
     else
         printf("\33[1;41mHIT BAD TRAP\33[0m, a0=%d\n", a0);
 
-    printf("Ebreak after %lu cycles\n", SIM.cycles());
+    printf("Ebreak after %lu cycles\n", SIM.simulator_cycles());
     printf("Statistics:\n");
     SIM.dump_statistics(stdout);
     SIM.dump_statistics_json(stdout);
