@@ -89,10 +89,14 @@ EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
 ifneq ($(TRACE), notrace)
 TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
 CXXFLAGS += -DTRACE -DTRACE_$(TRACE) -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
-VERILATOR_CFLAGS += --trace-$(TRACE)
-else
-VERILATOR_CFLAGS += --no-trace
 endif
+
+TRACE_FLAG_vcd     := --trace
+TRACE_FLAG_fst     := --trace-fst
+TRACE_FLAG_notrace := --no-trace
+
+TRACE_FLAG := $(TRACE_FLAG_$(TRACE))
+VERILATOR_CFLAGS += $(TRACE_FLAG)
 
 ## 4. Hardware-Specific Configurations
 -include ./scripts/$(HW).mk
