@@ -131,8 +131,8 @@ sim:
 
 ### Perf
 perf:
-	$(MAKE) $(BIN)
-	$(BIN) $(ARGS) $(IMG)
+	$(MAKE) -C $(AM_KERNELS_HOME)/benchmarks/microbench ARCH=riscv32e-ysyxsoc run NPC_TRACE=notrace NPC_HW=fast mainargs=train
+	# TODO: process statistics
 
 ### Chisel Test
 test:
