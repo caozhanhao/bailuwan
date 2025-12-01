@@ -452,6 +452,8 @@ void SimHandle::dump_statistics_json(FILE* stream) const
                 statistic_path.c_str());
             stream = stderr;
         }
+        else
+            fprintf(stdout, "Dumping statistic to file: '%s'\n", statistic_path.c_str());
     }
 
     using KeyT = std::string;
