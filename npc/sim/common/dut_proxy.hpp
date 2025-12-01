@@ -223,6 +223,18 @@ class SimHandle
 #error "Unknown simulation mode"
 #endif
 
+    static constexpr auto trace_mode =
+#if !defined(TRACE)
+        "disabled"
+#elif defined(TRACE_fst)
+        "fst"
+#elif defined(TRACE_vcd)
+    "vcd"
+#else
+#error "Unknown trace"
+#endif
+    ;
+
 public:
     SimHandle() = default;
 

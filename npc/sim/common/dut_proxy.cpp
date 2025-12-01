@@ -467,18 +467,6 @@ void SimHandle::dump_statistics_json(FILE* stream) const
 
     auto& c = SIM.cpu();
 
-    constexpr auto trace_mode =
-#if !defined(TRACE)
-            "disabled"
-#elif defined(TRACE_fst)
-            "fst"
-#elif defined(TRACE_vcd)
-        "vcd"
-#else
-#error "Unknown trace"
-#endif
-        ;
-
     emit("mode", mode);
     emit("trace", trace_mode);
     emit("image_path", img_path);
