@@ -448,7 +448,7 @@ void SimHandle::dump_statistics_json(FILE* stream) const
         stream = fopen(statistic_path.c_str(), "w");
         if (stream == nullptr)
         {
-            fprintf(stderr, "Warning: Can not open statistic file: '%s'. Printing to stderr...",
+            fprintf(stderr, "Warning: Can not open statistic file: '%s'. Printing to stderr...\n",
                 statistic_path.c_str());
             stream = stderr;
         }
