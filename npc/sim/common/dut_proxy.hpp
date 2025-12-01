@@ -217,13 +217,8 @@ class SimHandle
     void init_trace();
     void cleanup_trace();
 
-    static constexpr auto mode =
-#if defined(BAILUWAN_SIM_FAST)
-    "fast"
-#elif defined(BAILUWAN_SIM_NVBOARD)
-    "nvboard"
-#elif defined(BAILUWAN_SIM_SDB)
-    "sdb"
+#ifdef BAILUWAN_SIM_MODE
+    static constexpr auto mode = BAILUWAN_SIM_MODE;
 #else
 #error "Unknown simulation mode"
 #endif

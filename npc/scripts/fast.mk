@@ -1,2 +1,2 @@
-CXXFLAGS += -DBAILUWAN_SIM_FAST
+CXXFLAGS += -DBAILUWAN_SIM_MODE="fast"
 CSRCS += $(shell find $(abspath ./sim/fast) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
