@@ -6,6 +6,7 @@
 
 #include <verilated.h>
 #include <verilated_syms.h>
+#include <getopt.h>
 
 #include <iostream>
 #include <iomanip>
@@ -200,8 +201,6 @@ void CPUProxy::dump(FILE* stream)
 
 void DUTMemory::init(const std::string& filename)
 {
-    image_path = filename;
-
     printf("Initializing memory from %s\n", filename.c_str());
     FILE* fp = fopen(filename.c_str(), "rb");
     assert(fp);
@@ -365,15 +364,18 @@ void SimHandle::cleanup_trace()
 #endif
 }
 
-void SimHandle::init_sim(TOP_NAME* dut_, const std::string& filename)
+void SimHandle::init_sim(TOP_NAME* dut_, const std::string& img_path_, const std::string& statistic_path_)
 {
     dut = dut_;
     cpu_proxy.bind(dut_);
     cycle_counter = 0;
     sim_time = 0;
+    img_path = img_path_;
+    statistic_path = statistic_path_;
+
     init_trace();
 
-    memory.init(filename);
+    memory.init(img_path);
 
     boot_timepoint = std::chrono::high_resolution_clock::now();
 
@@ -437,6 +439,17 @@ void SimHandle::dump_statistics(FILE* stream) const
 
 void SimHandle::dump_statistics_json(FILE* stream) const
 {
+    if (stream == nullptr)
+    {
+        stream = fopen(statistic_path.c_str(), "w");
+        if (stream == nullptr)
+        {
+            fprintf(stderr, "Warning: Can not open statistic file: '%s'. Printing to stderr...",
+                statistic_path.c_str());
+            stream = stderr;
+        }
+    }
+
     using KeyT = std::string;
     using ValT = std::variant<std::string, uint64_t, double>;
 
@@ -462,7 +475,7 @@ void SimHandle::dump_statistics_json(FILE* stream) const
 
     emit("mode", mode);
     emit("trace", trace_mode);
-    emit("image_path", mem().image_path);
+    emit("image_path", img_path);
     emit("elapsed_time", elapsed_time());
     emit("simulator_cycles", simulator_cycles());
 

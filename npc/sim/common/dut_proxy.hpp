@@ -120,8 +120,6 @@ public:
 
 struct DUTMemory
 {
-    std::string image_path;
-
     uint8_t* flash_data{};
     uint8_t* psram_data{};
     uint8_t* sdram_data{};
@@ -213,6 +211,8 @@ class SimHandle
     uint32_t prev_inst{};
     IFDEF(TRACE, TFP_TYPE* tfp{});
     std::chrono::high_resolution_clock::time_point boot_timepoint;
+    std::string img_path;
+    std::string statistic_path;
 
     void init_trace();
     void cleanup_trace();
@@ -226,13 +226,13 @@ class SimHandle
 public:
     SimHandle() = default;
 
-    void init_sim(TOP_NAME* dut_, const std::string& filename);
+    void init_sim(TOP_NAME* dut_, const std::string& img_path_, const std::string& statistic_path_);
     void cleanup();
     void single_cycle();
     void reset(int n);
 
     void dump_statistics(FILE* stream = stderr) const;
-    void dump_statistics_json(FILE* stream) const;
+    void dump_statistics_json(FILE* stream = nullptr) const;
 
     [[nodiscard]] uint64_t simulator_cycles() const { return cycle_counter; }
     CPUProxy& cpu() { return cpu_proxy; }
