@@ -155,7 +155,7 @@ void CPUProxy::dump_csrs(FILE* stream) const
 void CPUProxy::dump_perf_counters(FILE* stream)
 {
     auto& b = bindings.perf_counters;
-#define PERF(name) fprintf(stream, STRINGIFY(name) " = %lu\n", *b.name)
+#define PERF(name) fprintf(stream, TOSTRING(name) " = %lu\n", *b.name)
     PERF(ifu_fetched);
     PERF(lsu_read);
     PERF(exu_done);
