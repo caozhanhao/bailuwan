@@ -456,7 +456,7 @@ void SimHandle::dump_statistics_json(FILE* stream) const
     PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
 
-    fprintf(stream, "{");
+    fprintf(stream, "{\n");
     for (auto it = data.begin(); it != data.end(); ++it)
     {
         const auto& [key, val] = *it;
@@ -480,8 +480,6 @@ void SimHandle::dump_statistics_json(FILE* stream) const
         // ,
         if (std::next(it) != data.end())
             fprintf(stream, ",\n");
-        else
-            fprintf(stream, "\n");
     }
-    fprintf(stream, "}");
+    fprintf(stream, "\n}\n");
 }
