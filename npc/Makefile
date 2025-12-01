@@ -11,14 +11,13 @@ html:
 PRJ = bailuwan
 TOPNAME = ysyxSoCFull
 TRACE ?= notrace
-CYCLES ?= -1
 IMG ?=
 
 ### Run checks only when `sim`
 ifneq ($(findstring $(MAKECMDGOALS),sim),)
 
 ### Print build info message
-$(info # Building BaiLuWan [$(HW)] [Trace: $(TRACE)] [sim $(CYCLES) cycles] [img: $(IMG)])
+$(info -> Building BaiLuWan [$(HW)] [Trace: $(TRACE)] [img: $(IMG)])
 
 ### Check: environment variable `HW` must be in the supported list
 HWS = $(basename $(notdir $(shell ls ./scripts/*.mk)))
@@ -89,10 +88,14 @@ EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
 ifneq ($(TRACE), notrace)
 TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
 CXXFLAGS += -DTRACE -DTRACE_$(TRACE) -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
-VERILATOR_CFLAGS += --trace-$(TRACE)
-else
-VERILATOR_CFLAGS += --no-trace
 endif
+
+TRACE_FLAG_vcd     := --trace
+TRACE_FLAG_fst     := --trace-fst
+TRACE_FLAG_notrace := --no-trace
+
+TRACE_FLAG := $(TRACE_FLAG_$(TRACE))
+VERILATOR_CFLAGS += $(TRACE_FLAG)
 
 ## 4. Hardware-Specific Configurations
 -include ./scripts/$(HW).mk
@@ -125,6 +128,12 @@ sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(MAKE) $(BIN)
 	$(BIN) $(ARGS) $(IMG)
+
+### Perf
+perf:
+	$(MAKE) -C $(AM_KERNELS_HOME)/benchmarks/microbench ARCH=riscv32e-ysyxsoc run NPC_TRACE=notrace NPC_HW=fast mainargs=train
+	python $(NPC_HOME)/parse_statistics.py $(AM_KERNELS_HOME)/benchmarks/microbench/build/statistics.txt
+	# TODO: More statistics processing
 
 ### Chisel Test
 test:

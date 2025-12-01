@@ -74,6 +74,8 @@ PERF_COUNTER_TABLE_ENTRY(all_cycles)
 
 class CPUProxy
 {
+    friend class SimHandle;
+
     struct Bindings
     {
         // Registers
@@ -87,10 +89,13 @@ class CPUProxy
         uint8_t* difftest_ready;
         uint8_t* ifu_state;
 
-        // Perf Counters
+        struct PerfCounters
+        {
+            // Perf Counters
 #define PERF_COUNTER_TABLE_ENTRY(name) uint64_t* name;
-        PERF_COUNTER_TABLE
+            PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
+        } perf_counters;
     } bindings;
 
 public:
@@ -105,6 +110,7 @@ public:
     [[nodiscard]] uint32_t dnpc() const;
     [[nodiscard]] uint32_t curr_inst() const;
     [[nodiscard]] uint64_t inst_count() const;
+    [[nodiscard]] uint64_t cycle_count() const;
     [[nodiscard]] uint32_t reg(uint32_t idx) const;
     [[nodiscard]] uint32_t csr(uint32_t idx) const;
     [[nodiscard]] bool is_csr_valid(uint32_t idx) const;
@@ -189,8 +195,8 @@ struct DUTMemory
     static bool in_flash(uint32_t addr);
     static bool in_psram(uint32_t addr);
     static bool in_sdram(uint32_t addr);
-    static bool in_device(uint32_t addr) ;
-    static bool in_sim_mem(uint32_t addr) ; // flash + mrom
+    static bool in_device(uint32_t addr);
+    static bool in_sim_mem(uint32_t addr); // flash + mrom
     [[nodiscard]] uint8_t* guest_to_host(uint32_t paddr) const;
     [[nodiscard]] uint32_t host_to_guest(uint8_t* haddr) const;
 };
@@ -205,23 +211,46 @@ class SimHandle
     uint32_t prev_inst{};
     IFDEF(TRACE, TFP_TYPE* tfp{});
     std::chrono::high_resolution_clock::time_point boot_timepoint;
+    std::string img_path;
+    std::string statistics_path;
 
     void init_trace();
     void cleanup_trace();
 
+#ifdef BAILUWAN_SIM_MODE
+    static constexpr auto mode = TOSTRING(BAILUWAN_SIM_MODE);
+#else
+#error "Unknown simulation mode"
+#endif
+
+    static constexpr auto trace_mode =
+#if !defined(TRACE)
+        "disabled"
+#elif defined(TRACE_fst)
+        "fst"
+#elif defined(TRACE_vcd)
+    "vcd"
+#else
+#error "Unknown trace"
+#endif
+    ;
+
 public:
     SimHandle() = default;
 
-    void init_sim(TOP_NAME* dut_, const std::string& filename);
+    void init_sim(TOP_NAME* dut_, const char* img_path_, const char* statistics_path_);
     void cleanup();
     void single_cycle();
     void reset(int n);
 
-    void dump_statistics(FILE* stream = stderr);
+    void dump_statistics(FILE* stream = stderr) const;
+    void dump_statistics_json(FILE* stream = nullptr) const;
 
-    [[nodiscard]] uint64_t cycles() const { return cycle_counter; }
+    [[nodiscard]] uint64_t simulator_cycles() const { return cycle_counter; }
     CPUProxy& cpu() { return cpu_proxy; }
+    [[nodiscard]] const CPUProxy& cpu() const { return cpu_proxy; }
     DUTMemory& mem() { return memory; }
+    [[nodiscard]] const DUTMemory& mem() const { return memory; }
     [[nodiscard]] const auto& boot_tp() const { return boot_timepoint; }
 
     [[nodiscard]] uint64_t elapsed_time() const

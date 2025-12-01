@@ -354,6 +354,7 @@ int is_exit_status_bad()
 
 static char* elf_file = nullptr;
 static char* img_file = nullptr;
+static char* statistics_file = nullptr;
 
 static int parse_args(int argc, char* argv[])
 {
@@ -361,10 +362,11 @@ static int parse_args(int argc, char* argv[])
         {"batch", no_argument, nullptr, 'b'},
         {"elf", required_argument, nullptr, 'e'},
         {"help", no_argument, nullptr, 'h'},
+        {"statistics", no_argument, nullptr, 's'},
         {nullptr, 0, nullptr, 0},
     };
     int o;
-    while ((o = getopt_long(argc, argv, "-bhe:", table, nullptr)) != -1)
+    while ((o = getopt_long(argc, argv, "-bhe:s:", table, nullptr)) != -1)
     {
         switch (o)
         {
@@ -374,13 +376,17 @@ static int parse_args(int argc, char* argv[])
         case 'e':
             elf_file = optarg;
             break;
+        case 's':
+            statistics_file = optarg;
+            break;
         case 1:
             img_file = optarg;
             return 0;
         default:
             printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
-            printf("\t-b,--batch              run with batch mode\n");
-            printf("\t-e,--elf=ELF_FILE       load symbols for ftrace.\n");
+            printf("\t-b,--batch                      run with batch mode\n");
+            printf("\t-e,--elf=ELF_FILE               load symbols for ftrace.\n");
+            printf("\t-s,--statistics=STATISTIC_FILE  Save statistics to file.\n");
             printf("\n");
             exit(0);
         }
@@ -425,7 +431,7 @@ int main(int argc, char* argv[])
 
     parse_args(argc, argv);
 
-    SIM.init_sim(&DUT, img_file);
+    SIM.init_sim(&DUT, img_file, statistics_file);
     SIM.reset(10);
 
     IFDEF(CONFIG_DIFFTEST, init_difftest(SIM.mem().inst_memory_size));

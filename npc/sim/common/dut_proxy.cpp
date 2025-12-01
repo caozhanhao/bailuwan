@@ -6,10 +6,12 @@
 
 #include <verilated.h>
 #include <verilated_syms.h>
+#include <getopt.h>
 
 #include <iostream>
 #include <iomanip>
 #include <type_traits>
+#include <variant>
 
 TOP_NAME DUT;
 SimHandle SIM;
@@ -67,12 +69,12 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
     BIND_SIGNAL(difftest_ready, "difftest_ready")
 
     // Perf Counters
-#define PERF_COUNTER_TABLE_ENTRY(name) BIND_SIGNAL(name, STRINGIFY(name))
+#define PERF_COUNTER_TABLE_ENTRY(name) BIND_SIGNAL(perf_counters.name, TOSTRING(name))
     PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
 
     // CSRs
-#define CSR_TABLE_ENTRY(name, idx) BIND_SIGNAL(csrs[idx], STRINGIFY(name))
+#define CSR_TABLE_ENTRY(name, idx) BIND_SIGNAL(csrs[idx], TOSTRING(name))
     CSR_TABLE
 #undef CSR_TABLE_ENTRY
 
@@ -86,8 +88,14 @@ uint32_t CPUProxy::curr_inst() const
 
 uint64_t CPUProxy::inst_count() const
 {
-    return *bindings.all_ops;
+    return *bindings.perf_counters.all_ops;
 }
+
+uint64_t CPUProxy::cycle_count() const
+{
+    return *bindings.perf_counters.all_cycles;
+}
+
 
 uint32_t CPUProxy::pc() const
 {
@@ -147,8 +155,8 @@ void CPUProxy::dump_csrs(FILE* stream) const
 
 void CPUProxy::dump_perf_counters(FILE* stream)
 {
-    auto& b = bindings;
-#define PERF(name) fprintf(stream, STRINGIFY(name) " = %lu\n", *b.name)
+    auto& b = bindings.perf_counters;
+#define PERF(name) fprintf(stream, TOSTRING(name) " = %lu\n", *b.name)
     PERF(ifu_fetched);
     PERF(lsu_read);
     PERF(exu_done);
@@ -163,7 +171,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     fprintf(stream, "| Type     |    Count | %%      | Avg Cycles |\n");
     fprintf(stream, "+----------+----------+--------+------------+\n");
 #define PERF(display_name, name)  fprintf(stream, "| %-8s | %8lu | %05.2f%% | %10.2f |\n", \
-    STRINGIFY(display_name), \
+    TOSTRING(display_name), \
     *b.name##_ops, \
     100.0 * (static_cast<double>(*b.name##_ops) / all_ops_d), \
     (static_cast<double>(*b.name##_cycles) / static_cast<double>(*b.name##_ops)))
@@ -356,15 +364,22 @@ void SimHandle::cleanup_trace()
 #endif
 }
 
-void SimHandle::init_sim(TOP_NAME* dut_, const std::string& filename)
+void SimHandle::init_sim(TOP_NAME* dut_, const char* img_path_, const char* statistics_path_)
 {
+    // img_path can not be null
+    assert(img_path_ != nullptr);
+    img_path = img_path_;
+    // statistic_path is optional
+    statistics_path = statistics_path_ ? statistics_path_ : "";
+
     dut = dut_;
     cpu_proxy.bind(dut_);
     cycle_counter = 0;
     sim_time = 0;
+
     init_trace();
 
-    memory.init(filename);
+    memory.init(img_path);
 
     boot_timepoint = std::chrono::high_resolution_clock::now();
 
@@ -409,11 +424,10 @@ void SimHandle::reset(int n)
     dut->reset = 0;
 }
 
-void SimHandle::dump_statistics(FILE* stream)
+void SimHandle::dump_statistics(FILE* stream) const
 {
-    auto inst_count = cpu().inst_count();
-    auto cnt_d = static_cast<double>(inst_count);
-    auto cycles_d = static_cast<double>(cycles());
+    auto cnt_d = static_cast<double>(cpu().inst_count());
+    auto cycles_d = static_cast<double>(cpu().cycle_count());
 
     fprintf(stream, "Elapsed time: %lu us\n", elapsed_time());
 
@@ -425,4 +439,68 @@ void SimHandle::dump_statistics(FILE* stream)
 
     fprintf(stream, "Perf Counters:\n");
     SIM.cpu().dump_perf_counters(stream);
+}
+
+void SimHandle::dump_statistics_json(FILE* stream) const
+{
+    if (stream == nullptr)
+    {
+        stream = fopen(statistics_path.c_str(), "w");
+        if (stream == nullptr)
+        {
+            fprintf(stderr, "Warning: Can not open statistic file: '%s'. Printing to stderr...\n",
+                statistics_path.c_str());
+            stream = stderr;
+        }
+        else
+            fprintf(stdout, "Dumping statistics to file: '%s'\n", statistics_path.c_str());
+    }
+
+    using KeyT = std::string;
+    using ValT = std::variant<std::string, uint64_t, double>;
+
+    std::vector<std::pair<KeyT, ValT>> data;
+    auto emit = [&](const std::string& name, const ValT& val)
+    {
+        data.emplace_back(name, val);
+    };
+
+    auto& c = SIM.cpu();
+
+    emit("mode", mode);
+    emit("trace", trace_mode);
+    emit("image_path", img_path);
+    emit("elapsed_time", elapsed_time());
+    emit("simulator_cycles", simulator_cycles());
+
+#define PERF_COUNTER_TABLE_ENTRY(name) emit(TOSTRING(name), *c.bindings.perf_counters.name);
+    PERF_COUNTER_TABLE
+#undef PERF_COUNTER_TABLE_ENTRY
+
+    fprintf(stream, "{\n");
+    for (auto it = data.begin(); it != data.end(); ++it)
+    {
+        const auto& [key, val] = *it;
+
+        // Ident
+        fprintf(stream, "  ");
+
+        // Key
+        fprintf(stream, "\"%s\": ", key.c_str());
+
+        // Val
+        if (auto str = std::get_if<std::string>(&val))
+            fprintf(stream, "\"%s\"", str->c_str());
+        else if (auto u64 = std::get_if<uint64_t>(&val))
+            fprintf(stream, "%lu", *u64);
+        else if (auto d = std::get_if<double>(&val))
+            fprintf(stream, "%f", *d);
+        else
+            assert(false && "Unknown type.");
+
+        // ,
+        if (std::next(it) != data.end())
+            fprintf(stream, ",\n");
+    }
+    fprintf(stream, "\n}\n");
 }
