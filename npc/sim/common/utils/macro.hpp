@@ -46,8 +46,8 @@
 // keep the code if a boolean macro is defined to 0
 #define IFZERO(macro, ...) MUXZERO(macro, __KEEP, __IGNORE)(__VA_ARGS__)
 
-#define STRINGIFY(s)        #s
-#define TOSTRING(s)         STRINGIFY(s)
+#define TOSTRING__(s)        #s
+#define TOSTRING(s)         TOSTRING__(s)
 
 #define ANSI_FG_BLACK   "\33[1;30m"
 #define ANSI_FG_RED     "\33[1;31m"
