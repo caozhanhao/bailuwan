@@ -364,14 +364,18 @@ void SimHandle::cleanup_trace()
 #endif
 }
 
-void SimHandle::init_sim(TOP_NAME* dut_, const std::string& img_path_, const std::string& statistic_path_)
+void SimHandle::init_sim(TOP_NAME* dut_, const char* img_path_, const char* statistic_path_)
 {
+    // img_path can not be null
+    assert(img_path_ != nullptr);
+    img_path = img_path_;
+    // statistic_path is optional
+    statistic_path = statistic_path_ ? statistic_path_ : "";
+
     dut = dut_;
     cpu_proxy.bind(dut_);
     cycle_counter = 0;
     sim_time = 0;
-    img_path = img_path_;
-    statistic_path = statistic_path_;
 
     init_trace();
 

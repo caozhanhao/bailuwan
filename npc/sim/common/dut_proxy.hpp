@@ -226,7 +226,7 @@ class SimHandle
 public:
     SimHandle() = default;
 
-    void init_sim(TOP_NAME* dut_, const std::string& img_path_, const std::string& statistic_path_);
+    void init_sim(TOP_NAME* dut_, const char* img_path_, const char* statistic_path_);
     void cleanup();
     void single_cycle();
     void reset(int n);
