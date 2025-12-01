@@ -13,7 +13,7 @@ CFLAGS    += -fdata-sections -ffunction-sections
 LDSCRIPTS += $(AM_HOME)/am/src/riscv/ysyxsoc/linker.ld
 # Don't specify entry here to avoid conflict with the LDSCRIPTS.
 LDFLAGS   += --gc-sections
-NPCFLAGS  += -e $(IMAGE).elf -l $(shell dirname $(IMAGE).elf)/statistic.txt
+NPCFLAGS  += -e $(IMAGE).elf -s $(shell dirname $(IMAGE).elf)/statistic.txt
 
 ifndef NO_BATCH
     NPCFLAGS += -b
