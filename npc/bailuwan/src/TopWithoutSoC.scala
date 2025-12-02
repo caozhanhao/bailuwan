@@ -24,6 +24,8 @@ class TopWithoutSoC(
   core.io.slave.ar.bits  := 0.U.asTypeOf(core.io.slave.ar.bits)
   core.io.slave.r.ready  := false.B
 
+  core.io.interrupt := false.B
+
   val mem = Module(new DPICMem)
   core.io.master <> mem.io
 }
