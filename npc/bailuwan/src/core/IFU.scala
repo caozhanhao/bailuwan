@@ -106,9 +106,6 @@ class ICache(
   resp.bits.data  := entry_data
   resp.bits.error := err
 
-  // resp => hit
-  assert(state =/= s_resp || hit)
-
   req.ready := state === s_idle
 
   // Mem IO
