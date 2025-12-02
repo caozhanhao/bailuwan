@@ -436,7 +436,6 @@ int main(int argc, char* argv[])
 
     IFDEF(CONFIG_DIFFTEST, init_difftest(SIM.mem().inst_memory_size));
 
-
     if (elf_file)
         IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
 
