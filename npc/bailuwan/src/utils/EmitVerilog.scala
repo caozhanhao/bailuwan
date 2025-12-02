@@ -60,11 +60,12 @@ object EmitVerilog extends App {
       implicit val p:        CoreParams  = CoreParams(ResetVector = config.reset_vector)
       implicit val axi_prop: AXIProperty = AXIProperty()
 
-      val module =
+      circt.stage.ChiselStage.emitSystemVerilogFile(
         if (config.without_soc) { new TopWithoutSoC() }
-        else { new Top() }
-
-      circt.stage.ChiselStage.emitSystemVerilogFile(module, firtoolArgs, CommonEmitVerilogOptions.firtool)
+        else { new Top() },
+        firtoolArgs,
+        CommonEmitVerilogOptions.firtool
+      )
 
     case _ =>
       System.exit(1)
