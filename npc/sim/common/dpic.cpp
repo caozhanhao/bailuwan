@@ -105,12 +105,44 @@ void sdram_write(int waddr, int16_t wdata, char mask, char id)
 
 int pmem_read(int raddr)
 {
+    // Clock
+    if (raddr - RTC_MMIO >= 8 && raddr - RTC_MMIO <= 28)
+    {
+        std::time_t t = std::time(nullptr);
+        std::tm* now = std::gmtime(&t);
+        switch (raddr - RTC_MMIO)
+        {
+        case 8:
+            return now->tm_sec;
+        case 12:
+            return now->tm_min;
+        case 16:
+            return now->tm_hour;
+        case 20:
+            return now->tm_mday;
+        case 24:
+            return now->tm_mon + 1;
+        case 28:
+            return now->tm_year + 1900;
+        default: assert(false);
+        }
+        assert(false);
+    }
+
     auto ret = SIM.mem().read<int>(raddr);
     return ret;
 }
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
+    // Serial port
+    if (waddr == SERIAL_PORT_MMIO && wmask == 1)
+    {
+        putchar(wdata);
+        fflush(stdout);
+        return;
+    }
+
     SIM.mem().write<int>(waddr, wdata, wmask);
 }
 

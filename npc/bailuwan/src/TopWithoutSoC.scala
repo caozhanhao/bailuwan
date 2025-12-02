@@ -13,10 +13,9 @@ class TopWithoutSoC(
     extends Module {
   override val desiredName = "TopWithoutSoC"
 
-
   val core = Module(new Core)
   core.io.interrupt := false.B
-  
+
   core.io.slave.aw.valid := false.B
   core.io.slave.aw.bits  := 0.U.asTypeOf(core.io.slave.aw.bits)
   core.io.slave.w.valid  := false.B
