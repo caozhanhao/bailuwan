@@ -41,7 +41,7 @@ class ICache(
   axi_prop:   AXIProperty)
     extends Module {
   val io = IO(new Bundle {
-    val ifu = new ICacheIO()
+    val ifu = Flipped(new ICacheIO())
     val mem = new AXI4()
   })
 
