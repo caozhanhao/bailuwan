@@ -196,7 +196,7 @@ struct DUTMemory
     static bool in_psram(uint32_t addr);
     static bool in_sdram(uint32_t addr);
     static bool in_device(uint32_t addr);
-    static bool in_sim_mem(uint32_t addr); // flash + mrom
+    static bool in_sim_mem(uint32_t addr);
     [[nodiscard]] uint8_t* guest_to_host(uint32_t paddr) const;
     [[nodiscard]] uint32_t host_to_guest(uint8_t* haddr) const;
 };

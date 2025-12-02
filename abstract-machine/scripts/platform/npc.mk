@@ -12,7 +12,7 @@ CFLAGS    += -fdata-sections -ffunction-sections
 LDSCRIPTS += $(AM_HOME)/scripts/linker.ld
 LDFLAGS   += --defsym=_pmem_start=0x80000000 --defsym=_entry_offset=0x0
 LDFLAGS   += --gc-sections -e _start
-NPCFLAGS  += -e $(IMAGE).elf
+NPCFLAGS  += -e $(IMAGE).elf -s $(shell dirname $(IMAGE).elf)/statistics-without-ysyxSoC.json
 
 ifndef NO_BATCH
     NPCFLAGS += -b
