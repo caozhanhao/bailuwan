@@ -36,15 +36,14 @@ class ICacheIO(
   val resp = Flipped(Decoupled(new ICacheResp))
 }
 
-class ICache(
+class ICachePlaceHolder(
   implicit p: CoreParams,
   axi_prop:   AXIProperty)
     extends Module {
-  val io = IO(new Bundle {
+  val io   = IO(new Bundle {
     val ifu = Flipped(new ICacheIO())
     val mem = new AXI4()
   })
-
   val req  = io.ifu.req
   val resp = io.ifu.resp
 
@@ -56,6 +55,92 @@ class ICache(
   resp.valid      := io.mem.r.valid
   resp.bits.data  := io.mem.r.bits.data
   resp.bits.error := io.mem.r.bits.resp =/= AXIResp.OKAY
+
+  io.mem.ar.bits.id    := 0.U
+  io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
+  io.mem.ar.bits.burst := 0.U
+  io.mem.aw.valid      := false.B
+  io.mem.aw.bits       := DontCare
+  io.mem.w.valid       := false.B
+  io.mem.w.bits        := DontCare
+  io.mem.b.ready       := false.B
+  io.mem.w.bits.last   := true.B
+}
+
+class ICache(
+  implicit p: CoreParams,
+  axi_prop:   AXIProperty)
+    extends Module {
+  val io = IO(new Bundle {
+    val ifu = Flipped(new ICacheIO())
+    val mem = new AXI4()
+  })
+
+  // Constants
+  val BLOCK_BITS = 2 // 4-byte block
+  val INDEX_BITS = 4 // 16 blocks
+
+  val TAG_BITS   = 31 - INDEX_BITS - BLOCK_BITS
+  // 1-bit valid | TAG_BITS-bit tag | (1 << BLOCK_BITS)-bit data
+  val ENTRY_BITS = 1 + TAG_BITS + (1 << BLOCK_BITS)
+
+  // Request and Response
+  val req  = io.ifu.req
+  val resp = io.ifu.resp
+
+  // Request Info
+  val req_addr  = req.bits.addr
+  val req_tag   = req_addr(31, INDEX_BITS + BLOCK_BITS)
+  val req_index = req_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
+
+  // Cache Storage
+  val storage = RegInit(VecInit(Seq.fill(1 << INDEX_BITS)(0.U(ENTRY_BITS.W))))
+
+  // Entry Info Selected by Request
+  val entry       = storage(req_index)
+  val entry_valid = entry(ENTRY_BITS - 1)
+  val entry_tag   = entry(ENTRY_BITS - 1, TAG_BITS + (1 << BLOCK_BITS))
+  val entry_data  = entry((1 << BLOCK_BITS) - 1, 0)
+
+  val hit = entry_valid && (entry_tag === req_tag)
+
+  // Fill Info
+  val fill_addr  = RegInit(0.U(32.W))
+  val fill_tag   = fill_addr(31, INDEX_BITS + BLOCK_BITS)
+  val fill_index = fill_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
+
+  fill_addr := Mux(req.valid, req_addr, fill_addr)
+
+  // States
+  val s_idle :: s_fill :: s_wait_mem :: Nil = Enum(3)
+
+  val state = RegInit(s_idle)
+  state := MuxLookup(state, s_idle)(
+    Seq(
+      s_idle     -> Mux(req.valid, Mux(hit, s_idle, s_fill), s_idle),
+      s_fill     -> Mux(io.mem.ar.fire, s_wait_mem, s_fill),
+      s_wait_mem -> Mux(io.mem.r.fire, s_idle, s_wait_mem)
+    )
+  )
+
+  // Fill
+  val new_entry = true.B ## fill_tag ## io.mem.r.bits.data
+  storage(fill_index) := Mux(io.mem.r.fire, new_entry, storage(fill_index))
+
+  // IFU IO
+  // Immediate hit or refill+hit
+  resp.valid      := req.valid && hit
+  resp.bits.data  := entry_data
+  resp.bits.error := false.B // TODO
+
+  req.ready := state === s_idle
+
+  // Mem IO
+  io.mem.ar.valid     := state === s_fill
+  io.mem.ar.bits.addr := fill_addr
+
+  io.mem.r.ready := state === s_wait_mem
 
   io.mem.ar.bits.id    := 0.U
   io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
