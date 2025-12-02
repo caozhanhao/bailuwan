@@ -79,7 +79,7 @@ class ICache(
   val storage = RegInit(VecInit(Seq.fill(1 << INDEX_BITS)(0.U(ENTRY_BITS.W))))
 
   // Entry Info Selected by Request
-  val read_index = Mux(state === s_idle, req_index, fill_index)
+  val read_index  = Mux(state === s_idle, req_index, fill_index)
   val entry       = storage(read_index)
   val entry_valid = entry(ENTRY_BITS - 1)
   val entry_tag   = entry(ENTRY_BITS - 2, DATA_BITS)
@@ -111,6 +111,12 @@ class ICache(
   resp.bits.error := err
 
   req.ready := state === s_idle
+
+  // Ensure (req.valid && hit) => resp.ready.
+  // If the IFU sends a request that hits the cache but is not ready to receive
+  // data in the same cycle, the request will be lost because we do NOT latch
+  // hit responses. Thus, we assert this requirement here.
+  assert(!(req.valid && hit) || resp.ready)
 
   // Mem IO
   io.mem.ar.valid     := state === s_fill
