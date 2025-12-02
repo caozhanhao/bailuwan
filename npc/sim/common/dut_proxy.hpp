@@ -4,9 +4,10 @@
 #ifndef BAILUWAN_COMMON_DUT_PROXY_HPP
 #define BAILUWAN_COMMON_DUT_PROXY_HPP
 
-#include "VysyxSoCFull.h"
 #include "utils/macro.hpp"
 #include "config.hpp"
+
+#include TOSTRING(TOP_NAME.h)
 
 #ifdef TRACE_fst
 #include "verilated_fst_c.h"
@@ -141,31 +142,6 @@ struct DUTMemory
     template <typename T>
     T read(uint32_t uaddr)
     {
-        // // Clock
-        // if (uaddr - RTC_MMIO >= 8 && uaddr - RTC_MMIO <= 28)
-        // {
-        //     std::time_t t = std::time(nullptr);
-        //     std::tm* now = std::gmtime(&t);
-        //     switch (uaddr - RTC_MMIO)
-        //     {
-        //     case 8:
-        //         return now->tm_sec;
-        //     case 12:
-        //         return now->tm_min;
-        //     case 16:
-        //         return now->tm_hour;
-        //     case 20:
-        //         return now->tm_mday;
-        //     case 24:
-        //         return now->tm_mon + 1;
-        //     case 28:
-        //         return now->tm_year + 1900;
-        //     default: assert(false);
-        //     }
-        //     assert(false);
-        // }
-
-        // Memory
         if (!in_sim_mem(uaddr))
             out_of_bound_abort(uaddr);
 
@@ -196,7 +172,8 @@ struct DUTMemory
     static bool in_psram(uint32_t addr);
     static bool in_sdram(uint32_t addr);
     static bool in_device(uint32_t addr);
-    static bool in_sim_mem(uint32_t addr); // flash + mrom
+    static bool in_sim_mem(uint32_t addr);
+    static std::tuple<uint32_t, uint32_t> get_memory_area(uint32_t addr);
     [[nodiscard]] uint8_t* guest_to_host(uint32_t paddr) const;
     [[nodiscard]] uint32_t host_to_guest(uint8_t* haddr) const;
 };

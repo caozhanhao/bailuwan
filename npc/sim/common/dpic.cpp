@@ -76,7 +76,7 @@ void psram_write(int waddr, char wdata)
 static uint32_t convert_sdram_addr(int addr, char id)
 {
     auto npc_addr = (BITS(addr, 24, 12) << 13) | (BITS(id, 1, 1) << 12)
-                                    | (BITS(addr, 11, 2) << 2);
+        | (BITS(addr, 11, 2) << 2);
 
     // little-endian
     npc_addr += BITS(id, 0, 0) * 2;
@@ -101,6 +101,57 @@ void sdram_write(int waddr, int16_t wdata, char mask, char id)
               id, waddr, wdata, mask));
     auto npc_addr = convert_sdram_addr(waddr, id);
     SIM.mem().write<int16_t>(npc_addr, wdata, mask);
+}
+
+int pmem_read(int raddr)
+{
+    // printf("[pmem_read] pc=0x%x, raddr=0x%x\n",
+    //        SIM.cpu().pc(), raddr);
+    raddr &= ~0x3u;
+
+    // Clock
+    if (raddr - RTC_MMIO >= 8 && raddr - RTC_MMIO <= 28)
+    {
+        std::time_t t = std::time(nullptr);
+        std::tm* now = std::gmtime(&t);
+        switch (raddr - RTC_MMIO)
+        {
+        case 8:
+            return now->tm_sec;
+        case 12:
+            return now->tm_min;
+        case 16:
+            return now->tm_hour;
+        case 20:
+            return now->tm_mday;
+        case 24:
+            return now->tm_mon + 1;
+        case 28:
+            return now->tm_year + 1900;
+        default: assert(false);
+        }
+        assert(false);
+    }
+
+    auto ret = SIM.mem().read<int>(raddr);
+    return ret;
+}
+
+void pmem_write(int waddr, int wdata, char wmask)
+{
+    // printf("[pmem_write] pc=0x%x, waddr=0x%x, wdata=0x%x, wmask=%d\n",
+    //        SIM.cpu().pc(), waddr, wdata, wmask);
+    waddr &= ~0x3u;
+
+    // Serial port
+    if (waddr == SERIAL_PORT_MMIO && wmask == 1)
+    {
+        putchar(wdata);
+        fflush(stdout);
+        return;
+    }
+
+    SIM.mem().write<int>(waddr, wdata, wmask);
 }
 
 void ebreak_handler()

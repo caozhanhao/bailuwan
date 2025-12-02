@@ -12,7 +12,7 @@ CFLAGS    += -fdata-sections -ffunction-sections
 LDSCRIPTS += $(AM_HOME)/scripts/linker.ld
 LDFLAGS   += --defsym=_pmem_start=0x80000000 --defsym=_entry_offset=0x0
 LDFLAGS   += --gc-sections -e _start
-NPCFLAGS  += -e $(IMAGE).elf
+NPCFLAGS  += -e $(IMAGE).elf -s $(shell dirname $(IMAGE).elf)/statistics-without-ysyxSoC.json
 
 ifndef NO_BATCH
     NPCFLAGS += -b
@@ -31,6 +31,6 @@ image: image-dep
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: insert-arg
-	$(MAKE) -C $(NPC_HOME) sim ARGS="$(NPCFLAGS)" IMG=$(IMAGE).bin HW=$(NPC_HW) TRACE=$(NPC_TRACE)
+	$(MAKE) -C $(NPC_HOME) sim WITHOUT_SOC=true TOPNAME=TopWithoutSoC RESET_VECTOR=0x80000000 ARGS="$(NPCFLAGS)" IMG=$(IMAGE).bin HW=$(NPC_HW) TRACE=$(NPC_TRACE)
 
 .PHONY: insert-arg

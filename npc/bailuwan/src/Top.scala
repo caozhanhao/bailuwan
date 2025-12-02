@@ -7,11 +7,11 @@ import chisel3._
 import core._
 import amba._
 
-class Top extends Module {
+class Top(
+  implicit p: CoreParams,
+  axi_prop:   AXIProperty)
+    extends Module {
   override val desiredName = "ysyx_25100251"
-
-  implicit val p:        CoreParams  = CoreParams()
-  implicit val axi_prop: AXIProperty = AXIProperty()
 
   val io = IO(new Bundle {
     val master    = new AXI4

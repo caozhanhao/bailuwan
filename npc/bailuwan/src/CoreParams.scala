@@ -3,9 +3,8 @@
 
 package bailuwan
 
-case class CoreParams() {
-  val XLEN:        Int     = 32
-  val RegCount:    Int     = 16
-  val ResetVector: Int     = 0x3000_0000 // FLASH
-  val Debug:       Boolean = true
-}
+case class CoreParams(
+  XLEN:        Int = 32,
+  RegCount:    Int = 16,
+  ResetVector: Int = 0x3000_0000, // FLASH
+  Debug: Boolean = true) {}

@@ -81,6 +81,7 @@ void init_difftest(size_t img_size)
     ref_difftest_init(0);
     auto& mem = SIM.mem();
 
+    Log("Initializing memory. RESET_VECTOR=0x%x, img_size=0x%lx", RESET_VECTOR, img_size);
     ref_difftest_memcpy(RESET_VECTOR, mem.guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
 
     sync_regs_to_ref();

@@ -217,18 +217,22 @@ void DUTMemory::init(const std::string& filename)
     sdram_data = static_cast<uint8_t*>(malloc(CONFIG_SDRAM_SIZE));
     memset(sdram_data, 0, CONFIG_SDRAM_SIZE);
 
-    size_t bytes_read = fread(flash_data, 1, CONFIG_FLASH_SIZE, fp);
+    // ATTENTION: guest_to_host must be used after the initialization of `***_data`.
+    auto dest_ptr = guest_to_host(RESET_VECTOR);
+    auto [beg, end] = get_memory_area(RESET_VECTOR);
+    auto dest_size = end - beg;
+
+    size_t bytes_read = fread(dest_ptr, 1, dest_size, fp);
     if (bytes_read == 0)
     {
         if (ferror(stdin))
         {
             perror("fread");
-            free(flash_data);
             exit(-1);
         }
     }
 
-    inst_memory_size = CONFIG_FLASH_SIZE;
+    inst_memory_size = dest_size;
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
@@ -309,6 +313,21 @@ bool DUTMemory::in_device(uint32_t addr)
 bool DUTMemory::in_sim_mem(uint32_t addr)
 {
     return in_flash(addr) || in_mrom(addr) || in_psram(addr) || in_sdram(addr);
+}
+
+std::tuple<uint32_t, uint32_t> DUTMemory::get_memory_area(uint32_t addr)
+{
+    if (in_mrom(addr))
+        return {CONFIG_MROM_BASE, CONFIG_MROM_BASE + CONFIG_MROM_SIZE};
+    if (in_flash(addr))
+        return {CONFIG_FLASH_BASE, CONFIG_FLASH_BASE + CONFIG_FLASH_SIZE};
+    if (in_psram(addr))
+        return {CONFIG_PSRAM_BASE, CONFIG_PSRAM_BASE + CONFIG_PSRAM_SIZE};
+    if (in_sdram(addr))
+        return {CONFIG_SDRAM_BASE, CONFIG_SDRAM_BASE + CONFIG_SDRAM_SIZE};
+
+    assert(0);
+    return {};
 }
 
 uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
