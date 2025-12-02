@@ -101,7 +101,7 @@ class ICache(
   err := Mux(io.mem.r.fire, io.mem.r.bits.resp =/= AXIResp.OKAY, err)
 
   // IFU IO
-  // Immediate hit or Fill+hit
+  // Immediate hit or s_resp
   resp.valid      := (req.valid && hit) || (state === s_resp)
   resp.bits.data  := entry_data
   resp.bits.error := err
