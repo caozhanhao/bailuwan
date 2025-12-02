@@ -104,15 +104,16 @@ class ICache(
   tag_storage(fill_index)   := Mux(io.mem.r.fire, fill_tag, tag_storage(fill_index))
   data_storage(fill_index)  := Mux(io.mem.r.fire, io.mem.r.bits.data, data_storage(fill_index))
 
-  val err = RegInit(false.B)
-  err := Mux(io.mem.r.fire, io.mem.r.bits.resp =/= AXIResp.OKAY, err)
+  val err      = RegInit(false.B)
+  val curr_err = io.mem.r.bits.resp =/= AXIResp.OKAY
+  err := Mux(io.mem.r.fire, curr_err, err)
 
   // IFU IO
   // Immediate hit or s_resp
   val resp_bypass = state === s_wait_mem && io.mem.r.valid
   resp.valid      := (req.valid && hit) || (state === s_resp) || resp_bypass
   resp.bits.data  := Mux(resp_bypass, io.mem.r.bits.data, entry_data)
-  resp.bits.error := err
+  resp.bits.error := Mux(resp_bypass, curr_err, err)
 
   req.ready := state === s_idle
 
@@ -123,7 +124,7 @@ class ICache(
   assert(!(req.valid && hit) || resp.ready)
 
   // Mem IO
-  val ar_bypass = state === s_idle && req.valid
+  val ar_bypass = state === state === s_idle && req.valid
   io.mem.ar.valid     := ar_bypass || (state === s_fill)
   io.mem.ar.bits.addr := Mux(ar_bypass, req.bits.addr, fill_addr)
 
