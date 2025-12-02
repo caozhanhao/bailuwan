@@ -74,14 +74,15 @@ class ICache(
   val hit = entry_valid && (entry_tag === req_tag)
 
   // States
-  val s_idle :: s_fill :: s_wait_mem :: Nil = Enum(3)
+  val s_idle :: s_fill :: s_wait_mem :: s_resp :: Nil = Enum(3)
 
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle     -> Mux(req.valid, Mux(hit, s_idle, s_fill), s_idle),
       s_fill     -> Mux(io.mem.ar.fire, s_wait_mem, s_fill),
-      s_wait_mem -> Mux(io.mem.r.fire, s_idle, s_wait_mem)
+      s_wait_mem -> Mux(io.mem.r.fire, s_resp, s_wait_mem),
+      s_resp     -> Mux(resp.fire, s_idle, s_resp)
     )
   )
 
@@ -101,9 +102,12 @@ class ICache(
 
   // IFU IO
   // Immediate hit or Fill+hit
-  resp.valid      := req.valid && hit
+  resp.valid      := (req.valid && hit) || (state === s_resp)
   resp.bits.data  := entry_data
   resp.bits.error := err
+
+  // resp => hit
+  assert(state =/= s_resp || hit)
 
   req.ready := state === s_idle
 
