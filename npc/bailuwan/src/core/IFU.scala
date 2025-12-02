@@ -53,6 +53,7 @@ class ICache(
   // 1-bit valid | TAG_BITS-bit tag | DATA_BITS-bit data
   val DATA_BITS  = (1 << BLOCK_BITS) * 8
   val ENTRY_BITS = 1 + TAG_BITS + DATA_BITS
+  val ENTRY_NUM  = 1 << INDEX_BITS
 
   // Request and Response
   val req  = io.ifu.req
@@ -76,14 +77,15 @@ class ICache(
   fill_addr := Mux(state === s_idle && req.valid, req_addr, fill_addr)
 
   // Cache Storage
-  val storage = RegInit(VecInit(Seq.fill(1 << INDEX_BITS)(0.U(ENTRY_BITS.W))))
+  val valid_storage = RegInit(VecInit(Seq.fill(ENTRY_NUM)(Bool())))
+  val tag_storage   = Reg(Vec(ENTRY_NUM, UInt(TAG_BITS.W)))
+  val data_storage  = Reg(Vec(ENTRY_NUM, UInt(DATA_BITS.W)))
 
   // Entry Info Selected by Request
   val read_index  = Mux(state === s_idle, req_index, fill_index)
-  val entry       = storage(read_index)
-  val entry_valid = entry(ENTRY_BITS - 1)
-  val entry_tag   = entry(ENTRY_BITS - 2, DATA_BITS)
-  val entry_data  = entry(DATA_BITS - 1, 0)
+  val entry_valid = valid_storage(read_index)
+  val entry_tag   = tag_storage(read_index)
+  val entry_data  = data_storage(read_index)
 
   val hit = entry_valid && (entry_tag === req_tag)
 
@@ -98,8 +100,9 @@ class ICache(
   )
 
   // Fill
-  val new_entry = true.B ## fill_tag ## io.mem.r.bits.data
-  storage(fill_index) := Mux(io.mem.r.fire, new_entry, storage(fill_index))
+  valid_storage(fill_index) := Mux(io.mem.r.fire, true.B, valid_storage(fill_index))
+  tag_storage(fill_index)   := Mux(io.mem.r.fire, fill_tag, tag_storage(fill_index))
+  data_storage(fill_index)  := Mux(io.mem.r.fire, io.mem.r.bits.data, data_storage(fill_index))
 
   val err = RegInit(false.B)
   err := Mux(io.mem.r.fire, io.mem.r.bits.resp =/= AXIResp.OKAY, err)
