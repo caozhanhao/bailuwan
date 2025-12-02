@@ -76,7 +76,7 @@ void psram_write(int waddr, char wdata)
 static uint32_t convert_sdram_addr(int addr, char id)
 {
     auto npc_addr = (BITS(addr, 24, 12) << 13) | (BITS(id, 1, 1) << 12)
-                                    | (BITS(addr, 11, 2) << 2);
+        | (BITS(addr, 11, 2) << 2);
 
     // little-endian
     npc_addr += BITS(id, 0, 0) * 2;
@@ -101,6 +101,17 @@ void sdram_write(int waddr, int16_t wdata, char mask, char id)
               id, waddr, wdata, mask));
     auto npc_addr = convert_sdram_addr(waddr, id);
     SIM.mem().write<int16_t>(npc_addr, wdata, mask);
+}
+
+int pmem_read(int raddr)
+{
+    auto ret = SIM.mem().read<int>(raddr);
+    return ret;
+}
+
+void pmem_write(int waddr, int wdata, char wmask)
+{
+    SIM.mem().write<int>(waddr, wdata, wmask);
 }
 
 void ebreak_handler()
