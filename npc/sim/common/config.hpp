@@ -19,7 +19,7 @@
 #define CONFIG_FLASH_SIZE 0x1000000
 
 #define CONFIG_PSRAM_BASE 0x80000000
-#define CONFIG_PSRAM_SIZE 0x10000000 // Same as flash
+#define CONFIG_PSRAM_SIZE 0x1000000 // Same as flash
 
 #define CONFIG_SDRAM_BASE 0xa0000000
 // 4 bank * 8192 row * 512 col * 16 bit = 32 MB

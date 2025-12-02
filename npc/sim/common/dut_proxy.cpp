@@ -217,6 +217,7 @@ void DUTMemory::init(const std::string& filename)
     sdram_data = static_cast<uint8_t*>(malloc(CONFIG_SDRAM_SIZE));
     memset(sdram_data, 0, CONFIG_SDRAM_SIZE);
 
+    // ATTENTION: guest_to_host must be used after the initialization of `***_data`.
     auto dest_ptr = guest_to_host(RESET_VECTOR);
     auto [beg, end] = get_memory_area(RESET_VECTOR);
     auto dest_size = end - beg;

@@ -142,7 +142,6 @@ struct DUTMemory
     template <typename T>
     T read(uint32_t uaddr)
     {
-        // Memory
         if (!in_sim_mem(uaddr))
             out_of_bound_abort(uaddr);
 
