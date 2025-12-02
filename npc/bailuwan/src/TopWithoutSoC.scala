@@ -15,6 +15,8 @@ class TopWithoutSoC(
 
 
   val core = Module(new Core)
+  core.io.interrupt := false.B
+  
   core.io.slave.aw.valid := false.B
   core.io.slave.aw.bits  := 0.U.asTypeOf(core.io.slave.aw.bits)
   core.io.slave.w.valid  := false.B
@@ -23,8 +25,6 @@ class TopWithoutSoC(
   core.io.slave.ar.valid := false.B
   core.io.slave.ar.bits  := 0.U.asTypeOf(core.io.slave.ar.bits)
   core.io.slave.r.ready  := false.B
-
-  core.io.interrupt := false.B
 
   val mem = Module(new DPICMem)
   core.io.master <> mem.io
