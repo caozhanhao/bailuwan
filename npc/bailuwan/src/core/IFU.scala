@@ -50,8 +50,9 @@ class ICache(
   val INDEX_BITS = 4 // 16 blocks
 
   val TAG_BITS   = 31 - INDEX_BITS - BLOCK_BITS
-  // 1-bit valid | TAG_BITS-bit tag | (1 << BLOCK_BITS)-bit data
-  val ENTRY_BITS = 1 + TAG_BITS + (1 << BLOCK_BITS) * 8
+  // 1-bit valid | TAG_BITS-bit tag | DATA_BITS-bit data
+  val DATA_BITS = (1 << BLOCK_BITS) * 8
+  val ENTRY_BITS = 1 + TAG_BITS + DATA_BITS
 
   // Request and Response
   val req  = io.ifu.req
@@ -68,8 +69,8 @@ class ICache(
   // Entry Info Selected by Request
   val entry       = storage(req_index)
   val entry_valid = entry(ENTRY_BITS - 1)
-  val entry_tag   = entry(ENTRY_BITS - 2, TAG_BITS + (1 << BLOCK_BITS))
-  val entry_data  = entry((1 << BLOCK_BITS) - 1, 0)
+  val entry_tag   = entry(ENTRY_BITS - 2, TAG_BITS + DATA_BITS)
+  val entry_data  = entry(DATA_BITS - 1, 0)
 
   val hit = entry_valid && (entry_tag === req_tag)
 
