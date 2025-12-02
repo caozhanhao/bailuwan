@@ -49,7 +49,7 @@ class ICache(
   val BLOCK_BITS = 2 // 4-byte block
   val INDEX_BITS = 4 // 16 blocks
 
-  val TAG_BITS   = 31 - INDEX_BITS - BLOCK_BITS
+  val TAG_BITS   = 32 - INDEX_BITS - BLOCK_BITS
   // 1-bit valid | TAG_BITS-bit tag | DATA_BITS-bit data
   val DATA_BITS  = (1 << BLOCK_BITS) * 8
   val ENTRY_BITS = 1 + TAG_BITS + DATA_BITS
