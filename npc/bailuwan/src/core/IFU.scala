@@ -74,7 +74,7 @@ class ICache(
   val hit = entry_valid && (entry_tag === req_tag)
 
   // States
-  val s_idle :: s_fill :: s_wait_mem :: s_resp :: Nil = Enum(3)
+  val s_idle :: s_fill :: s_wait_mem :: s_resp :: Nil = Enum(4)
 
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
