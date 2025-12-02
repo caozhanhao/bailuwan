@@ -110,10 +110,14 @@ class ICache(
 
   // IFU IO
   // Immediate hit or s_resp
-  val resp_bypass = state === s_wait_mem && io.mem.r.valid
-  resp.valid      := (req.valid && hit) || (state === s_resp) || resp_bypass
-  resp.bits.data  := Mux(resp_bypass, io.mem.r.bits.data, entry_data)
-  resp.bits.error := Mux(resp_bypass, curr_err, err)
+//  val resp_bypass = state === s_wait_mem && io.mem.r.valid
+//  resp.valid      := (req.valid && hit) || (state === s_resp) || resp_bypass
+//  resp.bits.data  := Mux(resp_bypass, io.mem.r.bits.data, entry_data)
+//  resp.bits.error := Mux(resp_bypass, curr_err, err)
+
+  resp.valid      := (req.valid && hit) || (state === s_resp)
+  resp.bits.data  := entry_data
+  resp.bits.error := err
 
   req.ready := state === s_idle
 
@@ -124,9 +128,9 @@ class ICache(
   assert(!(req.valid && hit) || resp.ready)
 
   // Mem IO
-  // val ar_bypass = state === s_idle && req.valid && !hit
-  io.mem.ar.valid     :=(state === s_fill)
-  io.mem.ar.bits.addr := fill_addr
+  val ar_bypass = state === s_idle && req.valid && !hit
+  io.mem.ar.valid     := ar_bypass || (state === s_fill)
+  io.mem.ar.bits.addr := Mux(ar_bypass, req.bits.addr, fill_addr)
 
   io.mem.r.ready := state === s_wait_mem
 
