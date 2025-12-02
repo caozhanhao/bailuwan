@@ -105,7 +105,7 @@ void sdram_write(int waddr, int16_t wdata, char mask, char id)
 
 int pmem_read(int raddr)
 {
-    printf("[pmem_read] raddr=0x%x", raddr);
+    printf("[pmem_read] raddr=0x%x\n", raddr);
     // Clock
     if (raddr - RTC_MMIO >= 8 && raddr - RTC_MMIO <= 28)
     {
@@ -136,7 +136,7 @@ int pmem_read(int raddr)
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
-    printf("[pmem_write] waddr=0x%x, wdata=0x%x, wmask=%d", waddr, wdata, wmask);
+    printf("[pmem_write] waddr=0x%x, wdata=0x%x, wmask=%d\n", waddr, wdata, wmask);
     // Serial port
     if (waddr == SERIAL_PORT_MMIO && wmask == 1)
     {
