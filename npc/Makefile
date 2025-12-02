@@ -51,7 +51,7 @@ $(shell mkdir -p $(BUILD_DIR))
 
 ### Compilation targets
 BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
-VERILOG_STAMP := $(BUILD_DIR)/verilog.timestamp
+VERILOG_STAMP := $(BUILD_DIR)/bailuwan_verilog_$(RESET_VECTOR)_$(WITHOUT_SOC).timestamp
 
 ### Collect the files to be built and linked
 LINKAGE ?=
@@ -85,6 +85,7 @@ VERILATOR_CFLAGS += -MMD --build -cc  \
 				 --autoflush --timescale "1ns/1ns" --no-timing -Wno-fatal
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\"" -DRESET_VECTOR=$(RESET_VECTOR)
+# Don't forget to update `VERILOG_STAMP` when `EMIT_VERILOG_FLAGS` is changed.
 EMIT_VERILOG_FLAGS = --reset-vector $(RESET_VECTOR) --without-soc $(WITHOUT_SOC) -- --target-dir $(BUILD_DIR) --split-verilog
 
 ifneq ($(TRACE), notrace)
