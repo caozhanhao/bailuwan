@@ -163,6 +163,8 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(all_ops);
     PERF(all_cycles);
     PERF(wait_cycles);
+    PERF(icache_hit);
+    PERF(icache_miss);
 #undef PERF
 
     auto all_ops_d = static_cast<double>(*b.all_ops);
@@ -183,6 +185,15 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(Other, other);
 #undef PERF
     fprintf(stream, "+----------+----------+--------+------------+\n");
+
+    // AMAT = p * access_time + (1 - p) * (access_time + miss_penalty) = access_time + (1 - p) * miss_penalty
+    auto access_time = 1;
+    auto miss_penalty = static_cast<double>(*b.icache_mem_access_cycles) / static_cast<double>(*b.icache_miss);
+    auto hit_rate = static_cast<double>(*b.icache_hit) / static_cast<double>(*b.ifu_fetched);
+    auto AMAT = hit_rate * access_time + (1.0 - hit_rate) * (access_time + miss_penalty);
+    fprintf(stream, "icache hit rate = %f\n", hit_rate);
+    fprintf(stream, "icache miss penalty = %f\n", miss_penalty);
+    fprintf(stream, "icache AMAT = %f\n", AMAT);
 }
 
 void CPUProxy::dump(FILE* stream)
@@ -468,7 +479,7 @@ void SimHandle::dump_statistics_json(FILE* stream) const
         if (stream == nullptr)
         {
             fprintf(stderr, "Warning: Can not open statistic file: '%s'. Printing to stderr...\n",
-                statistics_path.c_str());
+                    statistics_path.c_str());
             stream = stderr;
         }
         else
