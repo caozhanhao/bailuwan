@@ -163,6 +163,8 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(all_ops);
     PERF(all_cycles);
     PERF(wait_cycles);
+    PERF(icache_hit);
+    PERF(icache_miss);
 #undef PERF
 
     auto all_ops_d = static_cast<double>(*b.all_ops);
