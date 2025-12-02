@@ -3,9 +3,8 @@
 
 package utils
 
-import bailuwan.CoreParams
+import bailuwan._
 import amba.AXIProperty
-
 import scopt.OParser
 
 object CommonEmitVerilogOptions {
@@ -21,7 +20,9 @@ object CommonEmitVerilogOptions {
 }
 
 object EmitVerilog extends App {
-  val builder    = OParser.builder[CoreParams]
+  case class CmdOptions(reset_vector: Int = 0x3000_0000, without_soc: Boolean = false) {}
+
+  val builder    = OParser.builder[CmdOptions]
   val arg_parser = {
     import builder._
     OParser.sequence(
@@ -30,12 +31,12 @@ object EmitVerilog extends App {
       opt[String]("reset-vector")
         .action((x, c) => {
           val v = if (x.startsWith("0x")) Integer.parseUnsignedInt(x.drop(2), 16) else x.toInt
-          c.copy(ResetVector = v)
+          c.copy(reset_vector = v)
         })
         .text("set the reset vector"),
-      opt[Boolean]("debug")
-        .action((x, c) => c.copy(Debug = x))
-        .text("enable debug mode")
+      opt[Boolean]("without-soc")
+        .action((x, c) => c.copy(without_soc = x))
+        .text("run without ysyxSoC")
     )
   }
 
@@ -46,20 +47,24 @@ object EmitVerilog extends App {
     (args.take(separatorIndex), args.drop(separatorIndex + 1))
   }
 
-  OParser.parse(arg_parser, blwArgs, CoreParams()) match {
+  OParser.parse(arg_parser, blwArgs, CmdOptions()) match {
     case Some(config) =>
       println(
-        s"[Info] Params: ResetVector=0x${config.ResetVector.toHexString}, XLEN=${config.XLEN}, Debug=${config.Debug}"
+        s"[Info] Params: ResetVector=0x${config.reset_vector.toHexString}, ysyxSoc=${!config.without_soc}"
       )
 
-      if(firtoolArgs.nonEmpty) {
+      if (firtoolArgs.nonEmpty) {
         println(s"[Info] Passing extra args to Firtool: ${firtoolArgs.mkString(" ")}")
       }
 
-      implicit val p:        CoreParams  = config
+      implicit val p:        CoreParams  = CoreParams(ResetVector = config.reset_vector)
       implicit val axi_prop: AXIProperty = AXIProperty()
 
-      circt.stage.ChiselStage.emitSystemVerilogFile(new bailuwan.Top(), firtoolArgs, CommonEmitVerilogOptions.firtool)
+      val module =
+        if (config.without_soc) { new TopWithoutSoC() }
+        else { new Top() }
+
+      circt.stage.ChiselStage.emitSystemVerilogFile(module, firtoolArgs, CommonEmitVerilogOptions.firtool)
 
     case _ =>
       System.exit(1)
