@@ -4,9 +4,10 @@
 #ifndef BAILUWAN_COMMON_DUT_PROXY_HPP
 #define BAILUWAN_COMMON_DUT_PROXY_HPP
 
-#include "VysyxSoCFull.h"
 #include "utils/macro.hpp"
 #include "config.hpp"
+
+#include TOSTRING(TOP_NAME.h)
 
 #ifdef TRACE_fst
 #include "verilated_fst_c.h"
