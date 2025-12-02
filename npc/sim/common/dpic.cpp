@@ -105,6 +105,8 @@ void sdram_write(int waddr, int16_t wdata, char mask, char id)
 
 int pmem_read(int raddr)
 {
+    assert(raddr == (raddr & !0x3u));
+
     raddr &= ~0x3u;
     printf("[pmem_read] raddr=0x%x\n", raddr);
     // Clock
@@ -137,6 +139,8 @@ int pmem_read(int raddr)
 
 void pmem_write(int waddr, int wdata, char wmask)
 {
+    assert(waddr == (waddr & !0x3u));
+
     waddr &= ~0x3u;
 
     printf("[pmem_write] waddr=0x%x, wdata=0x%x, wmask=%d\n", waddr, wdata, wmask);
