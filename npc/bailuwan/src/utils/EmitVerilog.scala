@@ -29,7 +29,7 @@ object EmitVerilog extends App {
       head("bailuwan", "0.0.1"),
       opt[String]("reset-vector")
         .action((x, c) => {
-          val v = if (x.startsWith("0x")) Integer.parseInt(x.drop(2), 16) else x.toInt
+          val v = if (x.startsWith("0x")) Integer.parseUnsignedInt(x.drop(2), 16) else x.toInt
           c.copy(ResetVector = v)
         })
         .text("set the reset vector"),
