@@ -153,6 +153,15 @@ class ICachePlaceholder(
   val req  = io.ifu.req
   val resp = io.ifu.resp
 
+  req.ready           := io.mem.ar.ready
+  io.mem.ar.valid     := req.valid
+  io.mem.ar.bits.addr := req.bits.addr
+
+  resp.valid      := io.mem.r.valid
+  io.mem.r.ready  := resp.ready
+  resp.bits.data  := io.mem.r.bits.data
+  resp.bits.error := io.mem.r.bits.resp =/= AXIResp.OKAY
+
   io.mem.ar.bits.id    := 0.U
   io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
   io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
