@@ -124,7 +124,7 @@ class ICache(
   assert(!(req.valid && hit) || resp.ready)
 
   // Mem IO
-  val ar_bypass = state === state === s_idle && req.valid
+  val ar_bypass = state === s_idle && req.valid
   io.mem.ar.valid     := ar_bypass || (state === s_fill)
   io.mem.ar.bits.addr := Mux(ar_bypass, req.bits.addr, fill_addr)
 
