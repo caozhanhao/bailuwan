@@ -6,7 +6,7 @@ package core
 import chisel3._
 import chisel3.util._
 import amba._
-import utils.{SignalProbe, PerfCounter}
+import utils.{PerfCounter, SignalProbe}
 import bailuwan.CoreParams
 
 class IFUOut(
@@ -14,6 +14,17 @@ class IFUOut(
     extends Bundle {
   val pc   = Output(UInt(p.XLEN.W))
   val inst = Output(UInt(32.W))
+}
+
+class ICache(
+  implicit p: CoreParams,
+  axi_prop:   AXIProperty)
+    extends Module {
+  val io = IO(new Bundle {
+    val ifu = Flipped(new AXI4())
+    val mem = new AXI4()
+  })
+  io.ifu <> io.mem
 }
 
 class IFU(
@@ -27,39 +38,44 @@ class IFU(
     val mem = new AXI4()
   })
 
-  io.mem.ar.bits.id    := 0.U
-  io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
-  io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
-  io.mem.ar.bits.burst := 0.U
+  val icache = Module(new ICache)
+  icache.io.mem <> io.mem
 
-  io.mem.aw.valid    := false.B
-  io.mem.aw.bits     := DontCare
-  io.mem.w.valid     := false.B
-  io.mem.w.bits      := DontCare
-  io.mem.b.ready     := false.B
-  io.mem.w.bits.last := true.B
+  val reader = icache.io.ifu
+
+  reader.ar.bits.id    := 0.U
+  reader.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  reader.ar.bits.size  := 2.U // 2^2 = 4 bytes
+  reader.ar.bits.burst := 0.U
+
+  reader.aw.valid    := false.B
+  reader.aw.bits     := DontCare
+  reader.w.valid     := false.B
+  reader.w.bits      := DontCare
+  reader.b.ready     := false.B
+  reader.w.bits.last := true.B
 
   val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(4)
 
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle       -> Mux(io.mem.ar.fire, s_wait_mem, s_idle),
-      s_wait_mem   -> Mux(io.mem.r.fire, Mux(io.mem.r.bits.resp === AXIResp.OKAY, s_wait_ready, s_fault), s_wait_mem),
+      s_idle       -> Mux(reader.ar.fire, s_wait_mem, s_idle),
+      s_wait_mem   -> Mux(reader.r.fire, Mux(reader.r.bits.resp === AXIResp.OKAY, s_wait_ready, s_fault), s_wait_mem),
       s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
   )
 
-  io.mem.ar.valid := (state === s_idle) && !reset.asBool // Don't send request when resetting
-  io.mem.r.ready  := state === s_wait_mem
+  reader.ar.valid := (state === s_idle) && !reset.asBool // Don't send request when resetting
+  reader.r.ready  := state === s_wait_mem
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.fire, io.in.bits.dnpc, pc)
 
-  io.mem.ar.bits.addr := pc
+  reader.ar.bits.addr := pc
 
   val inst_reg = RegInit(0.U(32.W))
-  inst_reg := Mux(io.mem.r.fire, io.mem.r.bits.data, inst_reg)
+  inst_reg := Mux(reader.r.fire, reader.r.bits.data, inst_reg)
 
   io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
@@ -68,9 +84,9 @@ class IFU(
   io.out.valid := state === s_wait_ready
 
   val fault_addr = RegInit(0.U(p.XLEN.W))
-  fault_addr := Mux(io.mem.ar.fire, pc, fault_addr)
+  fault_addr := Mux(reader.ar.fire, pc, fault_addr)
   val fault_resp = RegInit(AXIResp.OKAY)
-  fault_resp := Mux(io.mem.r.fire, io.mem.r.bits.resp, fault_resp)
+  fault_resp := Mux(reader.r.fire, reader.r.bits.resp, fault_resp)
 
   assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x, resp=${fault_resp}")
 
@@ -87,5 +103,5 @@ class IFU(
   SignalProbe(RegNext(io.in.valid), "difftest_ready")
   SignalProbe(pc, "pc")
   SignalProbe(state, "ifu_state")
-  PerfCounter(io.mem.r.fire, "ifu_fetched")
+  PerfCounter(reader.r.fire, "ifu_fetched")
 }
