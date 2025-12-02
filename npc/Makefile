@@ -10,6 +10,7 @@ html:
 ### Project Info
 PRJ = bailuwan
 TOPNAME = ysyxSoCFull
+RESET_VECTOR = 0x30000000
 TRACE ?= notrace
 IMG ?=
 
@@ -83,7 +84,7 @@ VERILATOR_CFLAGS += -MMD --build -cc  \
 				 --autoflush --timescale "1ns/1ns" --no-timing -Wno-fatal
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
-EMIT_VERILOG_FLAGS = --target-dir $(BUILD_DIR) --split-verilog
+EMIT_VERILOG_FLAGS = -reset-vector $(RESET_VECTOR) -- --target-dir $(BUILD_DIR) --split-verilog
 
 ifneq ($(TRACE), notrace)
 TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)

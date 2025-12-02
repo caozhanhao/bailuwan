@@ -3,6 +3,11 @@
 
 package utils
 
+import bailuwan.CoreParams
+import amba.AXIProperty
+
+import scopt.OParser
+
 object CommonEmitVerilogOptions {
   val firtool = Array(
     "--lowering-options=" + List(
@@ -16,7 +21,49 @@ object CommonEmitVerilogOptions {
 }
 
 object EmitVerilog extends App {
-  circt.stage.ChiselStage.emitSystemVerilogFile(new bailuwan.Top(), args, CommonEmitVerilogOptions.firtool)
+  val builder    = OParser.builder[CoreParams]
+  val arg_parser = {
+    import builder._
+    OParser.sequence(
+      programName("bailuwan-generator"),
+      head("bailuwan", "0.0.1"),
+      opt[String]("reset-vector")
+        .action((x, c) => {
+          val v = if (x.startsWith("0x")) Integer.parseInt(x.drop(2), 16) else x.toInt
+          c.copy(ResetVector = v)
+        })
+        .text("set the reset vector"),
+      opt[Boolean]("debug")
+        .action((x, c) => c.copy(Debug = x))
+        .text("enable debug mode")
+    )
+  }
+
+  val separatorIndex         = args.indexOf("--")
+  val (blwArgs, firtoolArgs) = if (separatorIndex == -1) {
+    (args, Array.empty[String])
+  } else {
+    (args.take(separatorIndex), args.drop(separatorIndex + 1))
+  }
+
+  OParser.parse(arg_parser, blwArgs, CoreParams()) match {
+    case Some(config) =>
+      println(
+        s"[Info] Params: ResetVector=0x${config.ResetVector.toHexString}, XLEN=${config.XLEN}, Debug=${config.Debug}"
+      )
+
+      if(firtoolArgs.nonEmpty) {
+        println(s"[Info] Passing extra args to Firtool: ${firtoolArgs.mkString(" ")}")
+      }
+
+      implicit val p:        CoreParams  = config
+      implicit val axi_prop: AXIProperty = AXIProperty()
+
+      circt.stage.ChiselStage.emitSystemVerilogFile(new bailuwan.Top(), firtoolArgs, CommonEmitVerilogOptions.firtool)
+
+    case _ =>
+      System.exit(1)
+  }
 }
 
 object Emit4BitALUVerilog extends App {
