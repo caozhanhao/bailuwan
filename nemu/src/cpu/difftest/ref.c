@@ -71,3 +71,31 @@ __EXPORT void difftest_init(int port) {
   void init_device();
   init_device();
 }
+
+struct cachesim_batch {
+  // PC stream
+  word_t* data;
+  uint32_t size;
+};
+
+bool in_difftest_cachesim;
+static uint32_t cachesim_batch_size;
+__EXPORT void difftest_cachesim_init(uint32_t batch_size) {
+  cachesim_batch_size = batch_size;
+  in_difftest_cachesim = true;
+}
+
+// `batch_` should be a pointer to `cachesim_batch`, and the data field in it
+// MUST allocate at least `cachesim_batch_size * sizeof(uint32_t)` bytes.
+__EXPORT void difftest_cachesim_step(void* batch_) {
+  struct cachesim_batch *batch = (struct cachesim_batch *)batch_;
+  int i = 0;
+  for (; i < cachesim_batch_size; i++) {
+    batch->data[i] = cpu.pc;
+    cpu_exec(1);
+
+    if (nemu_state.state == NEMU_END || nemu_state.state == NEMU_ABORT || nemu_state.state == NEMU_QUIT)
+      break;
+  }
+  batch->size = i;
+}

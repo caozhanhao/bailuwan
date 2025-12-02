@@ -243,7 +243,7 @@ void DUTMemory::init(const std::string& filename)
         }
     }
 
-    inst_memory_size = dest_size;
+    inst_memory_size = bytes_read;
 
     printf("Read %zu bytes from %s\n", bytes_read, filename.c_str());
 
