@@ -191,7 +191,7 @@ class IFU(
     val mem = new AXI4()
   })
 
-  val icache    = Module(new ICachePlaceholder())
+  val icache    = Module(new ICache())
   val icache_io = icache.io.ifu
 
   icache.io.mem <> io.mem
