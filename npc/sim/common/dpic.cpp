@@ -140,7 +140,7 @@ int pmem_read(int raddr)
 void pmem_write(int waddr, int wdata, char wmask)
 {
     // printf("[pmem_write] waddr=0x%x, wdata=0x%x, wmask=%d\n", waddr, wdata, wmask);
-    
+
     waddr &= ~0x3u;
 
     // Serial port
