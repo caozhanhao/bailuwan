@@ -82,7 +82,7 @@ class ICache(
   val read_index = Mux(state === s_idle, req_index, fill_index)
   val entry       = storage(read_index)
   val entry_valid = entry(ENTRY_BITS - 1)
-  val entry_tag   = entry(ENTRY_BITS - 2, TAG_BITS + DATA_BITS)
+  val entry_tag   = entry(ENTRY_BITS - 2, DATA_BITS)
   val entry_data  = entry(DATA_BITS - 1, 0)
 
   val hit = entry_valid && (entry_tag === req_tag)
