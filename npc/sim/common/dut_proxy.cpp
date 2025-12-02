@@ -192,6 +192,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     auto hit_rate = static_cast<double>(*b.icache_hit) / static_cast<double>(*b.ifu_fetched);
     auto AMAT = hit_rate * access_time + (1.0 - hit_rate) * (access_time + miss_penalty);
     fprintf(stream, "icache hit rate = %f\n", hit_rate);
+    fprintf(stream, "icache miss penalty = %f\n", miss_penalty);
     fprintf(stream, "icache AMAT = %f\n", AMAT);
 }
 
