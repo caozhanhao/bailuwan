@@ -140,6 +140,9 @@ class ICache(
   io.mem.w.bits        := DontCare
   io.mem.b.ready       := false.B
   io.mem.w.bits.last   := true.B
+
+  PerfCounter(state === s_idle && req.valid && hit, "icache_hit")
+  PerfCounter(state === s_idle && req.valid && !hit, "icache_miss")
 }
 
 class ICachePlaceholder(
