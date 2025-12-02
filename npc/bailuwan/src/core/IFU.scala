@@ -96,11 +96,14 @@ class ICache(
   val new_entry = true.B ## fill_tag ## io.mem.r.bits.data
   storage(fill_index) := Mux(io.mem.r.fire, new_entry, storage(fill_index))
 
+  val err = RegInit(false.B)
+  err := Mux(io.mem.r.fire, io.mem.r.bits.resp =/= AXIResp.OKAY, err)
+
   // IFU IO
-  // Immediate hit or refill+hit
+  // Immediate hit or Fill+hit
   resp.valid      := req.valid && hit
   resp.bits.data  := entry_data
-  resp.bits.error := false.B // TODO
+  resp.bits.error := err
 
   req.ready := state === s_idle
 
