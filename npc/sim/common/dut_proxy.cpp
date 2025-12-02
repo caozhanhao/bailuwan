@@ -218,7 +218,8 @@ void DUTMemory::init(const std::string& filename)
     memset(sdram_data, 0, CONFIG_SDRAM_SIZE);
 
     auto dest_ptr = guest_to_host(RESET_VECTOR);
-    auto dest_size = RESET_VECTOR - get_memory_base(RESET_VECTOR);
+    auto [beg, end] = get_memory_area(RESET_VECTOR);
+    auto dest_size = end - beg;
 
     size_t bytes_read = fread(dest_ptr, 1, dest_size, fp);
     if (bytes_read == 0)
@@ -313,19 +314,19 @@ bool DUTMemory::in_sim_mem(uint32_t addr)
     return in_flash(addr) || in_mrom(addr) || in_psram(addr) || in_sdram(addr);
 }
 
-uint32_t DUTMemory::get_memory_base(uint32_t addr)
+std::tuple<uint32_t, uint32_t> DUTMemory::get_memory_area(uint32_t addr)
 {
     if (in_mrom(addr))
-        return CONFIG_MROM_BASE;
+        return {CONFIG_MROM_BASE, CONFIG_MROM_BASE + CONFIG_MROM_SIZE};
     if (in_flash(addr))
-        return CONFIG_FLASH_BASE;
+        return {CONFIG_FLASH_BASE, CONFIG_FLASH_BASE + CONFIG_FLASH_SIZE};
     if (in_psram(addr))
-        return CONFIG_PSRAM_BASE;
+        return {CONFIG_PSRAM_BASE, CONFIG_PSRAM_BASE + CONFIG_PSRAM_SIZE};
     if (in_sdram(addr))
-        return CONFIG_SDRAM_BASE;
+        return {CONFIG_SDRAM_BASE, CONFIG_SDRAM_BASE + CONFIG_SDRAM_SIZE};
 
     assert(0);
-    return 0;
+    return {};
 }
 
 uint8_t* DUTMemory::guest_to_host(uint32_t paddr) const
