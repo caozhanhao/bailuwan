@@ -51,33 +51,43 @@ class ICache(
 
   val TAG_BITS   = 31 - INDEX_BITS - BLOCK_BITS
   // 1-bit valid | TAG_BITS-bit tag | DATA_BITS-bit data
-  val DATA_BITS = (1 << BLOCK_BITS) * 8
+  val DATA_BITS  = (1 << BLOCK_BITS) * 8
   val ENTRY_BITS = 1 + TAG_BITS + DATA_BITS
 
   // Request and Response
   val req  = io.ifu.req
   val resp = io.ifu.resp
 
+  // States
+  val s_idle :: s_fill :: s_wait_mem :: s_resp :: Nil = Enum(4)
+
+  val state = RegInit(s_idle)
+
   // Request Info
   val req_addr  = req.bits.addr
   val req_tag   = req_addr(31, INDEX_BITS + BLOCK_BITS)
   val req_index = req_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
 
+  // Fill Info
+  val fill_addr  = RegInit(0.U(32.W))
+  val fill_tag   = fill_addr(31, INDEX_BITS + BLOCK_BITS)
+  val fill_index = fill_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
+
+  fill_addr := Mux(state === s_idle && req.valid, req_addr, fill_addr)
+
   // Cache Storage
   val storage = RegInit(VecInit(Seq.fill(1 << INDEX_BITS)(0.U(ENTRY_BITS.W))))
 
   // Entry Info Selected by Request
-  val entry       = storage(req_index)
+  val read_index = Mux(state === s_idle, req_index, fill_index)
+  val entry       = storage(read_index)
   val entry_valid = entry(ENTRY_BITS - 1)
   val entry_tag   = entry(ENTRY_BITS - 2, TAG_BITS + DATA_BITS)
   val entry_data  = entry(DATA_BITS - 1, 0)
 
   val hit = entry_valid && (entry_tag === req_tag)
 
-  // States
-  val s_idle :: s_fill :: s_wait_mem :: s_resp :: Nil = Enum(4)
-
-  val state = RegInit(s_idle)
+  // State Transfer
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle     -> Mux(req.valid, Mux(hit, s_idle, s_fill), s_idle),
@@ -86,13 +96,6 @@ class ICache(
       s_resp     -> Mux(resp.fire, s_idle, s_resp)
     )
   )
-
-  // Fill Info
-  val fill_addr  = RegInit(0.U(32.W))
-  val fill_tag   = fill_addr(31, INDEX_BITS + BLOCK_BITS)
-  val fill_index = fill_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
-
-  fill_addr := Mux(state === s_idle && req.valid, req_addr, fill_addr)
 
   // Fill
   val new_entry = true.B ## fill_tag ## io.mem.r.bits.data
