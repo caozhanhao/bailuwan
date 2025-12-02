@@ -142,7 +142,7 @@ class ICache(
   io.mem.w.bits.last   := true.B
 }
 
-class ICachePlaceHolder(
+class ICachePlaceholder(
   implicit p: CoreParams,
   axi_prop:   AXIProperty)
     extends Module {
@@ -176,7 +176,7 @@ class IFU(
     val mem = new AXI4()
   })
 
-  val icache    = Module(new ICache)
+  val icache    = Module(new ICachePlaceholder)
   val icache_io = icache.io.ifu
 
   icache.io.mem <> io.mem
