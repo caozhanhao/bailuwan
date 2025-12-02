@@ -77,7 +77,7 @@ class ICache(
   fill_addr := Mux(state === s_idle && req.valid, req_addr, fill_addr)
 
   // Cache Storage
-  val valid_storage = RegInit(VecInit(Seq.fill(ENTRY_NUM)(Bool())))
+  val valid_storage = RegInit(VecInit(Seq.fill(ENTRY_NUM)(false.B)))
   val tag_storage   = Reg(Vec(ENTRY_NUM, UInt(TAG_BITS.W)))
   val data_storage  = Reg(Vec(ENTRY_NUM, UInt(DATA_BITS.W)))
 
