@@ -78,9 +78,11 @@ struct cachesim_batch {
   uint32_t size;
 };
 
+bool in_difftest_cachesim;
 static uint32_t cachesim_batch_size;
 __EXPORT void difftest_cachesim_init(uint32_t batch_size) {
   cachesim_batch_size = batch_size;
+  in_difftest_cachesim = true;
 }
 
 // `batch_` should be a pointer to `cachesim_batch`, and the data field in it

@@ -53,7 +53,12 @@ void init_map() {
   p_space = io_space;
 }
 
+extern bool in_difftest_cachesim;
+
 word_t map_read(paddr_t addr, int len, IOMap *map) {
+  if (in_difftest_cachesim && !map)
+    return 0;
+
   IFDEF(CONFIG_DTRACE, Log("map_read: device=%s, addr=" FMT_PADDR ", len=%d", map->name, addr, len));
 
   assert(len >= 1 && len <= 8);
@@ -68,6 +73,9 @@ word_t map_read(paddr_t addr, int len, IOMap *map) {
 }
 
 void map_write(paddr_t addr, int len, word_t data, IOMap *map) {
+  if (in_difftest_cachesim && !map)
+    return;
+
   IFDEF(CONFIG_DTRACE, Log("map_write: device=%s, addr=" FMT_PADDR
     ", len=%d, data=" FMT_WORD, map->name, addr, len, data));
 
