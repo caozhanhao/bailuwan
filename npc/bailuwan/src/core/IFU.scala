@@ -175,6 +175,9 @@ class ICachePlaceholder(
   io.mem.w.bits        := DontCare
   io.mem.b.ready       := false.B
   io.mem.w.bits.last   := true.B
+
+  PerfCounter(false.B, "icache_hit")
+  PerfCounter(true.B, "icache_miss")
 }
 
 class IFU(
