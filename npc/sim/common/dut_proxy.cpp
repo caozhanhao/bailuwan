@@ -316,13 +316,13 @@ bool DUTMemory::in_sim_mem(uint32_t addr)
 uint32_t DUTMemory::get_memory_base(uint32_t addr)
 {
     if (in_mrom(addr))
-        return addr - CONFIG_MROM_BASE;
+        return CONFIG_MROM_BASE;
     if (in_flash(addr))
-        return addr - CONFIG_FLASH_BASE;
+        return CONFIG_FLASH_BASE;
     if (in_psram(addr))
-        return addr - CONFIG_PSRAM_BASE;
+        return CONFIG_PSRAM_BASE;
     if (in_sdram(addr))
-        return addr - CONFIG_SDRAM_BASE;
+        return CONFIG_SDRAM_BASE;
 
     assert(0);
     return 0;
