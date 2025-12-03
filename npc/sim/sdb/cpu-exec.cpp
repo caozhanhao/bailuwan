@@ -60,6 +60,9 @@ static void execute(uint64_t n)
             sdb_halt_ret = static_cast<int>(cpu.reg(10));
         }
 
+        // Print debug message
+        SIM.drain();
+
         trace_and_difftest();
 
         if (sdb_state != SDBState::Running) break;
