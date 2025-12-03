@@ -101,6 +101,7 @@ void drain_pc_stream(const std::function<void(uint32_t)>& func)
         for (uint32_t i = 0; i < batch.size; i++)
             func(buffer[i]);
 
+        printf("Batch Size:%u\n", batch.size);
         if (batch.size != BATCH_SIZE)
             break;
     }
