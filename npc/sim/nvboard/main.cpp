@@ -61,5 +61,6 @@ int main(int argc, char* argv[])
     printf("Simulation on NVBoard started.\n");
 
     SIM.drain();
+    SimHandle::dump_after_ebreak();
     return 0;
 }
