@@ -51,6 +51,7 @@ $(shell mkdir -p $(BUILD_DIR))
 
 ### Compilation targets
 BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
+CACHESIM_BIN = $(BUILD_DIR)/cachesim
 VERILOG_STAMP := $(BUILD_DIR)/bailuwan_verilog_$(RESET_VECTOR)_$(WITHOUT_SOC).timestamp
 
 ### Collect the files to be built and linked
@@ -61,7 +62,8 @@ SOC_VSRCS ?=
 SOC_VINC_PATH ?=
 CHISEL_SRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 SOC_CHISEL_DEPS = $(shell find $(YSYXSOC_HOME)/src -name "*.scala")
-
+CACHESIM_HEADERS = $(shell find $(abspath ./cachesim) -name "*.hpp" -or -name "*.h")
+CACHESIM_SRCS = $(shell find $(abspath ./cachesim) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 
 
 ## 3. General Compilation Flags
@@ -123,6 +125,8 @@ $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP) $(SOC_CHISEL_DEPS)
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
+$(CACHESIM_BIN): $(CACHESIM_HEADERS) $(CACHESIM_SRCS)
+	$(CXX) $(CACHESIM_SRCS) -o $(abspath $(BIN))
 
 ## 6. Miscellaneous
 
@@ -146,6 +150,11 @@ test:
 verilog:
 	$(call git_commit, "generate verilog")
 	./mill -i $(PRJ).runMain utils.EmitVerilog $(EMIT_VERILOG_FLAGS)
+
+### Cache Sim
+cachesim:
+	$(MAKE) $(CACHESIM_BIN)
+	$(CACHESIM_BIN) $(IMG)
 
 ### Reformat
 reformat:
@@ -171,5 +180,5 @@ clean-all:
 	-rm -rf $(BUILD_DIR)
 	-rm -rf $(YSYXSOC_HOME)/build/
 
-.PHONY: test verilog reformat checkformat clean sim
+.PHONY: test verilog reformat checkformat clean sim cachesim
 -include ../Makefile
