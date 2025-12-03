@@ -22,6 +22,7 @@ static uint8_t *sdram_base = nullptr;
 static uint8_t *uart_base = nullptr;
 
 #define UART_LSR 5
+// We simulate LSR to avoid CacheSim stuck at `putch`.
 static void uart_io_handler(uint32_t offset, int len, bool is_write) {
   assert(len == 1);
   switch (offset) {
@@ -34,7 +35,8 @@ static void uart_io_handler(uint32_t offset, int len, bool is_write) {
     uart_base[UART_LSR] = 1 << 5;
     break;
   default:
-    panic("do not support offset = %d", offset);
+    // just pass
+    break;
   }
 }
 
