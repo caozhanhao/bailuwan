@@ -82,7 +82,6 @@ void ICacheSim::dump(FILE* stream) const
         break;
     }
 
-    fprintf(stream, "--- ICache Statistics ---\n");
     fprintf(stream, "Storage: cache_size=%u, block_size=%u, set_size=%u\n",
             cache_size, block_size, set_size);
     fprintf(stream, "Policy:   %s\n", policy_str);
@@ -90,5 +89,4 @@ void ICacheSim::dump(FILE* stream) const
     fprintf(stream, "Hits:     %lu\n", hit);
     fprintf(stream, "Misses:   %lu\n", miss);
     fprintf(stream, "Hit Rate: %.2f%%\n", rate);
-    fprintf(stream, "-------------------------\n");
 }

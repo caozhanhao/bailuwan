@@ -127,9 +127,22 @@ int main(int argc, char* argv[])
 
     // drain_pc_stream([](uint32_t pc){ printf("0x%x\n", pc); });
 
-    ICacheSim sim(64, 4, 1, ReplacementPolicy::FIFO);
-    drain_pc_stream([&sim](uint32_t pc) { sim.step(pc); });
-    sim.dump(stdout);
+    std::vector<ICacheSim> sims;
+
+    sims.emplace_back(64, 4, 1, ReplacementPolicy::FIFO);
+    sims.emplace_back(65536, 4, 1, ReplacementPolicy::FIFO);
+
+    drain_pc_stream([&](uint32_t pc)
+    {
+        for (auto& sim : sims)
+            sim.step(pc);
+    });
+
+    for (auto& sim : sims)
+    {
+        sim.dump(stdout);
+        printf("-----------------------\n");
+    }
 
     free(image);
     return 0;
