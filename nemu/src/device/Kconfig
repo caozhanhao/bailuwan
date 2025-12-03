@@ -199,6 +199,13 @@ config SDRAM_SIZE
   hex "Size of the SDRAM"
   default 0x8000000
 
+config UART_BASE
+  hex "Physical address of the UART16550"
+  default 0x10000000
+
+config UART_SIZE
+  hex "Size of the UART16550"
+  default 0x1000
 endif # HAS_YSYXSOC
 
 endif # DEVICE
