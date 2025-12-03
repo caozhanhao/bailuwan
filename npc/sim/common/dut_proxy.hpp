@@ -194,6 +194,8 @@ class SimHandle
     std::string img_path;
     std::string statistics_path;
 
+    std::atomic_bool got_ebreak;
+
     void init_trace();
     void cleanup_trace();
 
@@ -221,10 +223,15 @@ public:
     void init_sim(TOP_NAME* dut_, const char* img_path_, const char* statistics_path_);
     void cleanup();
     void single_cycle();
+    void drain();
     void reset(int n);
 
+    static void dump_after_ebreak() ;
     void dump_statistics(FILE* stream = stderr) const;
     void dump_statistics_json(FILE* stream = nullptr) const;
+    void ebreak() { got_ebreak = true; }
+
+    [[nodiscard]] bool has_got_ebreak() const { return got_ebreak; }
 
     [[nodiscard]] uint64_t simulator_cycles() const { return cycle_counter; }
     CPUProxy& cpu() { return cpu_proxy; }

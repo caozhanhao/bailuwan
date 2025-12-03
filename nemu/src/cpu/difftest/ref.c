@@ -90,8 +90,8 @@ __EXPORT void difftest_cachesim_init(uint32_t batch_size) {
 __EXPORT void difftest_cachesim_step(void* batch_) {
   struct cachesim_batch *batch = (struct cachesim_batch *)batch_;
   int i = 0;
-  for (; i < cachesim_batch_size; i++) {
-    batch->data[i] = cpu.pc;
+  while (i < cachesim_batch_size) {
+    batch->data[i++] = cpu.pc;
     cpu_exec(1);
 
     if (nemu_state.state == NEMU_END || nemu_state.state == NEMU_ABORT || nemu_state.state == NEMU_QUIT)

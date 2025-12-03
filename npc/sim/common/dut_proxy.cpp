@@ -426,6 +426,8 @@ void SimHandle::cleanup()
 
 void SimHandle::single_cycle()
 {
+    assert(!has_got_ebreak() && "single_cycle called after ebreak.");
+
     dut->clock = 1;
     dut->eval();
 
@@ -438,6 +440,13 @@ void SimHandle::single_cycle()
 
     cycle_counter++;
 }
+
+void SimHandle::drain()
+{
+    while (!got_ebreak)
+        single_cycle();
+}
+
 
 void SimHandle::reset(int n)
 {
@@ -452,6 +461,21 @@ void SimHandle::reset(int n)
         dut->eval();
     }
     dut->reset = 0;
+}
+
+void SimHandle::dump_after_ebreak()
+{
+    auto a0 = SIM.cpu().reg(10);
+    auto pc = SIM.cpu().pc();
+    if (a0 == 0)
+        printf("\33[1;32mHIT GOOD TRAP\33[0m at pc = 0x%x\n", pc);
+    else
+        printf("\33[1;41mHIT BAD TRAP\33[0m at pc = 0x%x, a0=%d\n", pc, a0);
+
+    printf("Ebreak after %lu cycles\n", SIM.simulator_cycles());
+    printf("Statistics:\n");
+    SIM.dump_statistics(stdout);
+    SIM.dump_statistics_json();
 }
 
 void SimHandle::dump_statistics(FILE* stream) const

@@ -2,8 +2,12 @@
 #include <cstdint>
 #include <cassert>
 #include <cstring>
-#include <dlfcn.h>
 #include <functional>
+#include <algorithm>
+
+#include <dlfcn.h>
+
+#include "icachesim.hpp"
 
 constexpr auto RESET_VECTOR = 0x30000000;
 constexpr auto MAX_IMAGE_SIZE = 32 * 1024 * 1024;
@@ -123,10 +127,53 @@ int main(int argc, char* argv[])
 
     init(image, bytes_read);
 
-    drain_pc_stream([](uint32_t pc)
+    // drain_pc_stream([](uint32_t pc){ printf("0x%x\n", pc); });
+
+    std::vector<ICacheSim> sims;
+
+    // Bytes
+    std::vector<size_t> cache_sizes = {32, 64, 128, 256, 512, 1024, 2048, 4096};
+    std::vector<size_t> block_sizes = {4, 8, 16, 32, 64, 128};
+    std::vector<size_t> set_sizes = {1, 2, 4, 8, 16, 32};
+    std::vector policies = {
+        ReplacementPolicy::FIFO,
+        ReplacementPolicy::LRU,
+        ReplacementPolicy::RANDOM
+    };
+
+    for (auto policy : policies)
     {
-        printf("0x%x\n", pc);
+        for (auto cache_size : cache_sizes)
+        {
+            for (auto block_size : block_sizes)
+            {
+                for (auto set_size : set_sizes)
+                {
+                    if (set_size * block_size > cache_size)
+                        continue;
+
+                    sims.emplace_back(cache_size, block_size, set_size, policy);
+                }
+            }
+        }
+    }
+
+    drain_pc_stream([&](uint32_t pc)
+    {
+        for (auto& sim : sims)
+            sim.step(pc);
     });
+
+    std::sort(sims.begin(), sims.end(), [](const auto& a, const auto& b)
+    {
+        return a.get_hit_rate() > b.get_hit_rate();
+    });
+
+    for (auto& sim : sims)
+    {
+        sim.dump(stdout);
+        printf("-----------------------\n");
+    }
 
     free(image);
     return 0;

@@ -8,16 +8,18 @@ import chisel3.util.HasBlackBoxInline
 
 class EBreak extends HasBlackBoxInline {
   val io = IO(new Bundle {
+    val clock = Input(Clock())
     val en = Input(Bool())
   })
   setInline(
     "EBreak.sv",
     """
       |module EBreak(
-      |  input  en
+      |  input clock,
+      |  input en
       |);
       |  import "DPI-C" function void ebreak_handler();
-      |  always @(*) begin
+      |  always @(posedge clock) begin
       |    if (en)
       |      ebreak_handler();
       |  end

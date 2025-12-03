@@ -1,8 +1,8 @@
 // Copyright (c) 2025 caozhanhao
 // SPDX-License-Identifier: MIT
 
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef BAILUWAN_CONFIG_HPP
+#define BAILUWAN_CONFIG_HPP
 
 #define RTC_MMIO 0xa0000048
 #define SERIAL_PORT_MMIO 0x10000000

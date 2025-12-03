@@ -160,6 +160,7 @@ class EXU(
   val ebreak = Module(new EBreak)
 
   ebreak.io.en := decoded.exec_type === ExecType.EBreak
+  ebreak.io.clock := clock
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid && lsu_valid

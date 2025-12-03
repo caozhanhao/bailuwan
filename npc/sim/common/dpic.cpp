@@ -156,17 +156,6 @@ void pmem_write(int waddr, int wdata, char wmask)
 
 void ebreak_handler()
 {
-    auto a0 = SIM.cpu().reg(10);
-    if (a0 == 0)
-        printf("\33[1;32mHIT GOOD TRAP\33[0m\n");
-    else
-        printf("\33[1;41mHIT BAD TRAP\33[0m, a0=%d\n", a0);
-
-    printf("Ebreak after %lu cycles\n", SIM.simulator_cycles());
-    printf("Statistics:\n");
-    SIM.dump_statistics(stdout);
-    SIM.dump_statistics_json();
-
-    throw EBreakException(static_cast<int>(a0));
+    SIM.ebreak();
 }
 }

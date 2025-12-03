@@ -60,21 +60,7 @@ int main(int argc, char* argv[])
     // Simulate
     printf("Simulation on NVBoard started.\n");
 
-    try
-    {
-        while (true)
-        {
-            SIM.single_cycle();
-            nvboard_update();
-        }
-    }
-    catch (EBreakException& e)
-    {
-        SIM.cleanup();
-        exit(e.get_code());
-    }
-
-    // never reach here
-
+    SIM.drain();
+    SimHandle::dump_after_ebreak();
     return 0;
 }
