@@ -66,7 +66,6 @@ void ICacheSim::step(uint32_t pc)
 void ICacheSim::dump(FILE* stream) const
 {
     uint64_t total = hit + miss;
-    double rate = (total > 0) ? static_cast<double>(hit) / static_cast<double>(total) * 100.0 : 0.0;
 
     auto policy_str = "Unknown";
     switch (replacement_policy)
@@ -88,5 +87,5 @@ void ICacheSim::dump(FILE* stream) const
     fprintf(stream, "Total:    %lu\n", total);
     fprintf(stream, "Hits:     %lu\n", hit);
     fprintf(stream, "Misses:   %lu\n", miss);
-    fprintf(stream, "Hit Rate: %.2f%%\n", rate);
+    fprintf(stream, "Hit Rate: %.2f%%\n", get_hit_rate());
 }

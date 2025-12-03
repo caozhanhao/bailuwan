@@ -66,7 +66,7 @@ public:
     ICacheSim(uint32_t cache_size_, uint32_t block_size_, uint32_t set_size_,
               ReplacementPolicy policy_)
         : hit(0), miss(0), cache_size(cache_size_), block_size(block_size_), set_size(set_size_),
-          replacement_policy(policy_)
+          replacement_policy(policy_), rng(std::random_device()())
     {
         num_sets = cache_size / (block_size * set_size);
 
@@ -78,14 +78,15 @@ public:
         index_bits = log2_u32(num_sets);
 
         index_mask = num_sets - 1;
-
-        // Initialize random
-        std::random_device rd;
-        rng.seed(rd());
     }
 
     [[nodiscard]] uint64_t get_hit() const { return hit; }
     [[nodiscard]] uint64_t get_miss() const { return miss; }
+
+    [[nodiscard]] double get_hit_rate() const
+    {
+        return (static_cast<double>(hit) / static_cast<double>(hit + miss)) * 100.0;
+    }
 
     void step(uint32_t pc);
     void dump(FILE* stream) const;
