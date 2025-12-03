@@ -125,9 +125,14 @@ int main(int argc, char* argv[])
 
     init(image, bytes_read);
 
-    ICacheSim sim(64, 4, 1);
-    drain_pc_stream([&sim](uint32_t pc) { sim.step(pc); });
-    sim.dump(stdout);
+    drain_pc_stream([](uint32_t pc)
+    {
+        printf("0x%x\n", pc);
+    });
+
+    // ICacheSim sim(64, 4, 1);
+    // drain_pc_stream([&sim](uint32_t pc) { sim.step(pc); });
+    // sim.dump(stdout);
 
     free(image);
     return 0;
