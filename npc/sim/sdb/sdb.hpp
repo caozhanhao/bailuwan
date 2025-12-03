@@ -3,8 +3,8 @@
 
 // SDB is adapted from sdb in NEMU.
 
-#ifndef SDB_HPP
-#define SDB_HPP
+#ifndef BAILUWAN_SDB_HPP
+#define BAILUWAN_SDB_HPP
 
 #include <cstdint>
 #include <cstdio>
