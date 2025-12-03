@@ -226,7 +226,7 @@ public:
     void drain();
     void reset(int n);
 
-    static void dump_after_ebreak() ;
+    void dump_after_ebreak() ;
     void dump_statistics(FILE* stream = stderr) const;
     void dump_statistics_json(FILE* stream = nullptr) const;
     void ebreak() { got_ebreak = true; }

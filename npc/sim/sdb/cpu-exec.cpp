@@ -56,7 +56,7 @@ static void execute(uint64_t n)
         SIM.single_cycle();
         if (SIM.has_got_ebreak())
         {
-            SimHandle::dump_after_ebreak();
+            SIM.dump_after_ebreak();
 
             sdb_state = SDBState::End;
             sdb_halt_ret = static_cast<int>(cpu.reg(10));

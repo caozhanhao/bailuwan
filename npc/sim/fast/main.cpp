@@ -54,6 +54,6 @@ int main(int argc, char* argv[])
     printf("Fast simulation started.\n");
 
     SIM.drain();
-    SimHandle::dump_after_ebreak();
+    SIM.dump_after_ebreak();
     return 0;
 }

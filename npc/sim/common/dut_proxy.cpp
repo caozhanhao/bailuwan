@@ -465,17 +465,17 @@ void SimHandle::reset(int n)
 
 void SimHandle::dump_after_ebreak()
 {
-    auto a0 = SIM.cpu().reg(10);
-    auto pc = SIM.cpu().pc();
+    auto a0 = cpu().reg(10);
+    auto pc = cpu().pc();
     if (a0 == 0)
         printf("\33[1;32mHIT GOOD TRAP\33[0m at pc = 0x%x\n", pc);
     else
         printf("\33[1;41mHIT BAD TRAP\33[0m at pc = 0x%x, a0=%d\n", pc, a0);
 
-    printf("Ebreak after %lu cycles\n", SIM.simulator_cycles());
+    printf("Ebreak after %lu cycles\n", simulator_cycles());
     printf("Statistics:\n");
-    SIM.dump_statistics(stdout);
-    SIM.dump_statistics_json();
+    dump_statistics(stdout);
+    dump_statistics_json();
 }
 
 void SimHandle::dump_statistics(FILE* stream) const
