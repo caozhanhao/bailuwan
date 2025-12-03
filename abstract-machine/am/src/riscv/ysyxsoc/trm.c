@@ -114,7 +114,7 @@ void print_welcome_msg()
 void _trm_init()
 {
     init_uart16550();
-    // print_welcome_msg();
+    print_welcome_msg();
     int ret = main(mainargs);
     halt(ret);
 }
