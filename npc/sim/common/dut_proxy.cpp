@@ -439,6 +439,12 @@ void SimHandle::single_cycle()
     cycle_counter++;
 }
 
+void SimHandle::drain()
+{
+    while (!got_ebreak)
+        single_cycle();
+}
+
 void SimHandle::reset(int n)
 {
     dut->clock = 0;

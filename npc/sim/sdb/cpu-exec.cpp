@@ -53,14 +53,11 @@ static void execute(uint64_t n)
     auto& cpu = SIM.cpu();
     while (n > 0)
     {
-        try
-        {
-            SIM.single_cycle();
-        }
-        catch (EBreakException& e)
+        SIM.single_cycle();
+        if (SIM.has_got_ebreak())
         {
             sdb_state = SDBState::End;
-            sdb_halt_ret = e.get_code();
+            sdb_halt_ret = static_cast<int>(cpu.reg(10));
         }
 
         trace_and_difftest();

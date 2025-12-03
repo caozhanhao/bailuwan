@@ -19,7 +19,7 @@ class EBreak extends HasBlackBoxInline {
       |  input en
       |);
       |  import "DPI-C" function void ebreak_handler();
-      |  always @(negedge clock) begin
+      |  always @(posedge clock) begin
       |    if (en)
       |      ebreak_handler();
       |  end

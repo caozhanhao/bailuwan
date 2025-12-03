@@ -168,6 +168,6 @@ void ebreak_handler()
     SIM.dump_statistics(stdout);
     SIM.dump_statistics_json();
 
-    throw EBreakException(static_cast<int>(a0));
+    SIM.ebreak();
 }
 }

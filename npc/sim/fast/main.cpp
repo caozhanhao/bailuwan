@@ -53,18 +53,6 @@ int main(int argc, char* argv[])
     // Simulate
     printf("Fast simulation started.\n");
 
-    try
-    {
-        while (true)
-            SIM.single_cycle();
-    }
-    catch (EBreakException& e)
-    {
-        SIM.cleanup();
-        exit(e.get_code());
-    }
-
-    // never reach here
-
+    SIM.drain();
     return 0;
 }
