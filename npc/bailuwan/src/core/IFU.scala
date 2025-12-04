@@ -46,14 +46,13 @@ class ICache(
   })
 
   // Constants
-  val BLOCK_BITS = 2 // 4-byte block
-  val INDEX_BITS = 4 // 16 blocks
+  val BLOCK_BITS      = 4                     // 16-byte block
+  val WORDS_PER_BLOCK = 1 << (BLOCK_BITS - 2) // 16 / 4 = 4 words
+  val INDEX_BITS      = 4                     // 16 blocks
 
-  val TAG_BITS   = 32 - INDEX_BITS - BLOCK_BITS
-  // 1-bit valid | TAG_BITS-bit tag | DATA_BITS-bit data
-  val DATA_BITS  = (1 << BLOCK_BITS) * 8
-  val ENTRY_BITS = 1 + TAG_BITS + DATA_BITS
-  val ENTRY_NUM  = 1 << INDEX_BITS
+  val TAG_BITS  = 32 - INDEX_BITS - BLOCK_BITS
+  // 1-bit valid | TAG_BITS-bit tag | (WORDS_PER_BLOCK * 4)-bit data
+  val ENTRY_NUM = 1 << INDEX_BITS
 
   // Request and Response
   val req  = io.ifu.req
@@ -65,27 +64,36 @@ class ICache(
   val state = RegInit(s_idle)
 
   // Request Info
-  val req_addr  = req.bits.addr
-  val req_tag   = req_addr(31, INDEX_BITS + BLOCK_BITS)
-  val req_index = req_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
+  val req_addr   = req.bits.addr
+  val req_tag    = req_addr(31, INDEX_BITS + BLOCK_BITS)
+  val req_index  = req_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
+  val req_offset = req_addr(BLOCK_BITS - 1, 2)
 
   // Fill Info
-  val fill_addr  = RegInit(0.U(32.W))
-  val fill_tag   = fill_addr(31, INDEX_BITS + BLOCK_BITS)
-  val fill_index = fill_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
-
+  val fill_addr   = RegInit(0.U(32.W))
   fill_addr := Mux(state === s_idle && req.valid, req_addr, fill_addr)
+
+  val fill_tag    = fill_addr(31, INDEX_BITS + BLOCK_BITS)
+  val fill_index  = fill_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
+  val fill_offset = fill_addr(BLOCK_BITS - 1, 2)
+
+  val fill_cnt    = RegInit(0.U(log2Ceil(WORDS_PER_BLOCK).W))
+  fill_cnt  := Mux(state === s_idle, 0.U, Mux(io.mem.r.fire, fill_cnt + 1.U, fill_cnt))
+
+  val fill_done = (fill_cnt === (WORDS_PER_BLOCK - 1).U) && io.mem.r.fire
 
   // Cache Storage
   val valid_storage = RegInit(VecInit(Seq.fill(ENTRY_NUM)(false.B)))
   val tag_storage   = Reg(Vec(ENTRY_NUM, UInt(TAG_BITS.W)))
-  val data_storage  = Reg(Vec(ENTRY_NUM, UInt(DATA_BITS.W)))
+  val data_storage  = Reg(Vec(ENTRY_NUM, Vec(WORDS_PER_BLOCK, UInt(32.W))))
 
   // Entry Info Selected by Request
   val read_index  = Mux(state === s_idle, req_index, fill_index)
+  val read_offset = Mux(state === s_idle, req_offset, fill_offset)
   val entry_valid = valid_storage(read_index)
   val entry_tag   = tag_storage(read_index)
-  val entry_data  = data_storage(read_index)
+  val entry_line  = data_storage(read_index)
+  val entry_data  = entry_line(read_offset)
 
   val hit = entry_valid && (entry_tag === req_tag)
 
@@ -94,7 +102,7 @@ class ICache(
     Seq(
       s_idle     -> Mux(req.valid, Mux(hit, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill)), s_idle),
       s_fill     -> Mux(io.mem.ar.fire, s_wait_mem, s_fill),
-      s_wait_mem -> Mux(io.mem.r.fire, Mux(resp.fire, s_idle, s_resp), s_wait_mem),
+      s_wait_mem -> Mux(io.mem.r.fire, Mux(fill_done, Mux(resp.fire, s_idle, s_resp), s_fill), s_wait_mem),
       s_resp     -> Mux(resp.fire, s_idle, s_resp)
     )
   )
@@ -102,15 +110,17 @@ class ICache(
   // Fill
   valid_storage(fill_index) := Mux(io.mem.r.fire, true.B, valid_storage(fill_index))
   tag_storage(fill_index)   := Mux(io.mem.r.fire, fill_tag, tag_storage(fill_index))
-  data_storage(fill_index)  := Mux(io.mem.r.fire, io.mem.r.bits.data, data_storage(fill_index))
+
+  val filling = data_storage(fill_index)(fill_cnt)
+  filling := Mux(io.mem.r.fire, io.mem.r.bits.data, filling)
 
   val err      = RegInit(false.B)
   val curr_err = io.mem.r.bits.resp =/= AXIResp.OKAY
-  err := Mux(io.mem.r.fire, curr_err, err)
+  err := Mux(state === s_idle, false.B, Mux(io.mem.r.fire, err || curr_err, err))
 
   // IFU IO
   // Immediate hit or s_resp
-  val resp_bypass = state === s_wait_mem && io.mem.r.valid
+  val resp_bypass = state === s_wait_mem && io.mem.r.valid && fill_cnt === fill_offset
   resp.valid      := (req.valid && hit) || (state === s_resp) || resp_bypass
   resp.bits.data  := Mux(resp_bypass, io.mem.r.bits.data, entry_data)
   resp.bits.error := Mux(resp_bypass, curr_err, err)
@@ -126,7 +136,7 @@ class ICache(
   // Mem IO
   val ar_bypass = state === s_idle && req.valid && !hit
   io.mem.ar.valid     := ar_bypass || (state === s_fill)
-  io.mem.ar.bits.addr := Mux(ar_bypass, req.bits.addr, fill_addr)
+  io.mem.ar.bits.addr := Mux(ar_bypass, req.bits.addr, fill_addr + (fill_cnt << 2).asUInt)
 
   io.mem.r.ready := state === s_wait_mem
 
