@@ -67,18 +67,18 @@ class ICache(
   val req_addr   = req.bits.addr
   val req_tag    = req_addr(31, INDEX_BITS + BLOCK_BITS)
   val req_index  = req_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
-  val req_offset = req_addr(BLOCK_BITS - 1, 2)
+  val req_offset = if (BLOCK_BITS > 2) req_addr(BLOCK_BITS - 1, 2) else 0.U
 
   // Fill Info
-  val fill_addr   = RegInit(0.U(32.W))
+  val fill_addr = RegInit(0.U(32.W))
   fill_addr := Mux(state === s_idle && req.valid, req_addr, fill_addr)
 
   val fill_tag    = fill_addr(31, INDEX_BITS + BLOCK_BITS)
   val fill_index  = fill_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
-  val fill_offset = fill_addr(BLOCK_BITS - 1, 2)
+  val fill_offset = if (BLOCK_BITS > 2) fill_addr(BLOCK_BITS - 1, 2) else 0.U
 
-  val fill_cnt    = RegInit(0.U(log2Ceil(WORDS_PER_BLOCK).W))
-  fill_cnt  := Mux(state === s_idle, 0.U, Mux(io.mem.r.fire, fill_cnt + 1.U, fill_cnt))
+  val fill_cnt = RegInit(0.U(log2Ceil(WORDS_PER_BLOCK).W))
+  fill_cnt := Mux(state === s_idle, 0.U, Mux(io.mem.r.fire, fill_cnt + 1.U, fill_cnt))
 
   val fill_done = (fill_cnt === (WORDS_PER_BLOCK - 1).U) && io.mem.r.fire
 
@@ -108,8 +108,8 @@ class ICache(
   )
 
   // Fill
-  valid_storage(fill_index) := Mux(io.mem.r.fire, true.B, valid_storage(fill_index))
-  tag_storage(fill_index)   := Mux(io.mem.r.fire, fill_tag, tag_storage(fill_index))
+  valid_storage(fill_index) := Mux(fill_done, true.B, valid_storage(fill_index))
+  tag_storage(fill_index)   := Mux(fill_done, fill_tag, tag_storage(fill_index))
 
   val filling = data_storage(fill_index)(fill_cnt)
   filling := Mux(io.mem.r.fire, io.mem.r.bits.data, filling)
