@@ -102,7 +102,7 @@ class ICache(
     Seq(
       s_idle     -> Mux(req.valid, Mux(hit, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill)), s_idle),
       s_fill     -> Mux(io.mem.ar.fire, s_wait_mem, s_fill),
-      s_wait_mem -> Mux(io.mem.r.fire, Mux(fill_done, Mux(resp.fire, s_idle, s_resp), s_fill), s_wait_mem),
+      s_wait_mem -> Mux(io.mem.r.fire, Mux(fill_done, s_resp, s_fill), s_wait_mem),
       s_resp     -> Mux(resp.fire, s_idle, s_resp)
     )
   )
@@ -120,10 +120,9 @@ class ICache(
 
   // IFU IO
   // Immediate hit or s_resp
-  val resp_bypass = state === s_wait_mem && io.mem.r.valid && fill_done
-  resp.valid      := (req.valid && hit) || (state === s_resp) || resp_bypass
-  resp.bits.data  := Mux(resp_bypass, io.mem.r.bits.data, entry_data)
-  resp.bits.error := Mux(resp_bypass, curr_err, err)
+  resp.valid      := (req.valid && hit) || (state === s_resp)
+  resp.bits.data  := entry_data
+  resp.bits.error := err
 
   req.ready := state === s_idle
 
