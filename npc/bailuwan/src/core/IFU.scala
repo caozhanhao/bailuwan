@@ -120,7 +120,7 @@ class ICache(
 
   // IFU IO
   // Immediate hit or s_resp
-  val resp_bypass = state === s_wait_mem && io.mem.r.valid && fill_cnt === fill_done
+  val resp_bypass = state === s_wait_mem && io.mem.r.valid && fill_done
   resp.valid      := (req.valid && hit) || (state === s_resp) || resp_bypass
   resp.bits.data  := Mux(resp_bypass, io.mem.r.bits.data, entry_data)
   resp.bits.error := Mux(resp_bypass, curr_err, err)
