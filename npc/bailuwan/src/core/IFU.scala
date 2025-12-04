@@ -46,7 +46,7 @@ class ICache(
   })
 
   // Constants
-  val BLOCK_BITS      = 4                     // 16-byte block
+  val BLOCK_BITS      = 2                     // 16-byte block
   val WORDS_PER_BLOCK = 1 << (BLOCK_BITS - 2) // 16 / 4 = 4 words
   val INDEX_BITS      = 4                     // 16 blocks
 
@@ -111,8 +111,8 @@ class ICache(
   valid_storage(fill_index) := Mux(fill_done, true.B, valid_storage(fill_index))
   tag_storage(fill_index)   := Mux(fill_done, fill_tag, tag_storage(fill_index))
 
-  val filling = data_storage(fill_index)(fill_cnt)
-  filling := Mux(io.mem.r.fire, io.mem.r.bits.data, filling)
+  data_storage(fill_index)(fill_cnt) :=
+    Mux(io.mem.r.fire, io.mem.r.bits.data, data_storage(fill_index)(fill_cnt))
 
   val err      = RegInit(false.B)
   val curr_err = io.mem.r.bits.resp =/= AXIResp.OKAY
@@ -120,7 +120,7 @@ class ICache(
 
   // IFU IO
   // Immediate hit or s_resp
-  val resp_bypass = state === s_wait_mem && io.mem.r.valid && fill_cnt === fill_offset
+  val resp_bypass = state === s_wait_mem && io.mem.r.valid && fill_cnt === fill_done
   resp.valid      := (req.valid && hit) || (state === s_resp) || resp_bypass
   resp.bits.data  := Mux(resp_bypass, io.mem.r.bits.data, entry_data)
   resp.bits.error := Mux(resp_bypass, curr_err, err)
@@ -135,8 +135,12 @@ class ICache(
 
   // Mem IO
   val ar_bypass = state === s_idle && req.valid && !hit
-  io.mem.ar.valid     := ar_bypass || (state === s_fill)
-  io.mem.ar.bits.addr := Mux(ar_bypass, req.bits.addr, fill_addr + (fill_cnt << 2).asUInt)
+  io.mem.ar.valid := ar_bypass || (state === s_fill)
+
+  val block_align_mask  = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
+  val base_addr         = Mux(ar_bypass, req.bits.addr, fill_addr)
+  val base_addr_aligned = base_addr & block_align_mask
+  io.mem.ar.bits.addr := base_addr_aligned + (fill_cnt << 2).asUInt
 
   io.mem.r.ready := state === s_wait_mem
 
