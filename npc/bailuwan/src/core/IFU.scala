@@ -59,7 +59,7 @@ class ICache(
   val resp = io.ifu.resp
 
   // States
-  val s_idle :: s_fill :: s_wait_mem :: s_resp :: Nil = Enum(4)
+  val s_idle :: s_fill_addr :: s_wait_mem :: s_resp :: Nil = Enum(4)
 
   val state = RegInit(s_idle)
 
@@ -80,7 +80,7 @@ class ICache(
   val fill_cnt = RegInit(0.U(log2Ceil(WORDS_PER_BLOCK).W))
   fill_cnt := Mux(state === s_idle, 0.U, Mux(io.mem.r.fire, fill_cnt + 1.U, fill_cnt))
 
-  val fill_done = (fill_cnt === (WORDS_PER_BLOCK - 1).U) && io.mem.r.fire
+  val fill_done = io.mem.r.fire && io.mem.r.bits.last
 
   // Cache Storage
   val valid_storage = RegInit(VecInit(Seq.fill(ENTRY_NUM)(false.B)))
@@ -100,10 +100,10 @@ class ICache(
   // State Transfer
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle     -> Mux(req.valid, Mux(hit, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill)), s_idle),
-      s_fill     -> Mux(io.mem.ar.fire, s_wait_mem, s_fill),
-      s_wait_mem -> Mux(io.mem.r.fire, Mux(fill_done, s_resp, s_fill), s_wait_mem),
-      s_resp     -> Mux(resp.fire, s_idle, s_resp)
+      s_idle      -> Mux(req.valid, Mux(hit, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)), s_idle),
+      s_fill_addr -> Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr),
+      s_wait_mem  -> Mux(fill_done, s_resp, s_wait_mem),
+      s_resp      -> Mux(resp.fire, s_idle, s_resp)
     )
   )
 
@@ -134,19 +134,18 @@ class ICache(
 
   // Mem IO
   val ar_bypass = state === s_idle && req.valid && !hit
-  io.mem.ar.valid := ar_bypass || (state === s_fill)
+  io.mem.ar.valid := ar_bypass || (state === s_fill_addr)
 
-  val block_align_mask  = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
-  val base_addr         = Mux(ar_bypass, req.bits.addr, fill_addr)
-  val base_addr_aligned = base_addr & block_align_mask
-  io.mem.ar.bits.addr := base_addr_aligned + (fill_cnt << 2).asUInt
+  val block_align_mask = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
+  val base_addr        = Mux(ar_bypass, req.bits.addr, fill_addr)
+  io.mem.ar.bits.addr := base_addr & block_align_mask
 
   io.mem.r.ready := state === s_wait_mem
 
   io.mem.ar.bits.id    := 0.U
-  io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
-  io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
-  io.mem.ar.bits.burst := 0.U
+  io.mem.ar.bits.len   := (WORDS_PER_BLOCK - 1).U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.ar.bits.size  := 2.U                     // 2^2 = 4 bytes
+  io.mem.ar.bits.burst := 1.U                     // INCR
   io.mem.aw.valid      := false.B
   io.mem.aw.bits       := DontCare
   io.mem.w.valid       := false.B
