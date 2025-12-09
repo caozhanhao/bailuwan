@@ -90,15 +90,15 @@ class DPICMem(
   val r_cnt  = RegInit(0.U(8.W))
 
   val next_addr =
-    Mux(io.ar.fire, io.ar.bits.addr, Mux(io.r.fire && !io.r.bits.last, compute_next_addr(r_addr, r_ctx.size, r_ctx.burst), r_addr))
+    Mux(io.ar.fire, io.ar.bits.addr, Mux(io.r.fire, compute_next_addr(r_addr, r_ctx.size, r_ctx.burst), r_addr))
   r_addr := next_addr
 
   r_cnt := Mux(io.ar.fire, 0.U, Mux(io.r.fire, r_cnt + 1.U, r_cnt))
 
   io.r.bits.last := r_cnt === r_ctx.len
 
-  mem_read.io.addr := next_addr
-  mem_read.io.en   := ((io.ar.fire && r_state === r_idle) || (r_state === r_reading)) && !reset.asBool
+  mem_read.io.addr := r_addr
+  mem_read.io.en   := (r_state === r_reading) && !reset.asBool
 
   io.r.bits.data := mem_read.io.out
   io.r.bits.resp := AXIResp.OKAY
