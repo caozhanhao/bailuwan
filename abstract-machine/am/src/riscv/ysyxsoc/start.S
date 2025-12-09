@@ -6,10 +6,10 @@
 .Lcp\@:
     // beq is fine since we've ensured align in linker.ld
     beq  t1, t2, .Lcp_done\@
-    lw   x10, 0(t0)
-    sw   x10, 0(t1)
-    addi t0, t0, 4
-    addi t1, t1, 4
+    lb   x10, 0(t0)
+    sb   x10, 0(t1)
+    addi t0, t0, 1
+    addi t1, t1, 1
     j    .Lcp\@
 .Lcp_done\@:
 .endm
@@ -39,8 +39,8 @@ _ssbl:
     la   t2, _ebss
 _ssbl_bss_loop:
     beq  t1, t2, _ssbl_end
-    sw   x0, 0(t1)
-    addi t1, t1, 4
+    sb   x0, 0(t1)
+    addi t1, t1, 1
     j    _ssbl_bss_loop
 _ssbl_end:
     la   t0, _start
