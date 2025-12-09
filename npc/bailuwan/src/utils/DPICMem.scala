@@ -68,10 +68,10 @@ class DPICMem(
     extends Module {
   val io = IO(Flipped(new AXI4))
 
-  // AXI4-Lite
-  io.r.bits.last := true.B
-  io.r.bits.id   := 0.U
-  io.b.bits.id   := 0.U
+  def next_addr(curr_addr: UInt, size: UInt, burst: UInt): UInt = {
+    val incr = (1.U << size).asUInt
+    Mux(burst === AXIBurstType.FIXED, curr_addr, curr_addr + incr)
+  }
 
   // Read
   val mem_read = Module(new PMemReadDPICWrapper)
@@ -80,11 +80,19 @@ class DPICMem(
   val r_idle :: r_wait_mem :: r_wait_ready :: Nil = Enum(3)
 
   val r_state = RegInit(r_idle)
+  val r_ctx   = RegEnable(io.ar.bits, io.ar.fire)
 
-  mem_read.io.addr := io.ar.bits.addr
-  mem_read.io.en   := io.ar.fire && r_state === r_idle && !reset.asBool
+  val r_addr = RegInit(0.U(32.W))
+  val r_cnt  = RegInit(0.U(8.W))
 
-  // printf(cf"dpi-c, ar bits: ${io.ar.bits.addr}\n")
+  r_addr := Mux(io.ar.fire, io.ar.bits.addr, Mux(io.r.fire, next_addr(r_addr, r_ctx.size, r_ctx.burst), r_addr))
+
+  r_cnt := Mux(io.ar.fire, 0.U, Mux(io.r.fire, r_cnt + 1.U, r_cnt))
+
+  io.r.bits.last := r_cnt === r_ctx.len
+
+  mem_read.io.addr := r_addr
+  mem_read.io.en   := ((io.ar.fire && r_state === r_idle || (r_state === r_wait_ready && io.r.fire && r_cnt =/= r_ctx.len))) && !reset.asBool
 
   val read_data_reg = RegInit(0.U(32.W))
   read_data_reg := Mux(r_state === r_wait_mem, mem_read.io.out, read_data_reg)
@@ -97,9 +105,9 @@ class DPICMem(
 
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
-      r_idle       -> Mux(mem_read.io.en, r_wait_mem, r_idle),
+      r_idle       -> Mux(io.ar.fire, r_wait_mem, r_idle),
       r_wait_mem   -> r_wait_ready, // read to register takes one cycle
-      r_wait_ready -> Mux(io.r.fire, r_idle, r_wait_ready)
+      r_wait_ready -> Mux(io.r.fire && io.r.bits.last, r_idle, r_wait_ready)
     )
   )
 
