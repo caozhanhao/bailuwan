@@ -11,12 +11,12 @@ MEMORY {
 
 /* Attention: align to enable fsbl/ssbl to use lw/sw for copying. */
 SECTIONS {
-  .fsbl : ALIGN(8) {
+  .fsbl : {
     *(fsbl)
     . = ALIGN(8);
   } > flash AT> flash
 
-  .ssbl : ALIGN(8) {
+  .ssbl : {
     _ssbl_lma = LOADADDR(.ssbl);
     _sssbl = .;
     *(ssbl)
@@ -24,7 +24,7 @@ SECTIONS {
     _essbl = .;
   } > sram AT> flash
 
-  .text : ALIGN(8) {
+  .text : {
     _text_lma = LOADADDR(.text);
     _stext = .;
     *(entry)
@@ -33,7 +33,7 @@ SECTIONS {
     _etext = .;
   } > sdram AT> flash
 
-  .rodata : ALIGN(8) {
+  .rodata : {
     _rodata_lma = LOADADDR(.rodata);
     _srodata = .;
     *(.rodata*)
@@ -41,7 +41,7 @@ SECTIONS {
     _erodata = .;
   } > sdram AT> flash
 
-  .data : ALIGN(8) {
+  .data : {
     _data_lma = LOADADDR(.data);
     _sdata = .;
     *(.data*)
@@ -50,7 +50,7 @@ SECTIONS {
     _edata = .;
   } > sdram AT> flash
 
-  .bss (NOLOAD) : ALIGN(8) {
+  .bss (NOLOAD) : {
     _sbss = .;
     *(.bss*)
     *(.sbss*)
@@ -59,7 +59,7 @@ SECTIONS {
     _ebss = .;
   } > sdram
 
-  .stack (NOLOAD) : ALIGN(8) {
+  .stack (NOLOAD) : {
     _stack_top   = ORIGIN(sram) + LENGTH(sram);
     _stack_start = _stack_top - 0x800; /* 2 KB */
     . = _stack_start;
