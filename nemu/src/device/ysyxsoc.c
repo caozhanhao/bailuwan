@@ -18,6 +18,7 @@
 static uint8_t *mrom_base = nullptr;
 static uint8_t *sram_base = nullptr;
 static uint8_t *flash_base = nullptr;
+static uint8_t *psram_base = nullptr;
 static uint8_t *sdram_base = nullptr;
 static uint8_t *uart_base = nullptr;
 
@@ -44,6 +45,7 @@ void init_ysyxsoc() {
   mrom_base = new_space(CONFIG_MROM_SIZE);
   sram_base = new_space(CONFIG_SRAM_SIZE);
   flash_base = new_space(CONFIG_FLASH_SIZE);
+  psram_base = new_space(CONFIG_PSRAM_SIZE);
   sdram_base = new_space(CONFIG_SDRAM_SIZE);
   uart_base = new_space(CONFIG_UART_SIZE);
 
@@ -51,6 +53,7 @@ void init_ysyxsoc() {
   add_mmio_map("ysyxsoc_mrom", CONFIG_MROM_BASE, mrom_base, CONFIG_MROM_SIZE, nullptr);
   add_mmio_map("ysyxsoc_sram", CONFIG_SRAM_BASE, sram_base, CONFIG_SRAM_SIZE, nullptr);
   add_mmio_map("ysyxsoc_flash", CONFIG_FLASH_BASE, flash_base, CONFIG_FLASH_SIZE, nullptr);
+  add_mmio_map("ysyxsoc_psram", CONFIG_PSRAM_BASE, psram_base, CONFIG_PSRAM_SIZE, nullptr);
   add_mmio_map("ysyxsoc_sdram", CONFIG_SDRAM_BASE, sdram_base, CONFIG_SDRAM_SIZE, nullptr);
   add_mmio_map("ysyxsoc_uart", CONFIG_UART_BASE, uart_base, CONFIG_UART_SIZE, uart_io_handler);
 }
