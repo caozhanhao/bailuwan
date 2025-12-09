@@ -47,9 +47,9 @@ class ICache(
   })
 
   // Constants
-  val BLOCK_BITS      = 4                     // 16-byte block
+  val BLOCK_BITS      = 2                     // 16-byte block
   val WORDS_PER_BLOCK = 1 << (BLOCK_BITS - 2) // 16 / 4 = 4 words
-  val INDEX_BITS      = 4                     // 16 blocks
+  val INDEX_BITS      = 2                     // 16 blocks
 
   val TAG_BITS  = 32 - INDEX_BITS - BLOCK_BITS
   // 1-bit valid | TAG_BITS-bit tag | (WORDS_PER_BLOCK * 4)-bit data
