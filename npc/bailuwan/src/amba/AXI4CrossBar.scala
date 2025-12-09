@@ -77,7 +77,7 @@ class AXI4CrossBar(
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
       r_idle -> Mux(master.ar.valid, r_busy, r_idle),
-      r_busy -> Mux(r_owner.r.fire, r_idle, r_busy)
+      r_busy -> Mux(r_owner.r.fire && r_owner.r.bits.last, r_idle, r_busy)
     )
   )
 
