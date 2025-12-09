@@ -124,13 +124,10 @@ class ICache(
   resp.bits.data  := entry_data
   resp.bits.error := err
 
-  req.ready := state === s_idle
-
-  // Ensure (req.valid && hit) => resp.ready.
   // If the IFU sends a request that hits the cache but is not ready to receive
   // data in the same cycle, the request will be lost because we do NOT latch
-  // hit responses. Thus, we assert this requirement here.
-  assert(!(req.valid && hit) || resp.ready, "Bad request.")
+  // hit responses. Thus, we wait resp.ready when cache hit here.
+  req.ready := state === s_idle && (!hit || resp.ready)
 
   // Mem IO
   val ar_bypass = state === s_idle && req.valid && !hit
@@ -155,7 +152,7 @@ class ICache(
 
   PerfCounter(state === s_idle && req.valid && hit, "icache_hit")
   PerfCounter(state === s_idle && req.valid && !hit, "icache_miss")
-  PerfCounter(state === io.mem.r.valid, "icache_mem_access_cycles")
+  PerfCounter(io.mem.r.valid, "icache_mem_access_cycles")
 }
 
 class IFU(
