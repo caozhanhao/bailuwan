@@ -68,6 +68,10 @@ class DPICMem(
     extends Module {
   val io = IO(Flipped(new AXI4))
 
+  // FIXME
+  io.r.bits.id   := 0.U
+  io.b.bits.id   := 0.U
+
   def next_addr(curr_addr: UInt, size: UInt, burst: UInt): UInt = {
     val incr = (1.U << size).asUInt
     Mux(burst === AXIBurstType.FIXED, curr_addr, curr_addr + incr)
