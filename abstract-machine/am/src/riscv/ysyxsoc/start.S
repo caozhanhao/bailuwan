@@ -6,7 +6,7 @@
 .Lcp\@:
     // beq is fine since we've ensured align in linker.ld
     beq  t1, t2, .Lcp_done\@
-    lb   x10, 0(t0)
+    lbu   x10, 0(t0)
     sb   x10, 0(t1)
     addi t0, t0, 1
     addi t1, t1, 1
