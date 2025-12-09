@@ -5,7 +5,7 @@
     la   t2, \end       // end    (VMA)
 .Lcp\@:
     // beq is fine since we've ensured align in linker.ld
-    blt  t1, t2, .Lcp_done\@
+    bge  t1, t2, .Lcp_done\@
     lbu   x10, 0(t0)
     sb   x10, 0(t1)
     addi t0, t0, 1
