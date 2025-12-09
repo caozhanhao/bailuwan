@@ -69,8 +69,8 @@ class DPICMem(
   val io = IO(Flipped(new AXI4))
 
   // FIXME
-  io.r.bits.id   := 0.U
-  io.b.bits.id   := 0.U
+  io.r.bits.id := 0.U
+  io.b.bits.id := 0.U
 
   def compute_next_addr(curr_addr: UInt, size: UInt, burst: UInt): UInt = {
     val incr = (1.U << size).asUInt
@@ -89,7 +89,8 @@ class DPICMem(
   val r_addr = RegInit(0.U(32.W))
   val r_cnt  = RegInit(0.U(8.W))
 
-  val next_addr = Mux(io.ar.fire, io.ar.bits.addr, Mux(io.r.fire, compute_next_addr(r_addr, r_ctx.size, r_ctx.burst), r_addr))
+  val next_addr =
+    Mux(io.ar.fire, io.ar.bits.addr, Mux(io.r.fire, compute_next_addr(r_addr, r_ctx.size, r_ctx.burst), r_addr))
   r_addr := next_addr
 
   r_cnt := Mux(io.ar.fire, 0.U, Mux(io.r.fire, r_cnt + 1.U, r_cnt))
@@ -106,7 +107,7 @@ class DPICMem(
 
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
-      r_idle       -> Mux(io.ar.fire, r_reading, r_idle),
+      r_idle    -> Mux(io.ar.fire, r_reading, r_idle),
       r_reading -> Mux(io.r.fire && io.r.bits.last, r_idle, r_reading)
     )
   )
