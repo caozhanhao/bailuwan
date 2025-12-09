@@ -46,7 +46,7 @@ class ICache(
   })
 
   // Constants
-  val BLOCK_BITS      = 2                     // 16-byte block
+  val BLOCK_BITS      = 4                     // 16-byte block
   val WORDS_PER_BLOCK = 1 << (BLOCK_BITS - 2) // 16 / 4 = 4 words
   val INDEX_BITS      = 4                     // 16 blocks
 
@@ -152,7 +152,7 @@ class ICache(
 
   PerfCounter(state === s_idle && req.valid && resp.ready && hit, "icache_hit")
   PerfCounter(state === s_idle && req.valid && !hit, "icache_miss")
-  PerfCounter(io.mem.r.valid, "icache_mem_access_cycles")
+  PerfCounter(state === s_wait_mem, "icache_mem_access_cycles")
 }
 
 class IFU(
