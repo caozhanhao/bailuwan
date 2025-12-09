@@ -81,7 +81,7 @@ class DPICMem(
   val mem_read = Module(new PMemReadDPICWrapper)
   mem_read.io.clock := clock
 
-  val r_idle :: r_wait_mem :: r_wait_ready :: Nil = Enum(3)
+  val r_idle :: r_reading :: Nil = Enum(2)
 
   val r_state = RegInit(r_idle)
   val r_ctx   = RegEnable(io.ar.bits, io.ar.fire)
@@ -96,22 +96,17 @@ class DPICMem(
   io.r.bits.last := r_cnt === r_ctx.len
 
   mem_read.io.addr := r_addr
-  mem_read.io.en   := ((io.ar.fire && r_state === r_idle || (r_state === r_wait_ready && io.r.fire && r_cnt =/= r_ctx.len))) && !reset.asBool
+  mem_read.io.en   := ((io.ar.fire && r_state === r_idle) || (r_state === r_reading)) && !reset.asBool
 
-  val read_data_reg = RegInit(0.U(32.W))
-  read_data_reg := Mux(r_state === r_wait_mem, mem_read.io.out, read_data_reg)
-
-  io.r.bits.data := read_data_reg
+  io.r.bits.data := mem_read.io.out
   io.r.bits.resp := AXIResp.OKAY
-  // io.r.valid     := utils.RandomDelay(r_state === r_wait_ready)
-  io.r.valid     := r_state === r_wait_ready
+  io.r.valid     := r_state === r_reading
   io.ar.ready    := r_state === r_idle
 
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
-      r_idle       -> Mux(io.ar.fire, r_wait_mem, r_idle),
-      r_wait_mem   -> r_wait_ready, // read to register takes one cycle
-      r_wait_ready -> Mux(io.r.fire && io.r.bits.last, r_idle, r_wait_ready)
+      r_idle       -> Mux(io.ar.fire, r_reading, r_idle),
+      r_reading -> Mux(io.r.fire && io.r.bits.last, r_idle, r_reading)
     )
   )
 
