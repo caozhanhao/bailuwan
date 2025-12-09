@@ -197,7 +197,7 @@ config PSRAM_BASE
 
 config PSRAM_SIZE
   hex "Size of the PSRAM"
-  default 0x20000000
+  default 0x8000000
 
 config SDRAM_BASE
   hex "Physical address of the SDRAM"
