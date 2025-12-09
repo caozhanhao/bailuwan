@@ -41,8 +41,9 @@ class ICache(
   axi_prop:   AXIProperty)
     extends Module {
   val io = IO(new Bundle {
-    val ifu = Flipped(new ICacheIO())
-    val mem = new AXI4()
+    val ifu   = Flipped(new ICacheIO())
+    val mem   = new AXI4()
+    val flush = Input(Bool())
   })
 
   // Constants
@@ -59,7 +60,7 @@ class ICache(
   val resp = io.ifu.resp
 
   // States
-  val s_idle :: s_fill :: s_wait_mem :: s_resp :: Nil = Enum(4)
+  val s_idle :: s_fill_addr :: s_wait_mem :: s_resp :: Nil = Enum(4)
 
   val state = RegInit(s_idle)
 
@@ -80,7 +81,7 @@ class ICache(
   val fill_cnt = RegInit(0.U(log2Ceil(WORDS_PER_BLOCK).W))
   fill_cnt := Mux(state === s_idle, 0.U, Mux(io.mem.r.fire, fill_cnt + 1.U, fill_cnt))
 
-  val fill_done = (fill_cnt === (WORDS_PER_BLOCK - 1).U) && io.mem.r.fire
+  val fill_done = io.mem.r.fire && io.mem.r.bits.last
 
   // Cache Storage
   val valid_storage = RegInit(VecInit(Seq.fill(ENTRY_NUM)(false.B)))
@@ -92,24 +93,26 @@ class ICache(
   val read_offset = Mux(state === s_idle, req_offset, fill_offset)
   val entry_valid = valid_storage(read_index)
   val entry_tag   = tag_storage(read_index)
-  val entry_line  = data_storage(read_index)
-  val entry_data  = entry_line(read_offset)
+  val entry_block = data_storage(read_index)
+  val entry_data  = entry_block(read_offset)
 
-  val hit = entry_valid && (entry_tag === req_tag)
+  val hit = !io.flush && entry_valid && (entry_tag === req_tag)
 
   // State Transfer
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle     -> Mux(req.valid, Mux(hit, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill)), s_idle),
-      s_fill     -> Mux(io.mem.ar.fire, s_wait_mem, s_fill),
-      s_wait_mem -> Mux(io.mem.r.fire, Mux(fill_done, s_resp, s_fill), s_wait_mem),
-      s_resp     -> Mux(resp.fire, s_idle, s_resp)
+      s_idle      -> Mux(req.valid, Mux(hit, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)), s_idle),
+      s_fill_addr -> Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr),
+      s_wait_mem  -> Mux(fill_done, s_resp, s_wait_mem),
+      s_resp      -> Mux(resp.fire, s_idle, s_resp)
     )
   )
 
   // Fill
-  valid_storage(fill_index) := Mux(fill_done, true.B, valid_storage(fill_index))
-  tag_storage(fill_index)   := Mux(fill_done, fill_tag, tag_storage(fill_index))
+  valid_storage.zipWithIndex.foreach { case (r, i) =>
+    r := Mux(io.flush, false.B, Mux(fill_done && (fill_index === i.U), true.B, r))
+  }
+  tag_storage(fill_index) := Mux(fill_done, fill_tag, tag_storage(fill_index))
 
   data_storage(fill_index)(fill_cnt) :=
     Mux(io.mem.r.fire, io.mem.r.bits.data, data_storage(fill_index)(fill_cnt))
@@ -124,29 +127,25 @@ class ICache(
   resp.bits.data  := entry_data
   resp.bits.error := err
 
-  req.ready := state === s_idle
-
-  // Ensure (req.valid && hit) => resp.ready.
   // If the IFU sends a request that hits the cache but is not ready to receive
   // data in the same cycle, the request will be lost because we do NOT latch
-  // hit responses. Thus, we assert this requirement here.
-  assert(!(req.valid && hit) || resp.ready, "Bad request.")
+  // hit responses. Thus, we wait resp.ready when cache hit here.
+  req.ready := state === s_idle && (!hit || resp.ready)
 
   // Mem IO
   val ar_bypass = state === s_idle && req.valid && !hit
-  io.mem.ar.valid := ar_bypass || (state === s_fill)
+  io.mem.ar.valid := ar_bypass || (state === s_fill_addr)
 
-  val block_align_mask  = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
-  val base_addr         = Mux(ar_bypass, req.bits.addr, fill_addr)
-  val base_addr_aligned = base_addr & block_align_mask
-  io.mem.ar.bits.addr := base_addr_aligned + (fill_cnt << 2).asUInt
+  val block_align_mask = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
+  val base_addr        = Mux(ar_bypass, req.bits.addr, fill_addr)
+  io.mem.ar.bits.addr := base_addr & block_align_mask
 
   io.mem.r.ready := state === s_wait_mem
 
   io.mem.ar.bits.id    := 0.U
-  io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.ar.bits.len   := (WORDS_PER_BLOCK - 1).U
   io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
-  io.mem.ar.bits.burst := 0.U
+  io.mem.ar.bits.burst := AXIBurstType.INCR
   io.mem.aw.valid      := false.B
   io.mem.aw.bits       := DontCare
   io.mem.w.valid       := false.B
@@ -154,9 +153,9 @@ class ICache(
   io.mem.b.ready       := false.B
   io.mem.w.bits.last   := true.B
 
-  PerfCounter(state === s_idle && req.valid && hit, "icache_hit")
+  PerfCounter(state === s_idle && req.valid && resp.ready && hit, "icache_hit")
   PerfCounter(state === s_idle && req.valid && !hit, "icache_miss")
-  PerfCounter(state === io.mem.r.valid, "icache_mem_access_cycles")
+  PerfCounter(state === s_wait_mem, "icache_mem_access_cycles")
 }
 
 class IFU(
@@ -167,13 +166,16 @@ class IFU(
     val in  = Flipped(Decoupled(new WBUOut))
     val out = Decoupled(new IFUOut)
 
-    val mem = new AXI4()
+    val mem          = new AXI4()
+    val icache_flush = Input(Bool())
   })
 
   val icache    = Module(new ICache())
   val icache_io = icache.io.ifu
 
   icache.io.mem <> io.mem
+
+  icache.io.flush := io.icache_flush
 
   val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(4)
 

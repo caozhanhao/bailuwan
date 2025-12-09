@@ -68,38 +68,48 @@ class DPICMem(
     extends Module {
   val io = IO(Flipped(new AXI4))
 
-  // AXI4-Lite
-  io.r.bits.last := true.B
-  io.r.bits.id   := 0.U
-  io.b.bits.id   := 0.U
+  // FIXME
+  io.r.bits.id := 0.U
+  io.b.bits.id := 0.U
+
+  def compute_next_addr(curr_addr: UInt, size: UInt, burst: UInt): UInt = {
+    val incr = (1.U << size).asUInt
+    Mux(burst === AXIBurstType.FIXED, curr_addr, curr_addr + incr)
+  }
 
   // Read
   val mem_read = Module(new PMemReadDPICWrapper)
   mem_read.io.clock := clock
 
-  val r_idle :: r_wait_mem :: r_wait_ready :: Nil = Enum(3)
+  val r_idle :: r_data_valid :: Nil = Enum(2)
 
   val r_state = RegInit(r_idle)
+  val r_ctx   = RegEnable(io.ar.bits, io.ar.fire)
 
-  mem_read.io.addr := io.ar.bits.addr
-  mem_read.io.en   := io.ar.fire && r_state === r_idle && !reset.asBool
+  val r_addr = RegInit(0.U(32.W))
+  val r_cnt  = RegInit(0.U(8.W))
 
-  // printf(cf"dpi-c, ar bits: ${io.ar.bits.addr}\n")
+  val next_addr =
+    Mux(io.ar.fire, io.ar.bits.addr, Mux(io.r.fire, compute_next_addr(r_addr, r_ctx.size, r_ctx.burst), r_addr))
+  r_addr := next_addr
 
-  val read_data_reg = RegInit(0.U(32.W))
-  read_data_reg := Mux(r_state === r_wait_mem, mem_read.io.out, read_data_reg)
+  r_cnt := Mux(io.ar.fire, 0.U, Mux(io.r.fire, r_cnt + 1.U, r_cnt))
 
-  io.r.bits.data := read_data_reg
+  io.r.bits.last := r_cnt === r_ctx.len
+
+  mem_read.io.addr := next_addr
+  mem_read.io.en   := ((io.ar.fire && r_state === r_idle) ||
+    (r_state === r_data_valid && !(io.r.fire && io.r.bits.last))) && !reset.asBool
+
+  io.r.bits.data := mem_read.io.out
   io.r.bits.resp := AXIResp.OKAY
-  // io.r.valid     := utils.RandomDelay(r_state === r_wait_ready)
-  io.r.valid     := r_state === r_wait_ready
+  io.r.valid     := r_state === r_data_valid
   io.ar.ready    := r_state === r_idle
 
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
-      r_idle       -> Mux(mem_read.io.en, r_wait_mem, r_idle),
-      r_wait_mem   -> r_wait_ready, // read to register takes one cycle
-      r_wait_ready -> Mux(io.r.fire, r_idle, r_wait_ready)
+      r_idle    -> Mux(io.ar.fire, r_data_valid, r_idle),
+      r_data_valid -> Mux(io.r.fire && io.r.bits.last, r_idle, r_data_valid)
     )
   )
 

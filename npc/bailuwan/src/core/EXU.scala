@@ -39,6 +39,8 @@ class EXU(
     val out = Decoupled(new EXUOut)
 
     val mem = new AXI4
+
+    val icache_flush = Output(Bool())
   })
 
   val decoded   = io.in.bits
@@ -159,8 +161,11 @@ class EXU(
   // val ebreak = Module(new TempEBreakForSTA)
   val ebreak = Module(new EBreak)
 
-  ebreak.io.en := decoded.exec_type === ExecType.EBreak
+  ebreak.io.en    := decoded.exec_type === ExecType.EBreak
   ebreak.io.clock := clock
+
+  // Fence
+  io.icache_flush := decoded.exec_type === ExecType.FenceI
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid && lsu_valid
@@ -172,10 +177,12 @@ class EXU(
   PerfCounter(only_valid(decoded.br_op =/= BrOp.Nop), "br_cycles")
   PerfCounter(only_valid(exec_type === ExecType.LSU), "lsu_cycles")
   PerfCounter(only_valid(exec_type === ExecType.CSR), "csr_cycles")
-  PerfCounter(only_valid(
-    exec_type =/= ExecType.ALU &&
-      exec_type =/= ExecType.LSU &&
-      exec_type =/= ExecType.CSR),
+  PerfCounter(
+    only_valid(
+      exec_type =/= ExecType.ALU &&
+        exec_type =/= ExecType.LSU &&
+        exec_type =/= ExecType.CSR
+    ),
     "other_cycles"
   )
   PerfCounter(!io.in.valid, "wait_cycles")

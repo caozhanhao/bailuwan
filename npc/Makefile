@@ -52,7 +52,7 @@ $(shell mkdir -p $(BUILD_DIR))
 ### Compilation targets
 BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
 CACHESIM_BIN = $(BUILD_DIR)/cachesim
-VERILOG_STAMP := $(BUILD_DIR)/bailuwan_verilog_$(RESET_VECTOR)_$(WITHOUT_SOC).timestamp
+VERILOG_STAMP := $(BUILD_DIR)/bailuwan_verilog_$(TOPNAME)_$(RESET_VECTOR)_$(WITHOUT_SOC).timestamp
 
 ### Collect the files to be built and linked
 LINKAGE ?=

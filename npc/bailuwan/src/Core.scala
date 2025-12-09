@@ -64,6 +64,9 @@ class Core(
   RegFile.io.rd_we           := WBU.io.regfile_out.rd_we
   RegFile.io.rd_data         := WBU.io.regfile_out.rd_data
 
+  // ICache Flush
+  IFU.io.icache_flush := EXU.io.icache_flush
+
   // Memory
   val arbiter = Module(new AXI4Arbiter(2))
   arbiter.io.masters(0) <> IFU.io.mem

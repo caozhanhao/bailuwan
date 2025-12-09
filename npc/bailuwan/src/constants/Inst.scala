@@ -70,6 +70,9 @@ object InstPat {
 
   // Trap-Return Instructions
   val MRET = BitPat("b0011000 00010 00000 000 00000 11100 11")
+
+  // RV32/RV64 Zifencei Standard Extension
+  val FENCE_I = BitPat("b??????? ????? ????? 001 ????? 00011 11")
 }
 
 object InstFmt {
@@ -100,12 +103,13 @@ object OperType {
 }
 
 object ExecType {
-  val WIDTH = log2Ceil(6).W
+  val WIDTH = log2Ceil(7).W
 
-  val ALU    = 0.U(ExecType.WIDTH)
-  val LSU    = 1.U(ExecType.WIDTH)
-  val ECall  = 2.U(ExecType.WIDTH)
-  val MRet   = 3.U(ExecType.WIDTH)
-  val EBreak = 4.U(ExecType.WIDTH)
-  val CSR    = 5.U(ExecType.WIDTH)
+  val ALU    = 0.U(WIDTH)
+  val LSU    = 1.U(WIDTH)
+  val ECall  = 2.U(WIDTH)
+  val MRet   = 3.U(WIDTH)
+  val EBreak = 4.U(WIDTH)
+  val CSR    = 5.U(WIDTH)
+  val FenceI  = 6.U(WIDTH)
 }
