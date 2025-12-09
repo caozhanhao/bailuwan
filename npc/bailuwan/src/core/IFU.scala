@@ -92,8 +92,8 @@ class ICache(
   val read_offset = Mux(state === s_idle, req_offset, fill_offset)
   val entry_valid = valid_storage(read_index)
   val entry_tag   = tag_storage(read_index)
-  val entry_line  = data_storage(read_index)
-  val entry_data  = entry_line(read_offset)
+  val entry_block  = data_storage(read_index)
+  val entry_data  = entry_block(read_offset)
 
   val hit = entry_valid && (entry_tag === req_tag)
 
@@ -140,9 +140,9 @@ class ICache(
   io.mem.r.ready := state === s_wait_mem
 
   io.mem.ar.bits.id    := 0.U
-  io.mem.ar.bits.len   := (WORDS_PER_BLOCK - 1).U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.ar.bits.len   := (WORDS_PER_BLOCK - 1).U
   io.mem.ar.bits.size  := 2.U                     // 2^2 = 4 bytes
-  io.mem.ar.bits.burst := 1.U                     // INCR
+  io.mem.ar.bits.burst := AXIBurstType.INCR
   io.mem.aw.valid      := false.B
   io.mem.aw.bits       := DontCare
   io.mem.w.valid       := false.B
@@ -150,7 +150,7 @@ class ICache(
   io.mem.b.ready       := false.B
   io.mem.w.bits.last   := true.B
 
-  PerfCounter(state === s_idle && req.valid && hit, "icache_hit")
+  PerfCounter(state === s_idle && req.valid && resp.ready && hit, "icache_hit")
   PerfCounter(state === s_idle && req.valid && !hit, "icache_miss")
   PerfCounter(io.mem.r.valid, "icache_mem_access_cycles")
 }

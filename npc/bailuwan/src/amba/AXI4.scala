@@ -28,6 +28,12 @@ object AXIResp {
   val DECERR = 3.U
 }
 
+object AXIBurstType {
+  val FIXED = 0.U
+  val INCR  = 1.U
+  val WRAP  = 2.U
+}
+
 case class AXIProperty() {
   val ADDR_WIDTH  = 32
   val BRESP_WIDTH = 2
