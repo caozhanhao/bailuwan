@@ -58,7 +58,6 @@ _ssbl_bss_loop:
     addi t1, t1, 4
     j    _ssbl_bss_loop
 _ssbl_end:
-    fence.i
     la   t0, _start
     jr   t0
 
