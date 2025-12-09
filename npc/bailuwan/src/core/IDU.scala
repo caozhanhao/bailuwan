@@ -15,7 +15,7 @@ object InstDecodeTable {
   import InstFmt._
   import OperType._
   // Don't import CSR to avoid conflict
-  import ExecType.{ALU, CSR => CSRInst, EBreak, ECall, LSU, MRet}
+  import ExecType.{ALU, CSR => CSRInst, EBreak, ECall, FenceI, LSU, MRet}
 
   val T = true.B
   val F = false.B
@@ -23,62 +23,63 @@ object InstDecodeTable {
 // format: off
 
   val default =
-              //  fmt  op1   op2  WE   ALUOp       BrOp       LSUOp      CSROp   ExecType
-              List(E, Zero, Zero, T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU)
+               //  fmt  op1   op2  WE   ALUOp       BrOp       LSUOp      CSROp   ExecType
+               List(E, Zero, Zero, T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU)
   val table = Array(
     // RV32I Base Instruction Set
-    LUI    -> List(U, Imm,  Zero, T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    AUIPC  -> List(U, PC,   Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    JAL    -> List(J, PC,   Four, T, ALUOp.Add,  BrOp.JAL,  LSUOp.Nop, CSROp.Nop, ALU),
-    JALR   -> List(I, PC,   Four, T, ALUOp.Add,  BrOp.JALR, LSUOp.Nop, CSROp.Nop, ALU),
-    BEQ    -> List(B, Rs1,  Rs2,  F, ALUOp.Sub,  BrOp.BEQ,  LSUOp.Nop, CSROp.Nop, ALU),
-    BNE    -> List(B, Rs1,  Rs2,  F, ALUOp.Sub,  BrOp.BNE,  LSUOp.Nop, CSROp.Nop, ALU),
-    BLT    -> List(B, Rs1,  Rs2,  F, ALUOp.Slt,  BrOp.BLT,  LSUOp.Nop, CSROp.Nop, ALU),
-    BGE    -> List(B, Rs1,  Rs2,  F, ALUOp.Slt,  BrOp.BGE,  LSUOp.Nop, CSROp.Nop, ALU),
-    BLTU   -> List(B, Rs1,  Rs2,  F, ALUOp.Sltu, BrOp.BLTU, LSUOp.Nop, CSROp.Nop, ALU),
-    BGEU   -> List(B, Rs1,  Rs2,  F, ALUOp.Sltu, BrOp.BGEU, LSUOp.Nop, CSROp.Nop, ALU),
-    LB     -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.LB,  CSROp.Nop, LSU),
-    LH     -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.LH,  CSROp.Nop, LSU),
-    LW     -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.LW,  CSROp.Nop, LSU),
-    LBU    -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.LBU, CSROp.Nop, LSU),
-    LHU    -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.LHU, CSROp.Nop, LSU),
-    SB     -> List(S, Rs1,  Imm,  F, ALUOp.Add,  BrOp.Nop,  LSUOp.SB,  CSROp.Nop, LSU),
-    SH     -> List(S, Rs1,  Imm,  F, ALUOp.Add,  BrOp.Nop,  LSUOp.SH,  CSROp.Nop, LSU),
-    SW     -> List(S, Rs1,  Imm,  F, ALUOp.Add,  BrOp.Nop,  LSUOp.SW,  CSROp.Nop, LSU),
-    ADDI   -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SLTI   -> List(I, Rs1,  Imm,  T, ALUOp.Slt,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SLTIU  -> List(I, Rs1,  Imm,  T, ALUOp.Sltu, BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    XORI   -> List(I, Rs1,  Imm,  T, ALUOp.Xor,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    ORI    -> List(I, Rs1,  Imm,  T, ALUOp.Or,   BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    ANDI   -> List(I, Rs1,  Imm,  T, ALUOp.And,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SLLI   -> List(I, Rs1,  Imm,  T, ALUOp.Sll,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SRLI   -> List(I, Rs1,  Imm,  T, ALUOp.Srl,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SRAI   -> List(I, Rs1,  Imm,  T, ALUOp.Sra,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    ADD    -> List(R, Rs1,  Rs2,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SUB    -> List(R, Rs1,  Rs2,  T, ALUOp.Sub,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SLL    -> List(R, Rs1,  Rs2,  T, ALUOp.Sll,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SLT    -> List(R, Rs1,  Rs2,  T, ALUOp.Slt,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SLTU   -> List(R, Rs1,  Rs2,  T, ALUOp.Sltu, BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    XOR    -> List(R, Rs1,  Rs2,  T, ALUOp.Xor,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SRL    -> List(R, Rs1,  Rs2,  T, ALUOp.Srl,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    SRA    -> List(R, Rs1,  Rs2,  T, ALUOp.Sra,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    OR     -> List(R, Rs1,  Rs2,  T, ALUOp.Or,   BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    AND    -> List(R, Rs1,  Rs2,  T, ALUOp.And,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
-    ECALL  -> List(I, Zero, Zero, F, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ECall),
-    EBREAK -> List(I, Zero, Zero, F, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, EBreak),
+    LUI     -> List(U, Imm,  Zero, T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    AUIPC   -> List(U, PC,   Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    JAL     -> List(J, PC,   Four, T, ALUOp.Add,  BrOp.JAL,  LSUOp.Nop, CSROp.Nop, ALU),
+    JALR    -> List(I, PC,   Four, T, ALUOp.Add,  BrOp.JALR, LSUOp.Nop, CSROp.Nop, ALU),
+    BEQ     -> List(B, Rs1,  Rs2,  F, ALUOp.Sub,  BrOp.BEQ,  LSUOp.Nop, CSROp.Nop, ALU),
+    BNE     -> List(B, Rs1,  Rs2,  F, ALUOp.Sub,  BrOp.BNE,  LSUOp.Nop, CSROp.Nop, ALU),
+    BLT     -> List(B, Rs1,  Rs2,  F, ALUOp.Slt,  BrOp.BLT,  LSUOp.Nop, CSROp.Nop, ALU),
+    BGE     -> List(B, Rs1,  Rs2,  F, ALUOp.Slt,  BrOp.BGE,  LSUOp.Nop, CSROp.Nop, ALU),
+    BLTU    -> List(B, Rs1,  Rs2,  F, ALUOp.Sltu, BrOp.BLTU, LSUOp.Nop, CSROp.Nop, ALU),
+    BGEU    -> List(B, Rs1,  Rs2,  F, ALUOp.Sltu, BrOp.BGEU, LSUOp.Nop, CSROp.Nop, ALU),
+    LB      -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.LB,  CSROp.Nop, LSU),
+    LH      -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.LH,  CSROp.Nop, LSU),
+    LW      -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.LW,  CSROp.Nop, LSU),
+    LBU     -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.LBU, CSROp.Nop, LSU),
+    LHU     -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.LHU, CSROp.Nop, LSU),
+    SB      -> List(S, Rs1,  Imm,  F, ALUOp.Add,  BrOp.Nop,  LSUOp.SB,  CSROp.Nop, LSU),
+    SH      -> List(S, Rs1,  Imm,  F, ALUOp.Add,  BrOp.Nop,  LSUOp.SH,  CSROp.Nop, LSU),
+    SW      -> List(S, Rs1,  Imm,  F, ALUOp.Add,  BrOp.Nop,  LSUOp.SW,  CSROp.Nop, LSU),
+    ADDI    -> List(I, Rs1,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SLTI    -> List(I, Rs1,  Imm,  T, ALUOp.Slt,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SLTIU   -> List(I, Rs1,  Imm,  T, ALUOp.Sltu, BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    XORI    -> List(I, Rs1,  Imm,  T, ALUOp.Xor,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    ORI     -> List(I, Rs1,  Imm,  T, ALUOp.Or,   BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    ANDI    -> List(I, Rs1,  Imm,  T, ALUOp.And,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SLLI    -> List(I, Rs1,  Imm,  T, ALUOp.Sll,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SRLI    -> List(I, Rs1,  Imm,  T, ALUOp.Srl,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SRAI    -> List(I, Rs1,  Imm,  T, ALUOp.Sra,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    ADD     -> List(R, Rs1,  Rs2,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SUB     -> List(R, Rs1,  Rs2,  T, ALUOp.Sub,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SLL     -> List(R, Rs1,  Rs2,  T, ALUOp.Sll,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SLT     -> List(R, Rs1,  Rs2,  T, ALUOp.Slt,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SLTU    -> List(R, Rs1,  Rs2,  T, ALUOp.Sltu, BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    XOR     -> List(R, Rs1,  Rs2,  T, ALUOp.Xor,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SRL     -> List(R, Rs1,  Rs2,  T, ALUOp.Srl,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    SRA     -> List(R, Rs1,  Rs2,  T, ALUOp.Sra,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    OR      -> List(R, Rs1,  Rs2,  T, ALUOp.Or,   BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    AND     -> List(R, Rs1,  Rs2,  T, ALUOp.And,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ALU),
+    ECALL   -> List(I, Zero, Zero, F, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, ECall),
+    EBREAK  -> List(I, Zero, Zero, F, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, EBreak),
 
     // RV32/RV64 Zicsr Standard Extension
-    CSRRW  -> List(C, CSR,  Rs1,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RW,  CSRInst),
-    CSRRS  -> List(C, CSR,  Rs1,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RS,  CSRInst),
-    CSRRC  -> List(C, CSR,  Rs1,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RC,  CSRInst),
-    CSRRWI -> List(C, CSR,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RW,  CSRInst),
-    CSRRSI -> List(C, CSR,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RS,  CSRInst),
-    CSRRCI -> List(C, CSR,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RC,  CSRInst),
+    CSRRW   -> List(C, CSR,  Rs1,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RW,  CSRInst),
+    CSRRS   -> List(C, CSR,  Rs1,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RS,  CSRInst),
+    CSRRC   -> List(C, CSR,  Rs1,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RC,  CSRInst),
+    CSRRWI  -> List(C, CSR,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RW,  CSRInst),
+    CSRRSI  -> List(C, CSR,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RS,  CSRInst),
+    CSRRCI  -> List(C, CSR,  Imm,  T, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.RC,  CSRInst),
 
     // Trap-Return Instructions
-    MRET   -> List(I, Zero, Zero, F, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, MRet),
+    MRET    -> List(I, Zero, Zero, F, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, MRet),
 
-    // TODO: FENCE?
+    // RV32/RV64 Zifencei Standard Extension
+    FENCE_I -> List(I, Zero, Zero, F, ALUOp.Add,  BrOp.Nop,  LSUOp.Nop, CSROp.Nop, FenceI),
   )
 
 // format: on
@@ -198,7 +199,6 @@ class IDU(
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
-
 
   SignalProbe(inst, "inst")
 

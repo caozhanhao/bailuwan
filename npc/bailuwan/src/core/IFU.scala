@@ -41,8 +41,9 @@ class ICache(
   axi_prop:   AXIProperty)
     extends Module {
   val io = IO(new Bundle {
-    val ifu = Flipped(new ICacheIO())
-    val mem = new AXI4()
+    val ifu   = Flipped(new ICacheIO())
+    val mem   = new AXI4()
+    val flush = Input(Bool())
   })
 
   // Constants
@@ -92,10 +93,10 @@ class ICache(
   val read_offset = Mux(state === s_idle, req_offset, fill_offset)
   val entry_valid = valid_storage(read_index)
   val entry_tag   = tag_storage(read_index)
-  val entry_block  = data_storage(read_index)
+  val entry_block = data_storage(read_index)
   val entry_data  = entry_block(read_offset)
 
-  val hit = entry_valid && (entry_tag === req_tag)
+  val hit = !io.flush && entry_valid && (entry_tag === req_tag)
 
   // State Transfer
   state := MuxLookup(state, s_idle)(
@@ -108,8 +109,10 @@ class ICache(
   )
 
   // Fill
-  valid_storage(fill_index) := Mux(fill_done, true.B, valid_storage(fill_index))
-  tag_storage(fill_index)   := Mux(fill_done, fill_tag, tag_storage(fill_index))
+  valid_storage.zipWithIndex.foreach { case (r, i) =>
+    r := Mux(io.flush, false.B, Mux(fill_done && (fill_index === i.U), true.B, r))
+  }
+  tag_storage(fill_index) := Mux(fill_done, fill_tag, tag_storage(fill_index))
 
   data_storage(fill_index)(fill_cnt) :=
     Mux(io.mem.r.fire, io.mem.r.bits.data, data_storage(fill_index)(fill_cnt))
@@ -141,7 +144,7 @@ class ICache(
 
   io.mem.ar.bits.id    := 0.U
   io.mem.ar.bits.len   := (WORDS_PER_BLOCK - 1).U
-  io.mem.ar.bits.size  := 2.U                     // 2^2 = 4 bytes
+  io.mem.ar.bits.size  := 2.U // 2^2 = 4 bytes
   io.mem.ar.bits.burst := AXIBurstType.INCR
   io.mem.aw.valid      := false.B
   io.mem.aw.bits       := DontCare
@@ -163,13 +166,16 @@ class IFU(
     val in  = Flipped(Decoupled(new WBUOut))
     val out = Decoupled(new IFUOut)
 
-    val mem = new AXI4()
+    val mem          = new AXI4()
+    val icache_flush = Input(Bool())
   })
 
   val icache    = Module(new ICache())
   val icache_io = icache.io.ifu
 
   icache.io.mem <> io.mem
+
+  icache.io.flush := io.icache_flush
 
   val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(4)
 
