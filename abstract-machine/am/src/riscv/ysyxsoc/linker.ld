@@ -13,14 +13,12 @@ MEMORY {
 SECTIONS {
   .fsbl : {
     *(fsbl)
-    . = ALIGN(8);
   } > flash AT> flash
 
   .ssbl : {
     _ssbl_lma = LOADADDR(.ssbl);
     _sssbl = .;
     *(ssbl)
-    . = ALIGN(8);
     _essbl = .;
   } > sram AT> flash
 
@@ -29,7 +27,6 @@ SECTIONS {
     _stext = .;
     *(entry)
     *(.text*)
-    . = ALIGN(8);
     _etext = .;
   } > sdram AT> flash
 
@@ -37,7 +34,6 @@ SECTIONS {
     _rodata_lma = LOADADDR(.rodata);
     _srodata = .;
     *(.rodata*)
-    . = ALIGN(8);
     _erodata = .;
   } > sdram AT> flash
 
@@ -46,7 +42,6 @@ SECTIONS {
     _sdata = .;
     *(.data*)
     *(.sdata*)
-    . = ALIGN(8);
     _edata = .;
   } > sdram AT> flash
 
@@ -55,7 +50,6 @@ SECTIONS {
     *(.bss*)
     *(.sbss*)
     *(.scommon)
-    . = ALIGN(8);
     _ebss = .;
   } > sdram
 
