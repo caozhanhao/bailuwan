@@ -12,6 +12,7 @@ import chiseltest._
 import chiseltest.formal._
 import org.scalatest.flatspec.AnyFlatSpec
 
+// TODO: AXI-Burst
 class ICacheTestTop extends Module {
   // `Debug = false` to disable PerfCounters
   implicit val p:        CoreParams  = CoreParams(Debug = false)
@@ -32,9 +33,6 @@ class ICacheTestTop extends Module {
   dut.io.ifu.req.valid     := io.req_valid
   dut.io.ifu.req.bits.addr := io.req_addr
   dut.io.ifu.resp.ready    := io.resp_ready
-
-  // Ensure (req.valid && hit) => resp.ready requirement.
-  assume(!io.req_valid || io.resp_ready)
 
   // Ensure request is sent only when dut is ready
   when(!dut.io.ifu.req.ready) {
