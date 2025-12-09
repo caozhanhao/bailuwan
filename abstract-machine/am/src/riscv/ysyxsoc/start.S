@@ -30,6 +30,21 @@ _fsbl:
 .global _ssbl
 .type _ssbl, @function
 _ssbl:
+    la   t0, _stext
+    li   t1, 0x00000013  // nop
+    li   t2, 0x00008067  // ret
+    li   x10, 32
+
+.Lfill_nops:
+    sw   t1, 0(t0)  // store nop
+    addi t0, t0, 4
+    addi x10, x10, -1
+    bnez x10, .Lfill_nops
+    sw   t2, 0(t0) // store ret
+    
+    la   t0, _stext
+    jalr ra, t0, 0
+
     COPY_SECTION_WORD _text_lma, _stext, _etext
     COPY_SECTION_WORD _rodata_lma, _srodata, _erodata
     COPY_SECTION_WORD _data_lma, _sdata, _edata
