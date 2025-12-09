@@ -97,8 +97,9 @@ class DPICMem(
 
   io.r.bits.last := r_cnt === r_ctx.len
 
-  mem_read.io.addr := r_addr
-  mem_read.io.en   := (r_state === r_reading) && !reset.asBool
+  mem_read.io.addr := next_addr
+  mem_read.io.en   := ((io.ar.fire && r_state === r_idle) ||
+    (r_state === r_reading && !(io.r.fire && io.r.bits.last))) && !reset.asBool
 
   io.r.bits.data := mem_read.io.out
   io.r.bits.resp := AXIResp.OKAY
