@@ -62,8 +62,8 @@ SOC_VSRCS ?=
 SOC_VINC_PATH ?=
 CHISEL_SRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 SOC_CHISEL_DEPS = $(shell find $(YSYXSOC_HOME)/src -name "*.scala")
-CACHESIM_HEADERS = $(shell find $(abspath ./cachesim) -name "*.hpp" -or -name "*.h")
-CACHESIM_SRCS = $(shell find $(abspath ./cachesim) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+CACHESIM_HEADERS = $(shell find $(abspath ./cachesim) -maxdepth 1 -name "*.hpp" -or -name "*.h")
+CACHESIM_SRCS = $(shell find $(abspath ./cachesim) -maxdepth 1 -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 
 
 ## 3. General Compilation Flags
@@ -126,7 +126,7 @@ $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP) $(SOC_CHISEL_DEPS)
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
 $(CACHESIM_BIN): $(CACHESIM_HEADERS) $(CACHESIM_SRCS)
-	$(CXX) $(CACHESIM_SRCS) -o $(abspath $(BIN))
+	$(CXX) $(CACHESIM_SRCS) -o $(abspath $(CACHESIM_BIN))
 
 ## 6. Miscellaneous
 

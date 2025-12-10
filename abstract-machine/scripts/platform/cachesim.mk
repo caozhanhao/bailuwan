@@ -27,6 +27,6 @@ image: image-dep
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: insert-arg
-	$(MAKE) -C $(NPC_HOME) cachesim IMG=$(IMAGE).bin HW=$(NPC_HW) TRACE=$(NPC_TRACE)
+	$(MAKE) -C $(NPC_HOME) cachesim IMG=$(IMAGE).bin
 
 .PHONY: insert-arg
