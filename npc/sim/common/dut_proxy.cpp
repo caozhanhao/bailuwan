@@ -170,7 +170,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     auto all_ops_d = static_cast<double>(*b.all_ops);
 
     fprintf(stream, "+----------+----------+--------+------------+\n");
-    fprintf(stream, "| Type     |    Count | %%      | Avg Cycles |\n");
+    fprintf(stream, "| Type     |    Count | %%       | Avg Cycles |\n");
     fprintf(stream, "+----------+----------+--------+------------+\n");
 #define PERF(display_name, name)  fprintf(stream, "| %-8s | %8lu | %06.2f%% | %10.2f |\n", \
     TOSTRING(display_name), \
