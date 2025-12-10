@@ -145,36 +145,81 @@ int main(int argc, char* argv[])
 
     init(image, bytes_read);
 
-    std::vector<CacheSim> sims;
+    std::vector<CacheSim> icache_sims;
+    std::vector<CacheSim> dcache_sims;
 
-    // Bytes
-    std::vector<size_t> cache_sizes = {32, 64, 128, 256};
     // Block size (byte) -> Average miss cycles (miss_penalty)
     std::vector<std::pair<size_t, double>> block_info = {
         {4, 24.014169},
         {8, 45.429843},
         {16, 86.215061},
     };
-    std::vector<size_t> set_sizes = {1, 2, 4}; // n-way
 
-    std::vector policies = {
+    std::vector replace_policies = {
         ReplacementPolicy::FIFO,
         ReplacementPolicy::LRU,
         ReplacementPolicy::RANDOM
     };
 
-    for (auto policy : policies)
-    {
-        for (auto cache_size : cache_sizes)
-        {
-            for (auto [block_size, miss_penalty] : block_info)
-            {
-                for (auto set_size : set_sizes)
-                {
-                    if (set_size * block_size > cache_size)
-                        continue;
+    std::vector write_policies = {
+        WritePolicy::WRITE_BACK,
+        WritePolicy::WRITE_THROUGH
+    };
 
-                    sims.emplace_back(cache_size, block_size, set_size, miss_penalty, policy);
+    std::vector alloc_policies = {
+        AllocationPolicy::WRITE_ALLOCATE,
+        AllocationPolicy::NO_WRITE_ALLOCATE
+    };
+
+    // ICache
+    {
+        // Bytes
+        std::vector<size_t> cache_sizes = {32, 64, 128};
+        std::vector<size_t> set_sizes = {1, 2}; // n-way
+
+        for (auto policy : replace_policies)
+        {
+            for (auto cache_size : cache_sizes)
+            {
+                for (auto [block_size, miss_penalty] : block_info)
+                {
+                    for (auto set_size : set_sizes)
+                    {
+                        if (set_size * block_size > cache_size)
+                            continue;
+
+                        icache_sims.emplace_back(cache_size, block_size, set_size, miss_penalty, policy);
+                    }
+                }
+            }
+        }
+    }
+
+    // DCache
+    {
+        std::vector<size_t> cache_sizes = {32, 64};
+        std::vector<size_t> set_sizes = {1, 2}; // n-way
+
+        for (auto replace_policy : replace_policies)
+        {
+            for (auto write_policy : write_policies)
+            {
+                for (auto alloc_policy : alloc_policies)
+                {
+                    for (auto cache_size : cache_sizes)
+                    {
+                        for (auto [block_size, miss_penalty] : block_info)
+                        {
+                            for (auto set_size : set_sizes)
+                            {
+                                if (set_size * block_size > cache_size)
+                                    continue;
+
+                                dcache_sims.emplace_back(cache_size, block_size, set_size, miss_penalty,
+                                                         replace_policy, write_policy, alloc_policy);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -182,21 +227,38 @@ int main(int argc, char* argv[])
 
     drain_stream([&](uint32_t pc)
                  {
-                     for (auto& sim : sims)
+                     for (auto& sim : icache_sims)
                          sim.access(pc, AccessType::READ);
                  },
                  [&](bool is_read, uint32_t addr)
                  {
-                     for (auto& sim : sims)
+                     for (auto& sim : dcache_sims)
                          sim.access(addr, is_read ? AccessType::READ : AccessType::WRITE);
                  });
 
-    std::sort(sims.begin(), sims.end(), [](const auto& a, const auto& b)
+    std::sort(icache_sims.begin(), icache_sims.end(), [](const auto& a, const auto& b)
     {
         return a.get_AMAT() < b.get_AMAT();
     });
 
-    for (auto& sim : sims)
+    std::sort(dcache_sims.begin(), dcache_sims.end(), [](const auto& a, const auto& b)
+    {
+        return a.get_AMAT() < b.get_AMAT();
+    });
+
+
+    printf("---------------------------------------------------------------\n");
+    printf("                         ICache Sim                            \n");
+    printf("---------------------------------------------------------------\n");
+
+    for (auto& sim : icache_sims)
+        sim.dump(stdout);
+
+    printf("---------------------------------------------------------------\n");
+    printf("                         DCache Sim                            \n");
+    printf("---------------------------------------------------------------\n");
+
+    for (auto& sim : dcache_sims)
         sim.dump(stdout);
 
     free(image);

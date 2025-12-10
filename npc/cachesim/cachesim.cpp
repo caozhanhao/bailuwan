@@ -124,22 +124,18 @@ void CacheSim::dump(FILE* stream) const
     if (alloc_policy == AllocationPolicy::WRITE_ALLOCATE)
         accesses += write_misses;
 
-    fprintf(stream, "=== Cache Simulation Results ===\n");
     fprintf(stream, "Config: Size=%uB, Block=%uB, Ways=%u\n", cache_size, block_size, set_size);
     fprintf(stream, "Policies: Repl=%s, Write=%s, Alloc=%s\n", policy_str, w_policy_str, a_policy_str);
-    fprintf(stream, "--------------------------------\n");
     fprintf(stream, "Accesses:      %lu\n", total);
     fprintf(stream, "  Read Hits:   %lu\n", read_hits);
     fprintf(stream, "  Read Miss:   %lu\n", read_misses);
     fprintf(stream, "  Write Hits:  %lu\n", write_hits);
     fprintf(stream, "  Write Miss:  %lu\n", write_misses);
-    fprintf(stream, "--------------------------------\n");
     fprintf(stream, "Hit Rate:      %.2f%%\n", get_hit_rate());
     fprintf(stream, "AMAT:          %.2f cycles\n", get_AMAT());
     fprintf(stream, "TMT:           %.2f cycles\n", static_cast<double>(accesses) * miss_penalty);
-    fprintf(stream, "--------------------------------\n");
     fprintf(stream, "Memory Stats:\n");
     fprintf(stream, "  Write Backs:   %lu\n", write_backs);
     fprintf(stream, "  Writes Throughs: %lu\n", write_throughs);
-    fprintf(stream, "================================\n");
+    fprintf(stream, "============================================================\n");
 }
