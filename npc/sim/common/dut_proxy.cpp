@@ -184,7 +184,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(CSR, csr);
     PERF(Other, other);
 #undef PERF
-    fprintf(stream, "+----------+----------+--------+------------+\n");
+    fprintf(stream, "+----------+----------+---------+------------+\n");
 
     // AMAT = p * access_time + (1 - p) * (access_time + miss_penalty) = access_time + (1 - p) * miss_penalty
     auto access_time = 1;
