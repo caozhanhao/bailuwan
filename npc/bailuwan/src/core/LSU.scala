@@ -47,7 +47,7 @@ class LSU(
   val store_data = RegEnable(io.in.bits.lsu.lsu_store_data, io.in.fire)
 
   // Read
-  val read_enable = MuxLookup(op, false.B)(
+  val enter_read = io.in.fire && MuxLookup(op, false.B)(
     Seq(
       LSUOp.LB  -> true.B,
       LSUOp.LH  -> true.B,
@@ -62,7 +62,7 @@ class LSU(
   val r_state = RegInit(r_idle)
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
-      r_idle       -> Mux(read_enable, r_ar, r_idle),
+      r_idle       -> Mux(enter_read, r_ar, r_idle),
       r_ar         -> Mux(io.mem.ar.fire, r_wait_mem, r_ar),
       r_wait_mem   -> Mux(io.mem.r.fire, r_wait_ready, r_wait_mem),
       r_wait_ready -> Mux(io.out.fire, r_idle, r_wait_ready)
@@ -115,11 +115,23 @@ class LSU(
   io.out.bits.read_data := selected_loaded_data
 
   // Write
-  val write_enable = io.in.valid && MuxLookup(op, false.B)(
+  val w_idle :: w_aw :: w_wait_mem :: w_wait_ready :: Nil = Enum(4)
+
+  val w_state     = RegInit(w_idle)
+  val enter_write = io.in.fire && MuxLookup(op, false.B)(
     Seq(
       LSUOp.SB -> true.B,
       LSUOp.SH -> true.B,
       LSUOp.SW -> true.B
+    )
+  )
+
+  w_state := MuxLookup(w_state, w_idle)(
+    Seq(
+      w_idle       -> Mux(enter_write, w_aw, w_idle),
+      w_aw         -> Mux(io.mem.aw.fire, w_wait_mem, w_aw),
+      w_wait_mem   -> Mux(io.mem.b.fire, w_wait_ready, w_wait_mem),
+      w_wait_ready -> Mux(io.out.fire, w_idle, w_wait_ready)
     )
   )
 
@@ -147,19 +159,6 @@ class LSU(
     )
   )
 
-  val w_idle :: w_aw :: w_wait_mem :: w_wait_ready :: Nil = Enum(4)
-
-  val w_state = RegInit(w_idle)
-
-  w_state := MuxLookup(w_state, w_idle)(
-    Seq(
-      w_idle       -> Mux(write_enable, w_aw, w_idle),
-      w_aw         -> Mux(io.mem.aw.fire, w_wait_mem, w_aw),
-      w_wait_mem   -> Mux(io.mem.b.fire, w_wait_ready, w_wait_mem),
-      w_wait_ready -> Mux(io.out.fire, w_idle, w_wait_ready)
-    )
-  )
-
   io.mem.aw.bits.addr := addr
   io.mem.aw.valid     := w_state === w_aw
   io.mem.w.bits.data  := selected_store_data
@@ -167,9 +166,8 @@ class LSU(
   io.mem.w.valid      := w_state === w_aw || w_state === w_wait_mem
   io.mem.b.ready      := w_state === w_wait_mem
 
-  val bypass = op === io.in.valid && op === LSUOp.Nop
-  io.out.valid := bypass || (r_state === r_wait_ready) || (w_state === w_wait_ready)
-  io.in.ready  := (r_state === r_idle) && (w_state === w_idle)
+  io.out.valid := (io.in.valid && op === LSUOp.Nop) || (r_state === r_wait_ready) || (w_state === w_wait_ready)
+  io.in.ready  := (r_state === r_idle) && (w_state === w_idle) && io.out.ready
 
   // Forward EXU Signals
   io.out.bits.from_exu := io.in.bits.wbu
