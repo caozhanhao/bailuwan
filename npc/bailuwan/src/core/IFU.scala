@@ -72,7 +72,7 @@ class ICache(
 
   // Fill Info
   val fill_addr = RegInit(0.U(32.W))
-  fill_addr := Mux(state === s_idle && req.valid, req_addr, fill_addr)
+  fill_addr := Mux(state === s_idle && req.fire, req_addr, fill_addr)
 
   val fill_tag    = fill_addr(31, INDEX_BITS + BLOCK_BITS)
   val fill_index  = fill_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
@@ -101,7 +101,7 @@ class ICache(
   // State Transfer
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle      -> Mux(req.valid, Mux(hit, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)), s_idle),
+      s_idle      -> Mux(req.fire, Mux(hit, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)), s_idle),
       s_fill_addr -> Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr),
       s_wait_mem  -> Mux(fill_done, s_resp, s_wait_mem),
       s_resp      -> Mux(resp.fire, s_idle, s_resp)
@@ -123,7 +123,7 @@ class ICache(
 
   // IFU IO
   // Immediate hit or s_resp
-  resp.valid      := (req.valid && hit) || (state === s_resp)
+  resp.valid      := (req.fire && hit) || (state === s_resp)
   resp.bits.data  := entry_data
   resp.bits.error := err
 
@@ -133,7 +133,7 @@ class ICache(
   req.ready := state === s_idle && (!hit || resp.ready)
 
   // Mem IO
-  val ar_bypass = state === s_idle && req.valid && !hit
+  val ar_bypass = state === s_idle && req.fire && !hit
   io.mem.ar.valid := ar_bypass || (state === s_fill_addr)
 
   val block_align_mask = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
