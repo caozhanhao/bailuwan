@@ -3,21 +3,21 @@
 
 package core
 
-import chisel3._
+import chisel3.{Bundle, _}
 import chisel3.util._
 import constants._
 import amba._
 import utils.PerfCounter
 import bailuwan.CoreParams
 
-class EXUOut(
+class EXUOutForWBU(
   implicit p: CoreParams)
     extends Bundle {
   val src_type = UInt(ExecType.WIDTH)
   val rd_we    = Bool()
-  val alu_out  = UInt(p.XLEN.W)
-  val lsu_out  = UInt(p.XLEN.W)
 
+  // ALU
+  val alu_out = UInt(p.XLEN.W)
   // CSR Out:
   //   CSR{RW, RS, RC}[I] -> the CSR indicated by inst[31:20]
   //   ECall              -> mtvec
@@ -28,6 +28,21 @@ class EXUOut(
   val snpc      = UInt(p.XLEN.W)
   val br_taken  = Bool()
   val br_target = UInt(p.XLEN.W)
+}
+
+class EXUOutForLSU(
+  implicit p: CoreParams)
+    extends Bundle {
+  val lsu_op         = UInt(LSUOp.WIDTH)
+  val lsu_addr       = UInt(p.XLEN.W)
+  val lsu_store_data = UInt(p.XLEN.W)
+}
+
+class EXUOut(
+  implicit p: CoreParams)
+    extends Bundle {
+  val lsu = new EXUOutForLSU
+  val wbu = new EXUOutForWBU
 }
 
 class EXU(
@@ -87,28 +102,6 @@ class EXU(
   alu.io.oper2  := oper2
   alu.io.alu_op := decoded.alu_op
 
-  // LSU
-  val lsu = Module(new LSU)
-  lsu.io.mem <> io.mem
-  lsu.io.lsu_op           := decoded.lsu_op
-  lsu.io.addr             := alu.io.result
-  lsu.io.write_data.bits  := rs2_data
-  lsu.io.write_data.valid := io.in.valid
-  lsu.io.read_data.ready  := io.out.ready
-
-  // FIXME: Write ready?
-  val is_ld = MuxLookup(decoded.lsu_op, true.B)(
-    Seq(
-      LSUOp.Nop -> false.B,
-      LSUOp.SB  -> false.B,
-      LSUOp.SH  -> false.B,
-      LSUOp.SW  -> false.B
-    )
-  )
-
-  val is_str    = !is_ld && decoded.lsu_op =/= LSUOp.Nop
-  val lsu_valid = (!is_ld || lsu.io.read_data.valid) && (!is_str || lsu.io.write_data.ready)
-
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
   val br_target = MuxLookup(decoded.br_op, (decoded.pc + decoded.imm).asUInt)(
@@ -147,15 +140,19 @@ class EXU(
 
   csr_file.io.write_data := csr_write_data
 
-  io.out.bits.rd_we    := decoded.rd_we
-  io.out.bits.src_type := exec_type
-  io.out.bits.alu_out  := alu.io.result
-  io.out.bits.lsu_out  := lsu.io.read_data.bits
-  io.out.bits.csr_out  := csr_data
+  val wbu = io.out.bits.wbu
+  wbu.rd_we     := decoded.rd_we
+  wbu.src_type  := exec_type
+  wbu.alu_out   := alu.io.result
+  wbu.csr_out   := csr_data
+  wbu.snpc      := decoded.pc + 4.U
+  wbu.br_taken  := br_taken
+  wbu.br_target := br_target
 
-  io.out.bits.snpc      := decoded.pc + 4.U
-  io.out.bits.br_taken  := br_taken
-  io.out.bits.br_target := br_target
+  val lsu = io.out.bits.lsu
+  lsu.lsu_op         := decoded.lsu_op
+  lsu.lsu_addr       := alu.io.result
+  lsu.lsu_store_data := rs2_data
 
   // EBreak
   // val ebreak = Module(new TempEBreakForSTA)
@@ -168,7 +165,7 @@ class EXU(
   io.icache_flush := decoded.exec_type === ExecType.FenceI
 
   io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid && lsu_valid
+  io.out.valid := io.in.valid
 
   def only_valid(b: Bool) = io.in.valid && b
 

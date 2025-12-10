@@ -43,8 +43,9 @@ class Core(
   io.slave.b.bits   := 0.U.asTypeOf(io.slave.b.bits)
 
   val IFU = Module(new IFU)
-  val EXU = Module(new EXU)
   val IDU = Module(new IDU)
+  val EXU = Module(new EXU)
+  val LSU = Module(new LSU)
   val WBU = Module(new WBU)
 
   val RegFile = Module(new RegFile)
@@ -52,7 +53,8 @@ class Core(
   // Stage Connect
   StageConnect(IFU.io.out, IDU.io.in)
   StageConnect(IDU.io.out, EXU.io.in)
-  StageConnect(EXU.io.out, WBU.io.in)
+  StageConnect(EXU.io.out, LSU.io.in)
+  StageConnect(LSU.io.out, WBU.io.in)
   StageConnect(WBU.io.out, IFU.io.in)
 
   // Regfile

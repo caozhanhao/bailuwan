@@ -27,13 +27,14 @@ class WBU(
   implicit p: CoreParams)
     extends Module {
   val io = IO(new Bundle {
-    val in  = Flipped(Decoupled(new EXUOut))
+    val in  = Flipped(Decoupled(new LSUOut))
     val out = Decoupled(new WBUOut)
 
     val regfile_out = Output(new WBURegfileOut)
   })
 
-  val exu_out = io.in.bits
+  val exu_out = io.in.bits.from_exu
+  val lsu_out = io.in.bits.read_data
 
   val br_dnpc = Mux(exu_out.br_taken, exu_out.br_target, exu_out.snpc)
   val dnpc    = MuxLookup(exu_out.src_type, br_dnpc)(
@@ -47,7 +48,7 @@ class WBU(
   val rd_data = MuxLookup(exu_out.src_type, 0.U)(
     Seq(
       ALU -> exu_out.alu_out,
-      LSU -> exu_out.lsu_out,
+      LSU -> lsu_out,
       CSR -> exu_out.csr_out
     )
   )
