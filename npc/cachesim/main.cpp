@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstring>
 #include <functional>
+#include <map>
 #include <algorithm>
 
 #include <dlfcn.h>
@@ -132,9 +133,19 @@ int main(int argc, char* argv[])
     std::vector<ICacheSim> sims;
 
     // Bytes
-    std::vector<size_t> cache_sizes = {32, 64, 128, 256, 512, 1024, 2048, 4096};
-    std::vector<size_t> block_sizes = {4, 8, 16, 32, 64, 128};
-    std::vector<size_t> set_sizes = {1, 2, 4, 8, 16, 32};
+    // std::vector<size_t> cache_sizes = {32, 64, 128, 256, 512, 1024, 2048, 4096};
+    // std::vector<size_t> block_sizes = {4, 8, 16, 32, 64, 128};
+    // std::vector<size_t> set_sizes = {1, 2, 4, 8, 16, 32};
+    std::vector<size_t> cache_sizes = {32, 64, 128};
+    std::vector<size_t> block_sizes = {4, 8, 16}; // 2**BLOCK_BITS
+    std::vector<size_t> set_sizes = {1}; // 1-way for directly mapped
+
+    // Block size -> Average miss cycles
+    std::map<size_t, size_t> miss_penalty = {
+        {4, }
+        {16, 90},
+    };
+
     std::vector policies = {
         ReplacementPolicy::FIFO,
         ReplacementPolicy::LRU,
