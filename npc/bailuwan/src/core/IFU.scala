@@ -205,10 +205,10 @@ class IFU(
   io.in.ready  := io.out.ready
   io.out.valid := state === s_wait_ready
 
-  val fault_addr = RegInit(0.U(p.XLEN.W))
-  fault_addr := Mux(icache_io.req.fire, pc, fault_addr)
-
-  assert(!icache_io.resp.valid || !icache_io.resp.bits.error, cf"IFU: Access fault at 0x${fault_addr}%x")
+  assert(
+    !icache_io.resp.valid || !icache_io.resp.bits.error,
+    cf"IFU: Access fault at 0x${RegEnable(pc, icache_io.req.fire)}%x"
+  )
 
   // Difftest got ready after every pc advance (one instruction done),
   // which is just in.valid delayed one cycle.
