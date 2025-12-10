@@ -177,13 +177,13 @@ class IFU(
 
   icache.io.flush := io.icache_flush
 
-  val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(4)
+  val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(4)
 
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle       -> Mux(icache_io.req.fire, Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem), s_idle),
-      s_wait_mem   -> Mux(icache_io.resp.fire, Mux(icache_io.resp.bits.error, s_fault, s_wait_ready), s_wait_mem),
+      s_wait_mem   -> Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem),
       s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
   )
@@ -208,7 +208,7 @@ class IFU(
   val fault_addr = RegInit(0.U(p.XLEN.W))
   fault_addr := Mux(icache_io.req.fire, pc, fault_addr)
 
-  assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x")
+  assert(!icache_io.resp.valid || !icache_io.resp.bits.error, cf"IFU: Access fault at 0x${fault_addr}%x")
 
   // Difftest got ready after every pc advance (one instruction done),
   // which is just in.valid delayed one cycle.
