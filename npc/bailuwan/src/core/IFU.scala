@@ -177,7 +177,7 @@ class IFU(
 
   icache.io.flush := io.icache_flush
 
-  val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(4)
+  val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)
 
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
