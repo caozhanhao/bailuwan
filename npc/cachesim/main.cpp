@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 
     // Block size -> Average miss cycles
     std::map<size_t, double> miss_penalty = {
-        {4, 27.431562},
+        {4, 24.014169},
         {16, 89.757750},
     };
 
