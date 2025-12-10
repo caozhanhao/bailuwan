@@ -66,7 +66,7 @@ class EXU(
   csr_file.io.read_enable := true.B
 
   csr_file.io.write_addr   := decoded.csr_addr
-  csr_file.io.write_enbale := exec_type === ExecType.CSR
+  csr_file.io.write_enable := exec_type === ExecType.CSR
 
   // FIXME
   csr_file.io.has_intr := (exec_type === ExecType.ECall)
