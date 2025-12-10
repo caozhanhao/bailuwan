@@ -40,7 +40,7 @@ class CSRFile(
   val mcycle = RegInit(0.U(64.W))
   mcycle := mcycle + 1.U
 
-  def writable(addr: UInt, old_val: UInt) = Mux(io.write_enbale && (io.write_addr === addr), io.write_data, old_val)
+  def writable(addr: UInt, old_val: UInt) = Mux(io.write_enable && (io.write_addr === addr), io.write_data, old_val)
 
   mstatus := writable(CSR.mstatus, mstatus)
   mtvec   := writable(CSR.mtvec, mtvec)
