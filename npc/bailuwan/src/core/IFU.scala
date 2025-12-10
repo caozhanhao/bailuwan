@@ -213,7 +213,7 @@ class IFU(
   // Difftest got ready after every pc advance (one instruction done),
   // which is just in.fire delayed one cycle.
   //               ___________
-  //   ready      |          |
+  //   in.valid   |          |
   //              _____       _____
   //   clock     |     |_____|     |_____
   //              cycle 1        cycle 2
