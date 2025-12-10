@@ -88,4 +88,6 @@ void ICacheSim::dump(FILE* stream) const
     fprintf(stream, "Hits:     %lu\n", hit);
     fprintf(stream, "Misses:   %lu\n", miss);
     fprintf(stream, "Hit Rate: %.2f%%\n", get_hit_rate());
+    fprintf(stream, "TMT: %.2f\n", get_TMT());
+    fprintf(stream, "AMAT: %.2f\n", get_AMAT());
 }

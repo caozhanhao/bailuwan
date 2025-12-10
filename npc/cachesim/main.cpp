@@ -133,12 +133,8 @@ int main(int argc, char* argv[])
     std::vector<ICacheSim> sims;
 
     // Bytes
-    // std::vector<size_t> cache_sizes = {32, 64, 128, 256, 512, 1024, 2048, 4096};
-    // std::vector<size_t> block_sizes = {4, 8, 16, 32, 64, 128};
-    // std::vector<size_t> set_sizes = {1, 2, 4, 8, 16, 32};
-
     std::vector<size_t> cache_sizes = {32, 64, 128, 256};
-    // Block size (byte) -> Average miss cycles
+    // Block size (byte) -> Average miss cycles (miss_penalty)
     std::vector<std::pair<size_t, double>> block_info = {
         {4, 24.014169},
         {8, 45.429843},
@@ -156,14 +152,14 @@ int main(int argc, char* argv[])
     {
         for (auto cache_size : cache_sizes)
         {
-            for (auto block_size : block_sizes)
+            for (auto [block_size, miss_penalty] : block_info)
             {
                 for (auto set_size : set_sizes)
                 {
                     if (set_size * block_size > cache_size)
                         continue;
 
-                    sims.emplace_back(cache_size, block_size, set_size, policy);
+                    sims.emplace_back(cache_size, block_size, set_size, miss_penalty, policy);
                 }
             }
         }
@@ -177,7 +173,7 @@ int main(int argc, char* argv[])
 
     std::sort(sims.begin(), sims.end(), [](const auto& a, const auto& b)
     {
-        return a.get_hit_rate() > b.get_hit_rate();
+        return a.get_AMAT() < b.get_AMAT();
     });
 
     for (auto& sim : sims)
