@@ -57,8 +57,7 @@ class WBU(
   io.regfile_out.rd_data := rd_data
   io.regfile_out.rd_we   := io.in.valid && exu_out.rd_we
 
-  // In valid -> Out Valid, thus In Ready
-  io.in.ready  := io.in.valid
+  io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
 
   SignalProbe(dnpc, "dnpc")
