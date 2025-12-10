@@ -105,8 +105,8 @@ void sdram_write(int waddr, int16_t wdata, char mask, char id)
 
 int pmem_read(int raddr)
 {
-    printf("[pmem_read] pc=0x%x, raddr=0x%x\n",
-           SIM.cpu().pc(), raddr);
+    // printf("[pmem_read] pc=0x%x, raddr=0x%x\n",
+    //        SIM.cpu().pc(), raddr);
     raddr &= ~0x3u;
 
     // Clock
