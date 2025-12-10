@@ -1,3 +1,6 @@
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
 #include <iostream>
 #include <cstdint>
 #include <cassert>
@@ -8,7 +11,7 @@
 
 #include <dlfcn.h>
 
-#include "icachesim.hpp"
+#include "cachesim.hpp"
 
 constexpr auto RESET_VECTOR = 0x30000000;
 constexpr auto MAX_IMAGE_SIZE = 32 * 1024 * 1024;
@@ -130,7 +133,7 @@ int main(int argc, char* argv[])
 
     // drain_pc_stream([](uint32_t pc){ printf("0x%x\n", pc); });
 
-    std::vector<ICacheSim> sims;
+    std::vector<CacheSim> sims;
 
     // Bytes
     std::vector<size_t> cache_sizes = {32, 64, 128, 256};
@@ -168,7 +171,7 @@ int main(int argc, char* argv[])
     drain_pc_stream([&](uint32_t pc)
     {
         for (auto& sim : sims)
-            sim.step(pc);
+            sim.access(pc, AccessType::READ);
     });
 
     std::sort(sims.begin(), sims.end(), [](const auto& a, const auto& b)
@@ -179,7 +182,6 @@ int main(int argc, char* argv[])
     for (auto& sim : sims)
     {
         sim.dump(stdout);
-        printf("-----------------------\n");
     }
 
     free(image);
