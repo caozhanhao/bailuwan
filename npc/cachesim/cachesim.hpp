@@ -115,6 +115,7 @@ public:
 
     void access(uint32_t addr, AccessType type);
 
+    [[nodiscard]] uint64_t get_cache_size() const { return cache_size; }
     [[nodiscard]] uint64_t get_total_hits() const { return read_hits + write_hits; }
     [[nodiscard]] uint64_t get_total_misses() const { return read_misses + write_misses; }
     [[nodiscard]] uint64_t get_total_accesses() const { return get_total_hits() + get_total_misses(); }

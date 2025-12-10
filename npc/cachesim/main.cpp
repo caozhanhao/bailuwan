@@ -171,53 +171,48 @@ int main(int argc, char* argv[])
         AllocationPolicy::NO_WRITE_ALLOCATE
     };
 
+    // Bytes
+    std::vector<size_t> i_cache_sizes = {32, 64, 128};
+    std::vector<size_t> i_set_sizes = {1, 2}; // n-way
     // ICache
+    for (auto policy : replace_policies)
     {
-        // Bytes
-        std::vector<size_t> cache_sizes = {32, 64, 128};
-        std::vector<size_t> set_sizes = {1, 2}; // n-way
-
-        for (auto policy : replace_policies)
+        for (auto cache_size : i_cache_sizes)
         {
-            for (auto cache_size : cache_sizes)
+            for (auto [block_size, miss_penalty] : block_info)
             {
-                for (auto [block_size, miss_penalty] : block_info)
+                for (auto set_size : i_set_sizes)
                 {
-                    for (auto set_size : set_sizes)
-                    {
-                        if (set_size * block_size > cache_size)
-                            continue;
+                    if (set_size * block_size > cache_size)
+                        continue;
 
-                        icache_sims.emplace_back(cache_size, block_size, set_size, miss_penalty, policy);
-                    }
+                    icache_sims.emplace_back(cache_size, block_size, set_size, miss_penalty, policy);
                 }
             }
         }
     }
 
     // DCache
+    std::vector<size_t> d_cache_sizes = {32, 64};
+    std::vector<size_t> d_set_sizes = {1, 2}; // n-way
+
+    for (auto replace_policy : replace_policies)
     {
-        std::vector<size_t> cache_sizes = {32, 64};
-        std::vector<size_t> set_sizes = {1, 2}; // n-way
-
-        for (auto replace_policy : replace_policies)
+        for (auto write_policy : write_policies)
         {
-            for (auto write_policy : write_policies)
+            for (auto alloc_policy : alloc_policies)
             {
-                for (auto alloc_policy : alloc_policies)
+                for (auto cache_size : d_cache_sizes)
                 {
-                    for (auto cache_size : cache_sizes)
+                    for (auto [block_size, miss_penalty] : block_info)
                     {
-                        for (auto [block_size, miss_penalty] : block_info)
+                        for (auto set_size : d_set_sizes)
                         {
-                            for (auto set_size : set_sizes)
-                            {
-                                if (set_size * block_size > cache_size)
-                                    continue;
+                            if (set_size * block_size > cache_size)
+                                continue;
 
-                                dcache_sims.emplace_back(cache_size, block_size, set_size, miss_penalty,
-                                                         replace_policy, write_policy, alloc_policy);
-                            }
+                            dcache_sims.emplace_back(cache_size, block_size, set_size, miss_penalty,
+                                                     replace_policy, write_policy, alloc_policy);
                         }
                     }
                 }
@@ -260,6 +255,48 @@ int main(int argc, char* argv[])
 
     for (auto& sim : dcache_sims)
         sim.dump(stdout);
+
+
+    printf("-------------------------------------------------------------------------------------------\n");
+
+    // ICache Best AMAT
+    for (auto sz : i_cache_sizes)
+    {
+        double best_AMAT = std::numeric_limits<double>::max();
+        const CacheSim* best_sim = nullptr;
+
+        for (auto& sim : icache_sims)
+        {
+            if (sim.get_cache_size() == sz && sim.get_AMAT() < best_AMAT)
+            {
+                best_AMAT = sim.get_AMAT();
+                best_sim = &sim;
+            }
+        }
+
+        printf("ICache Best AMAT for %ldB cache:\n", sz);
+        best_sim->dump(stdout);
+    }
+
+    // DCache Best AMAT
+    for (auto sz : d_cache_sizes)
+    {
+        double best_AMAT = std::numeric_limits<double>::max();
+        const CacheSim* best_sim = nullptr;
+
+        for (auto& sim : dcache_sims)
+        {
+            if (sim.get_cache_size() == sz && sim.get_AMAT() < best_AMAT)
+            {
+                best_AMAT = sim.get_AMAT();
+                best_sim = &sim;
+            }
+        }
+
+        printf("DCache Best AMAT for %ldB cache:\n", sz);
+        best_sim->dump(stdout);
+    }
+
 
     free(image);
     return 0;
