@@ -72,7 +72,7 @@ class Core(
   // Memory
   val arbiter = Module(new AXI4Arbiter(2))
   arbiter.io.masters(0) <> IFU.io.mem
-  arbiter.io.masters(1) <> EXU.io.mem
+  arbiter.io.masters(1) <> LSU.io.mem
 
   val xbar  = Module(
     new AXI4CrossBar(

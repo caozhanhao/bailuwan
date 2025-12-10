@@ -53,8 +53,6 @@ class EXU(
     val in  = Flipped(Decoupled(new IDUOut))
     val out = Decoupled(new EXUOut)
 
-    val mem = new AXI4
-
     val icache_flush = Output(Bool())
   })
 
