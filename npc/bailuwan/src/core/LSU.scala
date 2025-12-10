@@ -42,9 +42,9 @@ class LSU(
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
-  val addr       = io.in.bits.lsu.lsu_addr
-  val op         = io.in.bits.lsu.lsu_op
-  val store_data = io.in.bits.lsu.lsu_store_data
+  val addr       = RegEnable(io.in.bits.lsu.lsu_addr, io.in.fire)
+  val op         = RegEnable(io.in.bits.lsu.lsu_op, io.in.fire)
+  val store_data = RegEnable(io.in.bits.lsu.lsu_store_data, io.in.fire)
 
   // Read
   val read_enable = MuxLookup(op, false.B)(
@@ -57,21 +57,21 @@ class LSU(
     )
   )
 
-  val r_idle :: r_wait_mem :: r_wait_ready :: Nil = Enum(3)
+  val r_idle :: r_ar :: r_wait_mem :: r_wait_ready :: Nil = Enum(3)
 
   val r_state = RegInit(r_idle)
   r_state := MuxLookup(r_state, r_idle)(
     Seq(
-      r_idle       -> Mux(read_enable && io.mem.ar.fire, r_wait_mem, r_idle),
+      r_idle       -> Mux(read_enable, r_ar, r_idle),
+      r_ar         -> Mux(io.mem.ar.fire, r_wait_mem, r_ar),
       r_wait_mem   -> Mux(io.mem.r.fire, r_wait_ready, r_wait_mem),
       r_wait_ready -> Mux(io.out.fire, r_idle, r_wait_ready)
     )
   )
 
   io.mem.ar.bits.addr := addr
-  io.mem.ar.valid     := read_enable && r_state === r_idle
-
-  io.mem.r.ready := r_state === r_wait_mem
+  io.mem.ar.valid     := r_state === r_ar
+  io.mem.r.ready      := r_state === r_wait_mem
 
   val read_reg = Reg(UInt(32.W))
   read_reg := Mux(io.mem.r.valid, io.mem.r.bits.data, read_reg)
@@ -147,23 +147,24 @@ class LSU(
     )
   )
 
-  val w_idle :: w_wait_mem :: w_wait_ready :: Nil = Enum(3)
+  val w_idle :: w_aw :: w_wait_mem :: w_wait_ready :: Nil = Enum(3)
 
   val w_state = RegInit(w_idle)
 
   w_state := MuxLookup(w_state, w_idle)(
     Seq(
-      w_idle       -> Mux(write_enable && io.mem.aw.fire, w_wait_mem, w_idle),
+      w_idle       -> Mux(write_enable, w_aw, w_idle),
+      w_aw         -> Mux(io.mem.aw.fire, w_wait_mem, w_aw),
       w_wait_mem   -> Mux(io.mem.b.fire, w_wait_ready, w_wait_mem),
       w_wait_ready -> Mux(io.out.fire, w_idle, w_wait_ready)
     )
   )
 
   io.mem.aw.bits.addr := addr
-  io.mem.aw.valid     := write_enable && w_state === w_idle
+  io.mem.aw.valid     := w_state === w_aw
   io.mem.w.bits.data  := selected_store_data
   io.mem.w.bits.strb  := write_mask
-  io.mem.w.valid      := w_state === w_idle
+  io.mem.w.valid      := w_state === w_aw || w_state === w_wait_mem
   io.mem.b.ready      := w_state === w_wait_mem
 
   val bypass = op === io.in.valid && op === LSUOp.Nop
