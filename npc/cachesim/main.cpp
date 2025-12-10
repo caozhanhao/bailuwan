@@ -89,25 +89,39 @@ void init(void* img, size_t img_size)
 struct cachesim_batch
 {
     // PC stream
-    uint32_t* data;
-    uint32_t size;
+    uint32_t* i_stream;
+    uint32_t i_size;
+
+    struct dcache_entry
+    {
+        bool is_read;
+        uint32_t addr;
+    } * d_stream;
+
+    uint32_t d_size;
 };
 
-uint32_t buffer[BATCH_SIZE];
+uint32_t i_buffer[BATCH_SIZE];
+cachesim_batch::dcache_entry d_buffer[BATCH_SIZE];
 
-void drain_pc_stream(const std::function<void(uint32_t)>& func)
+void drain_stream(const std::function<void(uint32_t)>& pc_consumer,
+                  const std::function<void(bool, uint32_t)>& ldstr_consumer)
 {
     cachesim_batch batch{};
-    batch.data = buffer;
+    batch.i_stream = i_buffer;
+    batch.d_stream = d_buffer;
 
     while (true)
     {
         ref_difftest_cachesim_step(&batch);
 
-        for (uint32_t i = 0; i < batch.size; i++)
-            func(buffer[i]);
+        for (uint32_t i = 0; i < batch.i_size; i++)
+            pc_consumer(i_buffer[i]);
 
-        if (batch.size != BATCH_SIZE)
+        for (uint32_t i = 0; i < batch.d_size; i++)
+            ldstr_consumer(d_buffer[i].is_read, d_buffer[i].addr);
+
+        if (batch.i_size != BATCH_SIZE)
             break;
     }
 }
@@ -130,8 +144,6 @@ int main(int argc, char* argv[])
     auto bytes_read = fread(image, 1, MAX_IMAGE_SIZE, fp);
 
     init(image, bytes_read);
-
-    // drain_pc_stream([](uint32_t pc){ printf("0x%x\n", pc); });
 
     std::vector<CacheSim> sims;
 
@@ -168,11 +180,16 @@ int main(int argc, char* argv[])
         }
     }
 
-    drain_pc_stream([&](uint32_t pc)
-    {
-        for (auto& sim : sims)
-            sim.access(pc, AccessType::READ);
-    });
+    drain_stream([&](uint32_t pc)
+                 {
+                     for (auto& sim : sims)
+                         sim.access(pc, AccessType::READ);
+                 },
+                 [&](bool is_read, uint32_t addr)
+                 {
+                     for (auto& sim : sims)
+                         sim.access(addr, is_read ? AccessType::READ : AccessType::WRITE);
+                 });
 
     std::sort(sims.begin(), sims.end(), [](const auto& a, const auto& b)
     {
@@ -180,9 +197,7 @@ int main(int argc, char* argv[])
     });
 
     for (auto& sim : sims)
-    {
         sim.dump(stdout);
-    }
 
     free(image);
     return 0;

@@ -19,6 +19,7 @@
 #include <difftest-def.h>
 #include <isa.h>
 #include <memory/paddr.h>
+#include <memory/vaddr.h>
 
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
   if (direction == DIFFTEST_TO_REF)
@@ -74,8 +75,14 @@ __EXPORT void difftest_init(int port) {
 
 struct cachesim_batch {
   // PC stream
-  word_t* data;
-  uint32_t size;
+  word_t *i_stream;
+  uint32_t i_size;
+
+  struct dcache_entry {
+    bool is_read;
+    word_t addr;
+  } *d_stream;
+  uint32_t d_size;
 };
 
 bool in_difftest_cachesim;
@@ -85,17 +92,30 @@ __EXPORT void difftest_cachesim_init(uint32_t batch_size) {
   in_difftest_cachesim = true;
 }
 
-// `batch_` should be a pointer to `cachesim_batch`, and the data field in it
-// MUST allocate at least `cachesim_batch_size * sizeof(uint32_t)` bytes.
-__EXPORT void difftest_cachesim_step(void* batch_) {
+// `batch_` should be a pointer to `cachesim_batch`, and the `stream` field in it
+// MUST allocate at least `cachesim_batch_size * sizeof(uint32_t/dcache_entry)` bytes.
+__EXPORT void difftest_cachesim_step(void *batch_) {
   struct cachesim_batch *batch = (struct cachesim_batch *)batch_;
   int i = 0;
+  int d = 0;
   while (i < cachesim_batch_size) {
-    batch->data[i++] = cpu.pc;
+    batch->i_stream[i++] = cpu.pc;
+
+    auto inst = vaddr_ifetch(cpu.pc, 4);
+
+    bool is_read;
+    word_t addr;
+    if (isa_decode_ldstr(inst, &is_read, &addr) == 0) {
+      batch->d_stream[d].is_read = is_read;
+      batch->d_stream[d].addr = addr;
+      d++;
+    }
+
     cpu_exec(1);
 
     if (nemu_state.state == NEMU_END || nemu_state.state == NEMU_ABORT || nemu_state.state == NEMU_QUIT)
       break;
   }
-  batch->size = i;
+  batch->i_size = i;
+  batch->d_size = d;
 }
