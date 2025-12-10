@@ -62,11 +62,13 @@ private:
         return r;
     }
 
+    double miss_penalty;
+
 public:
-    ICacheSim(uint32_t cache_size_, uint32_t block_size_, uint32_t set_size_,
+    ICacheSim(uint32_t cache_size_, uint32_t block_size_, uint32_t set_size_, double miss_penalty_,
               ReplacementPolicy policy_)
         : hit(0), miss(0), cache_size(cache_size_), block_size(block_size_), set_size(set_size_),
-          replacement_policy(policy_), rng(std::random_device()())
+          miss_penalty(miss_penalty_), replacement_policy(policy_), rng(std::random_device()())
     {
         num_sets = cache_size / (block_size * set_size);
 
@@ -86,6 +88,20 @@ public:
     [[nodiscard]] double get_hit_rate() const
     {
         return (static_cast<double>(hit) / static_cast<double>(hit + miss)) * 100.0;
+    }
+
+    [[nodiscard]] double get_TMT() const
+    {
+        return static_cast<double>(miss) * miss_penalty;
+    }
+
+    [[nodiscard]] double get_AMAT() const
+    {
+        // AMAT = p * access_time + (1 - p) * (access_time + miss_penalty) = access_time + (1 - p) * miss_penalty
+        auto access_time = 1;
+        auto hit_rate = get_hit_rate() / 100.0;
+        auto AMAT = hit_rate * access_time + (1.0 - hit_rate) * (access_time + miss_penalty);
+        return AMAT;
     }
 
     void step(uint32_t pc);
