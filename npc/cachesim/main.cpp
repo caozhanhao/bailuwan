@@ -1,3 +1,6 @@
+// Copyright (c) 2025 caozhanhao
+// SPDX-License-Identifier: MIT
+
 #include <iostream>
 #include <cstdint>
 #include <cassert>
@@ -8,7 +11,7 @@
 
 #include <dlfcn.h>
 
-#include "icachesim.hpp"
+#include "cachesim.hpp"
 
 constexpr auto RESET_VECTOR = 0x30000000;
 constexpr auto MAX_IMAGE_SIZE = 32 * 1024 * 1024;
@@ -86,25 +89,39 @@ void init(void* img, size_t img_size)
 struct cachesim_batch
 {
     // PC stream
-    uint32_t* data;
-    uint32_t size;
+    uint32_t* i_stream;
+    uint32_t i_size;
+
+    struct dcache_entry
+    {
+        bool is_read;
+        uint32_t addr;
+    } * d_stream;
+
+    uint32_t d_size;
 };
 
-uint32_t buffer[BATCH_SIZE];
+uint32_t i_buffer[BATCH_SIZE];
+cachesim_batch::dcache_entry d_buffer[BATCH_SIZE];
 
-void drain_pc_stream(const std::function<void(uint32_t)>& func)
+void drain_stream(const std::function<void(uint32_t)>& pc_consumer,
+                  const std::function<void(bool, uint32_t)>& ldstr_consumer)
 {
     cachesim_batch batch{};
-    batch.data = buffer;
+    batch.i_stream = i_buffer;
+    batch.d_stream = d_buffer;
 
     while (true)
     {
         ref_difftest_cachesim_step(&batch);
 
-        for (uint32_t i = 0; i < batch.size; i++)
-            func(buffer[i]);
+        for (uint32_t i = 0; i < batch.i_size; i++)
+            pc_consumer(i_buffer[i]);
 
-        if (batch.size != BATCH_SIZE)
+        for (uint32_t i = 0; i < batch.d_size; i++)
+            ldstr_consumer(d_buffer[i].is_read, d_buffer[i].addr);
+
+        if (batch.i_size != BATCH_SIZE)
             break;
     }
 }
@@ -128,59 +145,158 @@ int main(int argc, char* argv[])
 
     init(image, bytes_read);
 
-    // drain_pc_stream([](uint32_t pc){ printf("0x%x\n", pc); });
+    std::vector<CacheSim> icache_sims;
+    std::vector<CacheSim> dcache_sims;
 
-    std::vector<ICacheSim> sims;
-
-    // Bytes
-    std::vector<size_t> cache_sizes = {32, 64, 128, 256};
     // Block size (byte) -> Average miss cycles (miss_penalty)
     std::vector<std::pair<size_t, double>> block_info = {
         {4, 24.014169},
         {8, 45.429843},
         {16, 86.215061},
     };
-    std::vector<size_t> set_sizes = {1, 2, 4}; // n-way
 
-    std::vector policies = {
+    std::vector replace_policies = {
         ReplacementPolicy::FIFO,
         ReplacementPolicy::LRU,
         ReplacementPolicy::RANDOM
     };
 
-    for (auto policy : policies)
+    std::vector write_policies = {
+        WritePolicy::WRITE_BACK,
+        WritePolicy::WRITE_THROUGH
+    };
+
+    std::vector alloc_policies = {
+        AllocationPolicy::WRITE_ALLOCATE,
+        AllocationPolicy::NO_WRITE_ALLOCATE
+    };
+
+    // Bytes
+    std::vector<size_t> i_cache_sizes = {32, 64, 128};
+    std::vector<size_t> i_set_sizes = {1, 2}; // n-way
+    // ICache
+    for (auto policy : replace_policies)
     {
-        for (auto cache_size : cache_sizes)
+        for (auto cache_size : i_cache_sizes)
         {
             for (auto [block_size, miss_penalty] : block_info)
             {
-                for (auto set_size : set_sizes)
+                for (auto set_size : i_set_sizes)
                 {
                     if (set_size * block_size > cache_size)
                         continue;
 
-                    sims.emplace_back(cache_size, block_size, set_size, miss_penalty, policy);
+                    icache_sims.emplace_back(cache_size, block_size, set_size, miss_penalty, policy);
                 }
             }
         }
     }
 
-    drain_pc_stream([&](uint32_t pc)
-    {
-        for (auto& sim : sims)
-            sim.step(pc);
-    });
+    // DCache
+    std::vector<size_t> d_cache_sizes = {32, 64};
+    std::vector<size_t> d_set_sizes = {1, 2}; // n-way
 
-    std::sort(sims.begin(), sims.end(), [](const auto& a, const auto& b)
+    for (auto replace_policy : replace_policies)
+    {
+        for (auto write_policy : write_policies)
+        {
+            for (auto alloc_policy : alloc_policies)
+            {
+                for (auto cache_size : d_cache_sizes)
+                {
+                    for (auto [block_size, miss_penalty] : block_info)
+                    {
+                        for (auto set_size : d_set_sizes)
+                        {
+                            if (set_size * block_size > cache_size)
+                                continue;
+
+                            dcache_sims.emplace_back(cache_size, block_size, set_size, miss_penalty,
+                                                     replace_policy, write_policy, alloc_policy);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    drain_stream([&](uint32_t pc)
+                 {
+                     for (auto& sim : icache_sims)
+                         sim.access(pc, AccessType::READ);
+                 },
+                 [&](bool is_read, uint32_t addr)
+                 {
+                     for (auto& sim : dcache_sims)
+                         sim.access(addr, is_read ? AccessType::READ : AccessType::WRITE);
+                 });
+
+    std::sort(icache_sims.begin(), icache_sims.end(), [](const auto& a, const auto& b)
     {
         return a.get_AMAT() < b.get_AMAT();
     });
 
-    for (auto& sim : sims)
+    std::sort(dcache_sims.begin(), dcache_sims.end(), [](const auto& a, const auto& b)
     {
+        return a.get_AMAT() < b.get_AMAT();
+    });
+
+
+    printf("---------------------------------------------------------------\n");
+    printf("                         ICache Sim                            \n");
+    printf("---------------------------------------------------------------\n");
+
+    for (auto& sim : icache_sims)
         sim.dump(stdout);
-        printf("-----------------------\n");
+
+    printf("---------------------------------------------------------------\n");
+    printf("                         DCache Sim                            \n");
+    printf("---------------------------------------------------------------\n");
+
+    for (auto& sim : dcache_sims)
+        sim.dump(stdout);
+
+
+    printf("-------------------------------------------------------------------------------------------\n");
+
+    // ICache Best AMAT
+    for (auto sz : i_cache_sizes)
+    {
+        double best_AMAT = std::numeric_limits<double>::max();
+        const CacheSim* best_sim = nullptr;
+
+        for (auto& sim : icache_sims)
+        {
+            if (sim.get_cache_size() == sz && sim.get_AMAT() < best_AMAT)
+            {
+                best_AMAT = sim.get_AMAT();
+                best_sim = &sim;
+            }
+        }
+
+        printf("ICache Best AMAT for %ldB cache:\n", sz);
+        best_sim->dump(stdout);
     }
+
+    // DCache Best AMAT
+    for (auto sz : d_cache_sizes)
+    {
+        double best_AMAT = std::numeric_limits<double>::max();
+        const CacheSim* best_sim = nullptr;
+
+        for (auto& sim : dcache_sims)
+        {
+            if (sim.get_cache_size() == sz && sim.get_AMAT() < best_AMAT)
+            {
+                best_AMAT = sim.get_AMAT();
+                best_sim = &sim;
+            }
+        }
+
+        printf("DCache Best AMAT for %ldB cache:\n", sz);
+        best_sim->dump(stdout);
+    }
+
 
     free(image);
     return 0;

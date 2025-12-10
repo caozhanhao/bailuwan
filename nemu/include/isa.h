@@ -41,6 +41,10 @@ word_t isa_csr_str2val(const char *name, bool *success);
 struct Decode;
 int isa_exec_once(struct Decode *s);
 
+// dcache sim
+// Returns 0 if decode successfully.
+int isa_decode_ldstr(word_t inst, bool* is_read, word_t* addr);
+
 // memory
 enum { MMU_DIRECT, MMU_TRANSLATE, MMU_FAIL };
 enum { MEM_TYPE_IFETCH, MEM_TYPE_READ, MEM_TYPE_WRITE };
