@@ -166,6 +166,7 @@ class LSU(
   io.mem.w.valid      := w_state === w_idle
   io.mem.b.ready      := w_state === w_wait_mem
 
+  io.in.ready  := (r_state === r_idle) && (w_state === w_idle)
   io.out.valid := op === LSUOp.Nop || (r_state === r_wait_ready) || (w_state === w_wait_ready)
 
   // Forward EXU Signals
