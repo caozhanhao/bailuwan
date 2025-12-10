@@ -169,7 +169,7 @@ class LSU(
 
   val bypass = op === io.in.valid && op === LSUOp.Nop
   io.out.valid := bypass || (r_state === r_wait_ready) || (w_state === w_wait_ready)
-  io.in.ready  := (r_state === r_idle) && (w_state === w_idle)
+  io.in.ready  := Mux(bypass, io.out.ready, (r_state === r_idle) && (w_state === w_idle))
 
   // Forward EXU Signals
   io.out.bits.from_exu := io.in.bits.wbu
