@@ -47,7 +47,8 @@ class LSU(
   val store_data = RegEnable(io.in.bits.lsu.lsu_store_data, io.in.fire)
 
   // Read
-  val enter_read = io.in.fire && MuxLookup(op, false.B)(
+  // Don't use latched op here.
+  val enter_read = io.in.fire && MuxLookup(io.in.bits.lsu.lsu_op, false.B)(
     Seq(
       LSUOp.LB  -> true.B,
       LSUOp.LH  -> true.B,
@@ -117,8 +118,10 @@ class LSU(
   // Write
   val w_idle :: w_aw :: w_wait_mem :: w_wait_ready :: Nil = Enum(4)
 
-  val w_state     = RegInit(w_idle)
-  val enter_write = io.in.fire && MuxLookup(op, false.B)(
+  val w_state = RegInit(w_idle)
+
+  // Don't use latched op here.
+  val enter_write = io.in.fire && MuxLookup(io.in.bits.lsu.lsu_op, false.B)(
     Seq(
       LSUOp.SB -> true.B,
       LSUOp.SH -> true.B,
