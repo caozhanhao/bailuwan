@@ -16,7 +16,7 @@ TRACE ?= notrace
 IMG ?=
 
 ### Run checks only when `sim`
-ifneq ($(findstring $(MAKECMDGOALS),sim),)
+ifeq ($(MAKECMDGOALS), sim)
 
 ### Print build info message
 $(info -> Building BaiLuWan [$(HW)] [Trace: $(TRACE)] [img: $(IMG)])

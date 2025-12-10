@@ -141,9 +141,9 @@ int main(int argc, char* argv[])
     std::vector<size_t> set_sizes = {1}; // 1-way for directly mapped
 
     // Block size -> Average miss cycles
-    std::map<size_t, size_t> miss_penalty = {
-        {4, }
-        {16, 90},
+    std::map<size_t, double> miss_penalty = {
+        {4, 27.431562},
+        {16, 89.757750},
     };
 
     std::vector policies = {
