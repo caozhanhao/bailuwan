@@ -222,6 +222,6 @@ class IFU(
   //          difftest_step is called here
   SignalProbe(RegNext(io.in.valid), "difftest_ready")
   SignalProbe(pc, "pc")
-  SignalProbe(state, "ifu_state")
+  SignalProbe(state === s_wait_ready, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
 }
