@@ -42,13 +42,14 @@ class LSU(
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
-  val addr       = RegEnable(io.in.bits.lsu.lsu_addr, io.in.fire)
-  val op         = RegEnable(io.in.bits.lsu.lsu_op, io.in.fire)
-  val store_data = RegEnable(io.in.bits.lsu.lsu_store_data, io.in.fire)
+  val addr_reg       = RegEnable(io.in.bits.lsu.lsu_addr, io.in.fire)
+  val op_reg         = RegEnable(io.in.bits.lsu.lsu_op, io.in.fire)
+  val store_data_reg = RegEnable(io.in.bits.lsu.lsu_store_data, io.in.fire)
 
   // Read
   // Don't use latched op here.
-  val enter_read = io.in.fire && MuxLookup(io.in.bits.lsu.lsu_op, false.B)(
+  val in_op      = io.in.bits.lsu.lsu_op
+  val enter_read = io.in.fire && MuxLookup(in_op, false.B)(
     Seq(
       LSUOp.LB  -> true.B,
       LSUOp.LH  -> true.B,
@@ -70,14 +71,14 @@ class LSU(
     )
   )
 
-  io.mem.ar.bits.addr := addr
+  io.mem.ar.bits.addr := addr_reg
   io.mem.ar.valid     := r_state === r_ar
   io.mem.r.ready      := r_state === r_wait_mem
 
   val read_reg = Reg(UInt(32.W))
   read_reg := Mux(io.mem.r.valid, io.mem.r.bits.data, read_reg)
 
-  val lb_sel = MuxLookup(addr(1, 0), 0.U(8.W))(
+  val lb_sel = MuxLookup(addr_reg(1, 0), 0.U(8.W))(
     Seq(
       0.U -> read_reg(7, 0),
       1.U -> read_reg(15, 8),
@@ -86,14 +87,14 @@ class LSU(
     )
   )
 
-  val lh_sel = MuxLookup(addr(1, 0), 0.U(16.W))(
+  val lh_sel = MuxLookup(addr_reg(1, 0), 0.U(16.W))(
     Seq(
       0.U -> read_reg(15, 0),
       2.U -> read_reg(31, 16)
     )
   )
 
-  val selected_loaded_data = MuxLookup(op, 0.U(p.XLEN.W))(
+  val selected_loaded_data = MuxLookup(op_reg, 0.U(p.XLEN.W))(
     Seq(
       LSUOp.LB  -> sign_extend(lb_sel, p.XLEN),
       LSUOp.LH  -> sign_extend(lh_sel, p.XLEN),
@@ -103,7 +104,7 @@ class LSU(
     )
   )
 
-  io.mem.ar.bits.size := MuxLookup(op, 0.U(3.W))(
+  io.mem.ar.bits.size := MuxLookup(op_reg, 0.U(3.W))(
     Seq(
       LSUOp.LB  -> 0.U(3.W),
       LSUOp.LH  -> 1.U(3.W),
@@ -121,7 +122,7 @@ class LSU(
   val w_state = RegInit(w_idle)
 
   // Don't use latched op here.
-  val enter_write = io.in.fire && MuxLookup(io.in.bits.lsu.lsu_op, false.B)(
+  val enter_write = io.in.fire && MuxLookup(in_op, false.B)(
     Seq(
       LSUOp.SB -> true.B,
       LSUOp.SH -> true.B,
@@ -138,23 +139,23 @@ class LSU(
     )
   )
 
-  val write_mask = MuxLookup(op, 0.U(4.W))(
+  val write_mask = MuxLookup(op_reg, 0.U(4.W))(
     Seq(
-      LSUOp.SB -> (0x1.U(4.W) << addr(1, 0)).asUInt,
-      LSUOp.SH -> (0x3.U(4.W) << addr(1, 0)).asUInt,
+      LSUOp.SB -> (0x1.U(4.W) << addr_reg(1, 0)).asUInt,
+      LSUOp.SH -> (0x3.U(4.W) << addr_reg(1, 0)).asUInt,
       LSUOp.SW -> 0xf.U(4.W)
     )
   )
 
-  val selected_store_data = MuxLookup(op, 0.U(p.XLEN.W))(
+  val selected_store_data = MuxLookup(op_reg, 0.U(p.XLEN.W))(
     Seq(
-      LSUOp.SB -> (store_data << (addr(1, 0) << 3).asUInt).asUInt,
-      LSUOp.SH -> (store_data << (addr(1, 0) << 3).asUInt).asUInt,
-      LSUOp.SW -> store_data
+      LSUOp.SB -> (store_data_reg << (addr_reg(1, 0) << 3).asUInt).asUInt,
+      LSUOp.SH -> (store_data_reg << (addr_reg(1, 0) << 3).asUInt).asUInt,
+      LSUOp.SW -> store_data_reg
     )
   )
 
-  io.mem.aw.bits.size := MuxLookup(op, 0.U(3.W))(
+  io.mem.aw.bits.size := MuxLookup(op_reg, 0.U(3.W))(
     Seq(
       LSUOp.SB -> 0.U(3.W),
       LSUOp.SH -> 1.U(3.W),
@@ -162,38 +163,38 @@ class LSU(
     )
   )
 
-  io.mem.aw.bits.addr := addr
+  io.mem.aw.bits.addr := addr_reg
   io.mem.aw.valid     := w_state === w_aw
   io.mem.w.bits.data  := selected_store_data
   io.mem.w.bits.strb  := write_mask
   io.mem.w.valid      := w_state === w_aw || w_state === w_wait_mem
   io.mem.b.ready      := w_state === w_wait_mem
 
-  io.out.valid := (io.in.valid && op === LSUOp.Nop) || (r_state === r_wait_ready) || (w_state === w_wait_ready)
+  io.out.valid := (io.in.valid && in_op === LSUOp.Nop) || (r_state === r_wait_ready) || (w_state === w_wait_ready)
   io.in.ready  := (r_state === r_idle) && (w_state === w_idle) && io.out.ready
 
   // Forward EXU Signals
   io.out.bits.from_exu := io.in.bits.wbu
 
   // Debug
-  val misaligned = MuxLookup(op, false.B)(
+  val misaligned = MuxLookup(op_reg, false.B)(
     Seq(
-      LSUOp.LH  -> addr(0),
-      LSUOp.SH  -> addr(0),
-      LSUOp.LHU -> addr(0),
-      LSUOp.LW  -> (addr(1) | addr(0)),
-      LSUOp.SW  -> (addr(1) | addr(0))
+      LSUOp.LH  -> addr_reg(0),
+      LSUOp.SH  -> addr_reg(0),
+      LSUOp.LHU -> addr_reg(0),
+      LSUOp.LW  -> (addr_reg(1) | addr_reg(0)),
+      LSUOp.SW  -> (addr_reg(1) | addr_reg(0))
     )
   )
 
-  assert(!misaligned, cf"LSU: Misaligned access at 0x${addr}%x")
+  assert(!misaligned, cf"LSU: Misaligned access at 0x${addr_reg}%x")
   assert(
     !io.mem.r.valid || io.mem.r.bits.resp === AXIResp.OKAY,
-    cf"LSU: Read fault at 0x${RegEnable(addr, io.mem.ar.fire)}%x, resp=${io.mem.r.bits.resp}"
+    cf"LSU: Read fault at 0x${RegEnable(addr_reg, io.mem.ar.fire)}%x, resp=${io.mem.r.bits.resp}"
   )
   assert(
     !io.mem.b.valid || io.mem.b.bits.resp === AXIResp.OKAY,
-    cf"LSU: Write fault at 0x${RegEnable(addr, io.mem.aw.fire)}%x, resp=${io.mem.b.bits.resp}"
+    cf"LSU: Write fault at 0x${RegEnable(addr_reg, io.mem.aw.fire)}%x, resp=${io.mem.b.bits.resp}"
   )
 
   PerfCounter(io.mem.r.fire, "lsu_read")
