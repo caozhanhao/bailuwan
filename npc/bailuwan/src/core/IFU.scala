@@ -126,11 +126,7 @@ class ICache(
   resp.valid      := (req.fire && hit) || (state === s_resp)
   resp.bits.data  := entry_data
   resp.bits.error := err
-
-  // If the IFU sends a request that hits the cache but is not ready to receive
-  // data in the same cycle, the request will be lost because we do NOT latch
-  // hit responses. Thus, we wait resp.ready when cache hit here.
-  req.ready := state === s_idle && (!hit || resp.ready)
+  req.ready := state === s_idle
 
   // Mem IO
   val ar_bypass = state === s_idle && req.fire && !hit
