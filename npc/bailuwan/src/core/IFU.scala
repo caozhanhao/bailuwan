@@ -99,7 +99,11 @@ class ICache(
   // State Transfer
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle      -> Mux(req.fire, Mux(hit, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)), s_idle),
+      s_idle      -> Mux(
+        req.fire,
+        Mux(hit, Mux(resp.fire, s_idle, s_resp), Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
+        s_idle
+      ),
       s_fill_addr -> Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr),
       s_wait_mem  -> Mux(fill_done, s_resp, s_wait_mem),
       s_resp      -> Mux(resp.fire, s_idle, s_resp)
