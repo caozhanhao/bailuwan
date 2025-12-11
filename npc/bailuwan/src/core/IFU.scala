@@ -179,7 +179,7 @@ class IFU(
 
   val s_idle :: s_access :: s_wait_mem :: s_wait_ready :: Nil = Enum(4)
 
-  val state = RegInit(s_idle)
+  val state = RegInit(s_access) // reset to s_access
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle       -> Mux(io.in.fire, s_access, s_idle),
@@ -189,7 +189,7 @@ class IFU(
     )
   )
 
-  icache_io.req.valid  := state === s_access
+  icache_io.req.valid  := (state === s_access) && !reset.asBool // Don't send request when resetting
   icache_io.resp.ready := state === s_wait_mem
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
