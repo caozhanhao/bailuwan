@@ -89,6 +89,7 @@ class CPUProxy
 
         // Normal Signals
         uint32_t* pc;
+        uint32_t* dnpc;
         uint32_t* inst;
         uint8_t* difftest_ready;
         uint8_t* inst_valid;
@@ -111,6 +112,7 @@ public:
     void dump_perf_counters(FILE* stream = stderr);
     void dump(FILE* stream = stderr);
     [[nodiscard]] uint32_t pc() const;
+    [[nodiscard]] uint32_t dnpc() const;
     [[nodiscard]] uint32_t curr_inst() const;
     [[nodiscard]] uint64_t inst_count() const;
     [[nodiscard]] uint64_t cycle_count() const;

@@ -104,6 +104,11 @@ uint32_t CPUProxy::pc() const
     return *bindings.pc;
 }
 
+uint32_t CPUProxy::dnpc() const
+{
+    return *bindings.dnpc;
+}
+
 uint32_t CPUProxy::reg(uint32_t idx) const
 {
     return *bindings.gprs[idx];

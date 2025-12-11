@@ -180,13 +180,14 @@ class IFU(
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
 
-  pc := MuxCase(
+  val dnpc = MuxCase(
     pc,
     Seq(
       io.redirect_valid  -> io.redirect_target,
       icache_io.req.fire -> (pc + 4.U)
     )
   )
+  pc := dnpc
 
   val resp_queue = Module(new Queue(new IFUOut, entries = 4))
 
@@ -208,6 +209,7 @@ class IFU(
   )
 
   SignalProbe(pc, "pc")
+  SignalProbe(dnpc, "dnpc")
   SignalProbe(io.out.bits.inst, "inst")
   SignalProbe(io.out.valid, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
