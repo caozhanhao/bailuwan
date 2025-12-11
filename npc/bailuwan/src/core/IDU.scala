@@ -211,7 +211,7 @@ class IDU(
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
 
   // Rising edge
-  val counter_inc = io.in.valid && !RegNext(io.in.valid)
+  val counter_inc = state === s_wait_ready && RegNext(state) =/= s_wait_ready
   def once(b: Bool) = counter_inc && b
 
   PerfCounter(once(exec_type === ExecType.ALU && br_op === BrOp.Nop), "alu_ops")

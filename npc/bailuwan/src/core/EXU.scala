@@ -178,9 +178,9 @@ class EXU(
   // Fence
   io.icache_flush := decoded.exec_type === ExecType.FenceI
 
-  def only_valid(b: Bool) = io.in.valid && b
+  def only_valid(b: Bool) = state === s_wait_ready && b
 
-  PerfCounter(io.out.valid, "exu_done")
+  PerfCounter(io.out.fire, "exu_done")
   PerfCounter(only_valid(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_cycles")
   PerfCounter(only_valid(decoded.br_op =/= BrOp.Nop), "br_cycles")
   PerfCounter(only_valid(exec_type === ExecType.LSU), "lsu_cycles")

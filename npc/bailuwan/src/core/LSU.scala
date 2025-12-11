@@ -182,4 +182,5 @@ class LSU(
   )
 
   PerfCounter(io.mem.r.fire, "lsu_read")
+  PerfCounter(io.mem.b.fire, "lsu_write")
 }
