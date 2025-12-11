@@ -198,10 +198,11 @@ class IFU(
   resp_queue.io.enq.valid     := icache_io.resp.valid
   resp_queue.io.enq.bits.inst := icache_io.resp.bits.data
   resp_queue.io.enq.bits.pc   := icache_io.resp.bits.addr
+  resp_queue.io.flush.get     := io.redirect_valid
 
-  resp_queue.io.flush.get := io.redirect_valid
-
-  io.out <> resp_queue.io.deq
+  io.out.bits             := resp_queue.io.deq.bits
+  io.out.valid            := resp_queue.io.deq.valid && !io.redirect_valid
+  resp_queue.io.deq.ready := io.out.ready
 
   assert(
     !icache_io.resp.valid || !icache_io.resp.bits.error,
