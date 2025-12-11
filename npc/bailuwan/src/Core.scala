@@ -59,7 +59,7 @@ class Core(
   PipelineConnect(IDU.io.out, EXU.io.in)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
-  PipelineConnect(IFU.io.in, WBU.io.out)
+  PipelineConnect(WBU.io.out, IFU.io.in)
 
   // Regfile - IDU
   IDU.io.regfile_in.rs1_data := RegFile.io.rs1_data
