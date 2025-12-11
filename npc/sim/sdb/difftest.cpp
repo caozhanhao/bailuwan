@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+#include "utils/disasm.hpp"
+
 enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF };
 
 using difftest_memcpy_t = void (*)(uint32_t addr, void* buf, size_t n, bool direction);
@@ -154,7 +156,7 @@ static bool is_accessing_device()
     // See if it is accessing devices.
     if (DUTMemory::in_device(addr))
     {
-        printf("Accessing device at addr: " FMT_WORD "\n", addr);
+        printf("Accessing device at addr: " FMT_WORD ", inst: 0x%x\n", addr, inst);
         return true;
     }
 
@@ -182,7 +184,6 @@ void difftest_step()
 
     if (accessing_device)
     {
-        printf("Skipped: 0x%x\n", SIM.cpu().curr_inst());
         sync_regs_to_ref();
         accessing_device = false;
         return;
