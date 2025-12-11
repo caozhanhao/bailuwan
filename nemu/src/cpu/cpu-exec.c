@@ -100,7 +100,7 @@ void iringbuf_display() {
 #endif
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
-  log_write("%s\n", _this->logbuf);
+  printf("DIFF=0x%x\n", _this->isa.inst);
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
 #endif
