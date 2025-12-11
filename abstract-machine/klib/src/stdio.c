@@ -23,8 +23,8 @@ int printf(const char* fmt, ...)
     else
         to_write = needed;
 
-    // for (int i = 0; i < to_write; i++)
-    //     putch(buf[i]);
+    for (int i = 0; i < to_write; i++)
+        putch(buf[i]);
 
 #undef BUF_SZ
     return to_write;
