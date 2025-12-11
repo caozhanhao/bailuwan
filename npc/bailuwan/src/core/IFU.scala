@@ -199,7 +199,7 @@ class IFU(
   resp_queue.io.enq.bits.inst := icache_io.resp.bits.data
   resp_queue.io.enq.bits.pc   := icache_io.resp.bits.addr
 
-  resp_queue.flush := io.redirect_valid
+  resp_queue.io.flush := io.redirect_valid
 
   io.out <> resp_queue.io.deq
 
