@@ -14,6 +14,7 @@ class EXUOutForWBU(
   implicit p: CoreParams)
     extends Bundle {
   val src_type = UInt(ExecType.WIDTH)
+  val rd_addr  = UInt(5.W)
   val rd_we    = Bool()
 
   // ALU
@@ -46,8 +47,7 @@ class EXUOut(
 }
 
 class EXU(
-  implicit p: CoreParams,
-  axi_prop:   AXIProperty)
+  implicit p: CoreParams)
     extends Module {
   val io = IO(new Bundle {
     val in  = Flipped(Decoupled(new IDUOut))

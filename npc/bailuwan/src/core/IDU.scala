@@ -95,6 +95,7 @@ class IDUOut(
 
   val rs1_data = UInt(p.XLEN.W)
   val rs2_data = UInt(p.XLEN.W)
+  val rd_addr  = UInt(5.W)
   val rd_we    = Bool()
   val imm      = UInt(p.XLEN.W)
   val csr_addr = UInt(12.W)
@@ -116,7 +117,6 @@ class IDURegfileIn(
 class IDURegfileOut extends Bundle {
   val rs1_addr = UInt(5.W)
   val rs2_addr = UInt(5.W)
-  val rd_addr  = UInt(5.W)
 }
 
 class IDU(
@@ -192,7 +192,6 @@ class IDU(
   // Regfile
   io.regfile_out.rs1_addr := rs1
   io.regfile_out.rs2_addr := rs2
-  io.regfile_out.rd_addr  := rd
   io.out.bits.rs1_data    := io.regfile_in.rs1_data
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
   io.out.bits.rd_we       := we

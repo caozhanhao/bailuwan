@@ -8,9 +8,14 @@ import chisel3.util._
 import core._
 import amba._
 
-object StageConnect {
-  def apply[T <: Data](left: DecoupledIO[T], right: DecoupledIO[T]) = {
-    right <> left
+object PipelineConnect {
+  def apply[T <: Data](
+    prevOut: DecoupledIO[T],
+    thisIn:  DecoupledIO[T]
+  ): Unit = {
+    prevOut.ready := thisIn.ready
+    thisIn.bits   := RegEnable(prevOut.bits, prevOut.valid && thisIn.ready)
+    thisIn.valid  := RegEnable(prevOut.valid, thisIn.ready)
   }
 }
 
@@ -50,19 +55,19 @@ class Core(
 
   val RegFile = Module(new RegFile)
 
-  // Stage Connect
-  StageConnect(IFU.io.out, IDU.io.in)
-  StageConnect(IDU.io.out, EXU.io.in)
-  StageConnect(EXU.io.out, LSU.io.in)
-  StageConnect(LSU.io.out, WBU.io.in)
-  StageConnect(WBU.io.out, IFU.io.in)
+  PipelineConnect(IFU.io.out, IDU.io.in)
+  PipelineConnect(IDU.io.out, EXU.io.in)
+  PipelineConnect(EXU.io.out, LSU.io.in)
+  PipelineConnect(LSU.io.out, WBU.io.in)
+  IFU.io.in <> WBU.io.out
 
-  // Regfile
+  // Regfile - IDU
   IDU.io.regfile_in.rs1_data := RegFile.io.rs1_data
   IDU.io.regfile_in.rs2_data := RegFile.io.rs2_data
   RegFile.io.rs1_addr        := IDU.io.regfile_out.rs1_addr
   RegFile.io.rs2_addr        := IDU.io.regfile_out.rs2_addr
-  RegFile.io.rd_addr         := IDU.io.regfile_out.rd_addr
+  // Regfile - WBU
+  RegFile.io.rd_addr         := WBU.io.regfile_out.rd_addr
   RegFile.io.rd_we           := WBU.io.regfile_out.rd_we
   RegFile.io.rd_data         := WBU.io.regfile_out.rd_data
 
@@ -74,7 +79,7 @@ class Core(
   arbiter.io.masters(0) <> IFU.io.mem
   arbiter.io.masters(1) <> LSU.io.mem
 
-  val xbar  = Module(
+  val xbar = Module(
     new AXI4CrossBar(
       Seq(
         // SoC

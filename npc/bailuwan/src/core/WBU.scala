@@ -19,6 +19,7 @@ class WBUOut(
 class WBURegfileOut(
   implicit p: CoreParams)
     extends Bundle {
+  val rd_addr = UInt(5.W)
   val rd_data = UInt(p.XLEN.W)
   val rd_we   = Bool()
 }
@@ -54,6 +55,7 @@ class WBU(
   )
 
   io.out.bits.dnpc       := dnpc
+  io.regfile_out.rd_addr := io.in.bits.from_exu.rd_addr
   io.regfile_out.rd_data := rd_data
   io.regfile_out.rd_we   := io.in.valid && exu_out.rd_we
 
