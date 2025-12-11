@@ -147,7 +147,7 @@ class LSU(
   io.mem.aw.valid     := state === s_w_addr
   io.mem.w.bits.data  := selected_store_data
   io.mem.w.bits.strb  := write_mask
-  io.mem.w.valid      := state === s_w_wait_mem
+  io.mem.w.valid      := state === s_w_addr || state === s_w_wait_mem
   io.mem.b.ready      := state === s_w_wait_mem
 
   io.mem.ar.bits.id    := 0.U

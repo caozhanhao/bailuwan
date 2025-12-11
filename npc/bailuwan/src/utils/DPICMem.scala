@@ -93,6 +93,7 @@ class DPICMem(
 
   io.r.bits.last := r_cnt === r_ctx.len
 
+  // ATTENTION: r_next_addr here.
   mem_read.io.addr := r_next_addr
   mem_read.io.en   := ((io.ar.fire && r_state === r_idle) ||
     (r_state === r_data_valid && !(io.r.fire && io.r.bits.last))) && !reset.asBool
