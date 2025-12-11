@@ -135,6 +135,7 @@ $(CACHESIM_BIN): $(CACHESIM_HEADERS) $(CACHESIM_SRCS)
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(MAKE) $(BIN)
+	# $(BIN) can be terminated by CTRL-C, so create link before running it.
 	ln -sf $(abspath $(TRACE_FILENAME)) $(BUILD_DIR)/latest-trace
 	$(BIN) $(ARGS) $(IMG)
 
