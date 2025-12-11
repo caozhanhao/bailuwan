@@ -79,7 +79,7 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
     PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
 #else
-    static uint64_t invalid_binding = 25100251;
+    static uint64_t invalid_binding = 0;
 #define PERF_COUNTER_TABLE_ENTRY(name) bindings.perf_counters.name = &invalid_binding;
     PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
