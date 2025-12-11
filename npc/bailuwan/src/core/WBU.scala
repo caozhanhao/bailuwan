@@ -34,8 +34,22 @@ class WBU(
     val regfile_out = Output(new WBURegfileOut)
   })
 
-  val exu_out = io.in.bits.from_exu
-  val lsu_out = io.in.bits.read_data
+  val s_idle :: s_wait_ready :: Nil = Enum(2)
+
+  val state = RegInit(s_idle)
+
+  state := MuxLookup(state, s_idle)(
+    Seq(
+      s_idle       -> Mux(io.in.fire, s_wait_ready, s_idle),
+      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
+    )
+  )
+
+  io.in.ready  := state === s_idle
+  io.out.valid := state === s_wait_ready
+
+  val exu_out = RegEnable(io.in.bits.from_exu, io.in.fire)
+  val lsu_out = RegEnable(io.in.bits.read_data, io.in.fire)
 
   val br_dnpc = Mux(exu_out.br_taken, exu_out.br_target, exu_out.snpc)
   val dnpc    = MuxLookup(exu_out.src_type, br_dnpc)(
@@ -57,10 +71,7 @@ class WBU(
   io.out.bits.dnpc       := dnpc
   io.regfile_out.rd_addr := io.in.bits.from_exu.rd_addr
   io.regfile_out.rd_data := rd_data
-  io.regfile_out.rd_we   := io.in.valid && exu_out.rd_we
-
-  io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid
+  io.regfile_out.rd_we   := (state === s_wait_ready) && exu_out.rd_we
 
   SignalProbe(dnpc, "dnpc")
 }

@@ -30,53 +30,53 @@ class LSU(
     val mem = new AXI4()
   })
 
-  io.mem.ar.bits.id    := 0.U
-  io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
-  io.mem.ar.bits.burst := 0.U
-
-  io.mem.aw.bits.id    := 0.U
-  io.mem.aw.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
-  io.mem.aw.bits.burst := 0.U
-
-  io.mem.w.bits.last := true.B
-
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
   val addr_reg       = RegEnable(io.in.bits.lsu.lsu_addr, io.in.fire)
   val op_reg         = RegEnable(io.in.bits.lsu.lsu_op, io.in.fire)
   val store_data_reg = RegEnable(io.in.bits.lsu.lsu_store_data, io.in.fire)
 
-  // Read
+  // States
+  val s_idle :: s_r_addr :: s_r_wait_mem :: s_w_addr :: s_w_wait_mem :: s_wait_ready :: Nil = Enum(6)
+
   // Don't use latched op here.
-  val in_op      = io.in.bits.lsu.lsu_op
-  val enter_read = io.in.fire && MuxLookup(in_op, false.B)(
+  val entry_state = MuxLookup(io.in.bits.lsu.lsu_op, s_idle)(
     Seq(
-      LSUOp.LB  -> true.B,
-      LSUOp.LH  -> true.B,
-      LSUOp.LW  -> true.B,
-      LSUOp.LBU -> true.B,
-      LSUOp.LHU -> true.B
+      LSUOp.Nop -> s_wait_ready,
+      LSUOp.LB  -> s_r_addr,
+      LSUOp.LH  -> s_r_addr,
+      LSUOp.LW  -> s_r_addr,
+      LSUOp.LBU -> s_r_addr,
+      LSUOp.LHU -> s_r_addr,
+      LSUOp.SB  -> s_w_addr,
+      LSUOp.SH  -> s_w_addr,
+      LSUOp.SW  -> s_w_addr
     )
   )
 
-  val r_idle :: r_ar :: r_wait_mem :: r_wait_ready :: Nil = Enum(4)
-
-  val r_state = RegInit(r_idle)
-  r_state := MuxLookup(r_state, r_idle)(
+  val state = RegInit(s_idle)
+  state := MuxLookup(state, s_idle)(
     Seq(
-      r_idle       -> Mux(enter_read, r_ar, r_idle),
-      r_ar         -> Mux(io.mem.ar.fire, r_wait_mem, r_ar),
-      r_wait_mem   -> Mux(io.mem.r.fire, r_wait_ready, r_wait_mem),
-      r_wait_ready -> Mux(io.out.fire, r_idle, r_wait_ready)
+      s_idle       -> Mux(io.in.fire, entry_state, s_idle),
+      s_r_addr     -> Mux(io.mem.ar.fire, s_r_wait_mem, s_r_addr),
+      s_r_wait_mem -> Mux(io.mem.r.fire, s_wait_ready, s_r_wait_mem),
+      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
   )
 
+  io.out.valid := state === s_wait_ready
+  io.in.ready  := state === s_idle
+
+  // EXU Forward
+  io.out.bits.from_exu := RegEnable(io.in.bits.wbu, io.in.fire)
+
+  // Read
   io.mem.ar.bits.addr := addr_reg
-  io.mem.ar.valid     := r_state === r_ar
-  io.mem.r.ready      := r_state === r_wait_mem
+  io.mem.ar.valid     := state === s_r_addr
+  io.mem.r.ready      := state === s_r_wait_mem
 
   val read_reg = Reg(UInt(32.W))
-  read_reg := Mux(io.mem.r.valid, io.mem.r.bits.data, read_reg)
+  read_reg := Mux(io.mem.r.fire, io.mem.r.bits.data, read_reg)
 
   val lb_sel = MuxLookup(addr_reg(1, 0), 0.U(8.W))(
     Seq(
@@ -116,29 +116,7 @@ class LSU(
 
   io.out.bits.read_data := selected_loaded_data
 
-  // Write
-  val w_idle :: w_aw :: w_wait_mem :: w_wait_ready :: Nil = Enum(4)
-
-  val w_state = RegInit(w_idle)
-
-  // Don't use latched op here.
-  val enter_write = io.in.fire && MuxLookup(in_op, false.B)(
-    Seq(
-      LSUOp.SB -> true.B,
-      LSUOp.SH -> true.B,
-      LSUOp.SW -> true.B
-    )
-  )
-
-  w_state := MuxLookup(w_state, w_idle)(
-    Seq(
-      w_idle       -> Mux(enter_write, w_aw, w_idle),
-      w_aw         -> Mux(io.mem.aw.fire, w_wait_mem, w_aw),
-      w_wait_mem   -> Mux(io.mem.b.fire, w_wait_ready, w_wait_mem),
-      w_wait_ready -> Mux(io.out.fire, w_idle, w_wait_ready)
-    )
-  )
-
+  // Store
   val write_mask = MuxLookup(op_reg, 0.U(4.W))(
     Seq(
       LSUOp.SB -> (0x1.U(4.W) << addr_reg(1, 0)).asUInt,
@@ -164,17 +142,21 @@ class LSU(
   )
 
   io.mem.aw.bits.addr := addr_reg
-  io.mem.aw.valid     := w_state === w_aw
+  io.mem.aw.valid     := state === s_w_addr
   io.mem.w.bits.data  := selected_store_data
   io.mem.w.bits.strb  := write_mask
-  io.mem.w.valid      := w_state === w_aw || w_state === w_wait_mem
-  io.mem.b.ready      := w_state === w_wait_mem
+  io.mem.w.valid      := state === s_w_wait_mem
+  io.mem.b.ready      := state === s_w_wait_mem
 
-  io.out.valid := (io.in.fire && in_op === LSUOp.Nop) || (r_state === r_wait_ready) || (w_state === w_wait_ready)
-  io.in.ready  := (r_state === r_idle) && (w_state === w_idle) && io.out.ready
+  io.mem.ar.bits.id    := 0.U
+  io.mem.ar.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.ar.bits.burst := 0.U
 
-  // Forward EXU Signals
-  io.out.bits.from_exu := io.in.bits.wbu
+  io.mem.aw.bits.id    := 0.U
+  io.mem.aw.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.aw.bits.burst := 0.U
+
+  io.mem.w.bits.last := true.B
 
   // Debug
   val misaligned = MuxLookup(op_reg, false.B)(

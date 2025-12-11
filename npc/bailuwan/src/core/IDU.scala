@@ -130,8 +130,22 @@ class IDU(
     val regfile_out = Output(new IDURegfileOut)
   })
 
-  val NOP  = 0x00000013.U(32.W)
-  val inst = Mux(io.in.valid, io.in.bits.inst, NOP)
+  val s_idle :: s_wait_ready :: Nil = Enum(2)
+
+  val state = RegInit(s_idle)
+
+  state := MuxLookup(state, s_idle)(
+    Seq(
+      s_idle       -> Mux(io.in.fire, s_wait_ready, s_idle),
+      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
+    )
+  )
+
+  io.in.ready  := state === s_idle
+  io.out.valid := state === s_wait_ready
+
+  // val NOP  = 0x00000013.U(32.W)
+  val inst = RegEnable(io.in.bits.inst, io.in.fire)
 
   // Registers
   val rd  = inst(11, 7)
@@ -196,9 +210,6 @@ class IDU(
   io.regfile_out.rs2_addr := rs2
   io.out.bits.rs1_data    := io.regfile_in.rs1_data
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
-
-  io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid
 
   SignalProbe(inst, "inst")
 

@@ -177,14 +177,15 @@ class IFU(
 
   icache.io.flush := io.icache_flush
 
-  val s_idle :: s_access :: s_wait_mem :: Nil = Enum(3)
+  val s_idle :: s_access :: s_wait_mem :: s_wait_ready :: Nil = Enum(4)
 
   val state = RegInit(s_access) // reset to s_access
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle       -> Mux(io.in.fire, s_access, s_idle),
-      s_access     -> Mux(icache_io.req.fire, Mux(icache_io.resp.fire, s_idle, s_wait_mem), s_idle),
-      s_wait_mem   -> Mux(icache_io.resp.fire, s_idle, s_wait_mem),
+      s_access     -> Mux(icache_io.req.fire, Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem), s_idle),
+      s_wait_mem   -> Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem),
+      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
   )
 
@@ -203,7 +204,7 @@ class IFU(
   io.out.bits.pc   := pc
 
   io.in.ready  := state === s_idle
-  io.out.valid := icache_io.resp.fire
+  io.out.valid := state === s_wait_ready
 
   assert(
     !icache_io.resp.valid || !icache_io.resp.bits.error,
@@ -222,6 +223,6 @@ class IFU(
   //          difftest_step is called here
   SignalProbe(RegNext(io.in.fire), "difftest_ready")
   SignalProbe(pc, "pc")
-  SignalProbe(icache_io.resp.fire, "inst_valid")
+  SignalProbe(state === s_wait_ready, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
 }

@@ -56,7 +56,22 @@ class EXU(
     val icache_flush = Output(Bool())
   })
 
-  val decoded   = io.in.bits
+  val s_idle :: s_wait_ready :: Nil = Enum(2)
+
+  val state = RegInit(s_idle)
+
+  state := MuxLookup(state, s_idle)(
+    Seq(
+      s_idle       -> Mux(io.in.fire, s_wait_ready, s_idle),
+      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
+    )
+  )
+
+  io.in.ready  := state === s_idle
+  io.out.valid := state === s_wait_ready
+
+  val decoded = RegEnable(io.in.bits, io.in.fire)
+
   val exec_type = decoded.exec_type
   val rs1_data  = decoded.rs1_data
   val rs2_data  = decoded.rs2_data
@@ -162,9 +177,6 @@ class EXU(
 
   // Fence
   io.icache_flush := decoded.exec_type === ExecType.FenceI
-
-  io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid
 
   def only_valid(b: Bool) = io.in.valid && b
 
