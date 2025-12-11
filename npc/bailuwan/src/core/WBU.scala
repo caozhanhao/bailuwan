@@ -43,4 +43,6 @@ class WBU(
   io.regfile_out.rd_we   := io.in.valid && exu_out.rd_we
 
   io.in.ready := true.B
+
+  SignalProbe(RegNext(io.in.fire), "difftest_ready")
 }
