@@ -154,7 +154,7 @@ static bool is_accessing_device()
     // See if it is accessing devices.
     if (DUTMemory::in_device(addr))
     {
-        // printf("Accessing device at addr: " FMT_WORD ", inst: 0x%x\n", addr, inst);
+        printf("Accessing device at addr: " FMT_WORD ", inst: 0x%x\n", addr, inst);
         return true;
     }
 
@@ -179,7 +179,7 @@ void difftest_step()
 
     if (is_accessing_device())
     {
-        // printf("Skipped 0x%x\n", SIM.cpu().curr_inst());
+        printf("Skipped 0x%x\n", SIM.cpu().curr_inst());
         sync_regs_to_ref();
         return;
     }
