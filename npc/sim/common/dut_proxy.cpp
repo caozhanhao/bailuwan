@@ -70,12 +70,17 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
 
     // CSRs
 #define CSR_TABLE_ENTRY(name, idx) BIND_SIGNAL(csrs[idx], TOSTRING(name))
-CSR_TABLE
+    CSR_TABLE
 #undef CSR_TABLE_ENTRY
 
-#ifdef CONFIG_PERF_COUNTERS
     // Perf Counters
+#ifdef CONFIG_PERF_COUNTERS
 #define PERF_COUNTER_TABLE_ENTRY(name) BIND_SIGNAL(perf_counters.name, TOSTRING(name))
+    PERF_COUNTER_TABLE
+#undef PERF_COUNTER_TABLE_ENTRY
+#else
+    static uint64_t invalid_binding = 25100251;
+#define PERF_COUNTER_TABLE_ENTRY(name) bindings.perf_counters.name = &invalid_binding;
     PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
 #endif
