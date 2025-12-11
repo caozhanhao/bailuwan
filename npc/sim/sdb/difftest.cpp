@@ -154,7 +154,7 @@ static bool is_accessing_device()
     // See if it is accessing devices.
     if (DUTMemory::in_device(addr))
     {
-        // printf("Accessing device at addr: " FMT_WORD "\n", addr);
+        printf("Accessing device at addr: " FMT_WORD "\n", addr);
         return true;
     }
 
