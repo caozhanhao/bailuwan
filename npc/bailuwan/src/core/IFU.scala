@@ -35,6 +35,7 @@ class ICacheIO(
     extends Bundle {
   val req  = Decoupled(new ICacheReq)
   val resp = Flipped(Decoupled(new ICacheResp))
+  val kill = Bool()
 }
 
 class ICache(
@@ -101,15 +102,19 @@ class ICache(
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle      -> Mux(
-        req.fire,
+        req.fire && !io.ifu.kill,
         Mux(hit, Mux(resp.fire, s_idle, s_resp), Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
         s_idle
       ),
-      s_fill_addr -> Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr),
+      s_fill_addr -> Mux(io.ifu.kill, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
       s_wait_mem  -> Mux(fill_done, s_resp, s_wait_mem),
-      s_resp      -> Mux(resp.fire, s_idle, s_resp)
+      s_resp      -> Mux(resp.fire || io.ifu.kill, s_idle, s_resp)
     )
   )
+
+  // We can't handle kill in `s_wait_mem`
+  val skipping = RegInit(false.B)
+  skipping := MuxCase(skipping, Seq((state === s_idle) -> false.B, io.ifu.kill -> true.B))
 
   // Fill
   valid_storage.zipWithIndex.foreach { case (r, i) =>
@@ -126,7 +131,7 @@ class ICache(
 
   // IFU IO
   // Immediate hit or s_resp
-  resp.valid      := (req.fire && hit) || (state === s_resp)
+  resp.valid      := ((req.fire && hit) || (state === s_resp)) && !skipping && !io.ifu.kill
   resp.bits.data  := entry_data
   resp.bits.addr  := Mux(state === s_idle, req_addr, fill_addr)
   resp.bits.error := err
@@ -191,8 +196,9 @@ class IFU(
 
   val resp_queue = Module(new Queue(new IFUOut, entries = 4, hasFlush = true))
 
+  icache_io.kill          := io.redirect_valid
   icache_io.req.bits.addr := pc
-  icache_io.req.valid     := !reset.asBool
+  icache_io.req.valid     := !reset.asBool && !io.redirect_valid
   icache_io.resp.ready    := resp_queue.io.enq.ready
 
   resp_queue.io.enq.valid     := icache_io.resp.valid
