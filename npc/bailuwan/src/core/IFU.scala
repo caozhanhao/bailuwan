@@ -212,6 +212,6 @@ class IFU(
   SignalProbe(pc, "pc")
   SignalProbe(dnpc, "dnpc")
   SignalProbe(io.out.bits.inst, "inst")
-  SignalProbe(io.out.valid, "inst_valid")
+  SignalProbe(resp_queue.io.deq.valid, "inst_valid") // FIXME
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
 }
