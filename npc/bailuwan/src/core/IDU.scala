@@ -212,6 +212,7 @@ class IDU(
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
 
   SignalProbe(inst, "inst")
+  SignalProbe(state === s_wait_ready, "inst_valid")
 
   // Rising edge
   val counter_inc = io.in.valid && !RegNext(io.in.valid)
