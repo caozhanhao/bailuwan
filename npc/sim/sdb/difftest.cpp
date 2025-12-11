@@ -189,9 +189,8 @@ void difftest_step()
 
     ref_difftest_exec(1);
 
-    // uint32_t buf;
-    // ref_difftest_memcpy(0x80008b98, &buf, 4, DIFFTEST_TO_DUT);
-    // printf("REF *0x80008b98=0x%x\n", buf);
+assert(!DUTMemory::in_device(0x80008b98));
+
 
     diff_context_t ref_r;
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
