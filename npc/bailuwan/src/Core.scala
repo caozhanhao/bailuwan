@@ -111,4 +111,6 @@ class Core(
   xbar.io.slaves(1) <> clint.io
 
   arbiter.io.slave <> xbar.io.master
+
+  PerfCounter(true.B, "all_cycles")
 }

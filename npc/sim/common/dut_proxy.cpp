@@ -162,8 +162,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(lsu_write);
     PERF(exu_done);
     PERF(all_ops);
-    // PERF(all_cycles);
-    // PERF(wait_cycles);
+    PERF(all_cycles);
     PERF(icache_hit);
     PERF(icache_miss);
 #undef PERF

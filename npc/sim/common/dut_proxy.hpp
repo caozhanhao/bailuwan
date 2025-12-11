@@ -66,6 +66,7 @@ PERF_COUNTER_TABLE_ENTRY(lsu_ops) \
 PERF_COUNTER_TABLE_ENTRY(csr_ops) \
 PERF_COUNTER_TABLE_ENTRY(other_ops) \
 PERF_COUNTER_TABLE_ENTRY(all_ops) \
+PERF_COUNTER_TABLE_ENTRY(all_cycles) \
 PERF_COUNTER_TABLE_ENTRY(icache_hit) \
 PERF_COUNTER_TABLE_ENTRY(icache_miss) \
 PERF_COUNTER_TABLE_ENTRY(icache_mem_access_cycles)
@@ -76,7 +77,6 @@ PERF_COUNTER_TABLE_ENTRY(icache_mem_access_cycles)
 // PERF_COUNTER_TABLE_ENTRY(csr_cycles) \
 // PERF_COUNTER_TABLE_ENTRY(other_cycles) \
 // PERF_COUNTER_TABLE_ENTRY(wait_cycles) \
-// PERF_COUNTER_TABLE_ENTRY(all_cycles) \
 
 
 class CPUProxy
