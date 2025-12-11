@@ -24,12 +24,6 @@ class EXUOutForWBU(
   //   ECall              -> mtvec
   //   MRet               -> mepc
   val csr_out = UInt(p.XLEN.W)
-
-  // PC
-  val pc        = UInt(p.XLEN.W)
-  val snpc      = UInt(p.XLEN.W)
-  val br_taken  = Bool()
-  val br_target = UInt(p.XLEN.W)
 }
 
 class EXUOutForLSU(
@@ -53,6 +47,10 @@ class EXU(
   val io = IO(new Bundle {
     val in  = Flipped(Decoupled(new IDUOut))
     val out = Decoupled(new EXUOut)
+
+    // For IFU
+    val redirect_valid  = Output(Bool())
+    val redirect_target = Output(UInt(p.XLEN.W))
 
     val icache_flush = Output(Bool())
   })
@@ -141,15 +139,11 @@ class EXU(
   csr_file.io.write_data := csr_write_data
 
   val wbu = io.out.bits.wbu
-  wbu.rd_addr   := decoded.rd_addr
-  wbu.rd_we     := decoded.rd_we
-  wbu.src_type  := exec_type
-  wbu.alu_out   := alu.io.result
-  wbu.csr_out   := csr_data
-  wbu.pc        := decoded.pc
-  wbu.snpc      := decoded.pc + 4.U
-  wbu.br_taken  := br_taken
-  wbu.br_target := br_target
+  wbu.rd_addr  := decoded.rd_addr
+  wbu.rd_we    := decoded.rd_we
+  wbu.src_type := exec_type
+  wbu.alu_out  := alu.io.result
+  wbu.csr_out  := csr_data
 
   val lsu = io.out.bits.lsu
   lsu.lsu_op         := decoded.lsu_op
@@ -165,6 +159,15 @@ class EXU(
 
   // Fence
   io.icache_flush := decoded.exec_type === ExecType.FenceI
+
+  // dnpc
+  io.redirect_valid  := br_taken || exec_type === ExecType.ECall || exec_type === ExecType.MRet
+  io.redirect_target := MuxLookup(exec_type, br_target)(
+    Seq(
+      ExecType.ECall -> csr_data,
+      ExecType.MRet  -> csr_data
+    )
+  )
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
