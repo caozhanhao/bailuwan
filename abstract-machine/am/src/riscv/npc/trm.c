@@ -14,7 +14,7 @@ Area heap = RANGE(&_heap_start, PMEM_END);
 static const char mainargs[MAINARGS_MAX_LEN] = TOSTRING(MAINARGS_PLACEHOLDER); // defined in CFLAGS
 
 void putch(char ch) {
-  *(volatile uint8_t*)SERIAL_PORT_MMIO = ch  + 1;
+  *(volatile uint8_t*)SERIAL_PORT_MMIO = ch  +2;
 }
 
 void halt(int code) {
