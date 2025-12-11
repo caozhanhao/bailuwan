@@ -211,7 +211,7 @@ class IFU(
   )
 
   // Difftest got ready after every instruction done.
-  SignalProbe(RegNext(io.out.ready), "difftest_ready")
+  SignalProbe(io.out.ready, "difftest_ready")
   SignalProbe(pc, "pc")
   SignalProbe(state === s_wait_ready, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
