@@ -42,7 +42,7 @@ static void uart_io_handler(uint32_t offset, int len, bool is_write) {
 }
 
 static void psram_handler(uint32_t offset, int len, bool is_write) {
-  printf("psram offset=0x%x, len=%d, is_write=%d", offset, len, is_write);
+  printf("psram offset=0x%x, len=%d, is_write=%d\n", offset, len, is_write);
 }
 
 void init_ysyxsoc() {
