@@ -189,9 +189,6 @@ void difftest_step()
 
     ref_difftest_exec(1);
 
-assert(!DUTMemory::in_device(0x80008b98));
-
-
     diff_context_t ref_r;
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
     checkregs(&ref_r);
