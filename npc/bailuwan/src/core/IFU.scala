@@ -177,19 +177,20 @@ class IFU(
 
   icache.io.flush := io.icache_flush
 
-  val s_idle :: s_wait_mem :: s_wait_ready :: Nil = Enum(3)
+  val s_idle :: s_access :: s_wait_mem :: s_wait_ready :: Nil = Enum(4)
 
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle       -> Mux(icache_io.req.fire, Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem), s_idle),
+      s_idle       -> Mux(io.in.fire, s_access, s_idle),
+      s_access     -> Mux(icache_io.req.fire, Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem), s_idle),
       s_wait_mem   -> Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem),
       s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
   )
 
-  icache_io.req.valid  := (state === s_idle) && !reset.asBool // Don't send request when resetting
-  icache_io.resp.ready := state =/= s_wait_ready
+  icache_io.req.valid  := state === s_access
+  icache_io.resp.ready := state === s_wait_mem
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.fire, io.in.bits.dnpc, pc)
