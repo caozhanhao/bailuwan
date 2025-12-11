@@ -162,30 +162,30 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(lsu_write);
     PERF(exu_done);
     PERF(all_ops);
-    PERF(all_cycles);
-    PERF(wait_cycles);
+    // PERF(all_cycles);
+    // PERF(wait_cycles);
     PERF(icache_hit);
     PERF(icache_miss);
 #undef PERF
 
-    auto all_ops_d = static_cast<double>(*b.all_ops);
-
-    fprintf(stream, "+----------+----------+--------+------------+\n");
-    fprintf(stream, "| Type     |    Count | %%      | Avg Cycles |\n");
-    fprintf(stream, "+----------+----------+--------+------------+\n");
-#define PERF(display_name, name)  fprintf(stream, "| %-8s | %8lu | %05.2f%% | %10.2f |\n", \
-    TOSTRING(display_name), \
-    *b.name##_ops, \
-    100.0 * (static_cast<double>(*b.name##_ops) / all_ops_d), \
-    (static_cast<double>(*b.name##_cycles) / static_cast<double>(*b.name##_ops)))
-
-    PERF(ALU, alu);
-    PERF(Branch, br);
-    PERF(LSU, lsu);
-    PERF(CSR, csr);
-    PERF(Other, other);
-#undef PERF
-    fprintf(stream, "+----------+----------+--------+------------+\n");
+//     auto all_ops_d = static_cast<double>(*b.all_ops);
+//
+//     fprintf(stream, "+----------+----------+--------+------------+\n");
+//     fprintf(stream, "| Type     |    Count | %%      | Avg Cycles |\n");
+//     fprintf(stream, "+----------+----------+--------+------------+\n");
+// #define PERF(display_name, name)  fprintf(stream, "| %-8s | %8lu | %05.2f%% | %10.2f |\n", \
+//     TOSTRING(display_name), \
+//     *b.name##_ops, \
+//     100.0 * (static_cast<double>(*b.name##_ops) / all_ops_d), \
+//     (static_cast<double>(*b.name##_cycles) / static_cast<double>(*b.name##_ops)))
+//
+//     PERF(ALU, alu);
+//     PERF(Branch, br);
+//     PERF(LSU, lsu);
+//     PERF(CSR, csr);
+//     PERF(Other, other);
+// #undef PERF
+//     fprintf(stream, "+----------+----------+--------+------------+\n");
 
     // AMAT = p * access_time + (1 - p) * (access_time + miss_penalty) = access_time + (1 - p) * miss_penalty
     auto access_time = 1;

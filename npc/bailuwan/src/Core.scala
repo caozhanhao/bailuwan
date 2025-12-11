@@ -7,6 +7,9 @@ import chisel3._
 import chisel3.util._
 import core._
 import amba._
+import chisel3.util.experimental.BoringUtils
+import constants.{BrOp, ExecType}
+import utils.PerfCounter
 
 object PipelineConnect {
   def apply[T <: Data](

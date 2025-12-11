@@ -26,6 +26,7 @@ class EXUOutForWBU(
   val csr_out = UInt(p.XLEN.W)
 
   // PC
+  val pc        = UInt(p.XLEN.W)
   val snpc      = UInt(p.XLEN.W)
   val br_taken  = Bool()
   val br_target = UInt(p.XLEN.W)
@@ -159,6 +160,7 @@ class EXU(
   wbu.src_type  := exec_type
   wbu.alu_out   := alu.io.result
   wbu.csr_out   := csr_data
+  wbu.pc        := decoded.pc
   wbu.snpc      := decoded.pc + 4.U
   wbu.br_taken  := br_taken
   wbu.br_target := br_target
@@ -178,21 +180,5 @@ class EXU(
   // Fence
   io.icache_flush := decoded.exec_type === ExecType.FenceI
 
-  def only_valid(b: Bool) = state === s_wait_ready && b
-
-  PerfCounter(io.out.fire, "exu_done")
-  PerfCounter(only_valid(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_cycles")
-  PerfCounter(only_valid(decoded.br_op =/= BrOp.Nop), "br_cycles")
-  PerfCounter(only_valid(exec_type === ExecType.LSU), "lsu_cycles")
-  PerfCounter(only_valid(exec_type === ExecType.CSR), "csr_cycles")
-  PerfCounter(
-    only_valid(
-      exec_type =/= ExecType.ALU &&
-        exec_type =/= ExecType.LSU &&
-        exec_type =/= ExecType.CSR
-    ),
-    "other_cycles"
-  )
-  PerfCounter(!io.in.valid, "wait_cycles")
-  PerfCounter(true.B, "all_cycles")
+  PerfCounter(io.out.valid, "exu_done")
 }
