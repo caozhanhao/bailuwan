@@ -202,7 +202,7 @@ class IFU(
   io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
 
-  io.in.ready  := true.B
+  io.in.ready  := state === s_idle
   io.out.valid := state === s_wait_ready
 
   assert(
@@ -210,8 +210,17 @@ class IFU(
     cf"IFU: Access fault at 0x${RegEnable(pc, icache_io.req.fire)}%x"
   )
 
-  // Difftest got ready after every instruction done.
-  SignalProbe(io.out.ready, "difftest_ready")
+  // Difftest got ready after every pc advance (one instruction done),
+  // which is just in.fire delayed one cycle.
+  //               ___________
+  //   in.valid   |          |
+  //              _____       _____
+  //   clock     |     |_____|     |_____
+  //              cycle 1        cycle 2
+  //                     ^
+  //                     |
+  //          difftest_step is called here
+  SignalProbe(RegNext(io.in.fire), "difftest_ready")
   SignalProbe(pc, "pc")
   SignalProbe(state === s_wait_ready, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
