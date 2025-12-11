@@ -130,8 +130,6 @@ static void checkregs(diff_context_t* ref)
     }
 }
 
-static int accessing_device = false;
-
 static bool is_accessing_device()
 {
     auto& cpu = SIM.cpu();
@@ -173,16 +171,13 @@ static bool is_accessing_device()
 //          difftest_step is called here
 void difftest_step()
 {
-    if (is_accessing_device())
-        accessing_device = true;
-
     // If this cycle is ready for difftest,
     // skip this cycle but do NOT sync registers.
     auto& cpu = SIM.cpu();
     if (!cpu.is_ready_for_difftest())
         return;
 
-    if (accessing_device)
+    if (is_accessing_device())
     {
         printf("Skipped 0x%x\n", SIM.cpu().curr_inst());
         sync_regs_to_ref();
