@@ -203,7 +203,7 @@ class IFU(
   io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
 
-  io.in.ready  := true.B
+  io.in.ready  := state === s_idle
   io.out.valid := state === s_wait_ready
 
   assert(
