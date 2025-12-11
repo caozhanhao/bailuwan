@@ -188,7 +188,7 @@ class IFU(
   )
 
   icache_io.req.valid  := (state === s_access) && !reset.asBool // Don't send request when resetting
-  icache_io.resp.ready := state === s_wait_mem
+  icache_io.resp.ready := state === s_access || state === s_wait_mem
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.fire, io.in.bits.dnpc, pc)
