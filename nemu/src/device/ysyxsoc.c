@@ -41,6 +41,10 @@ static void uart_io_handler(uint32_t offset, int len, bool is_write) {
   }
 }
 
+static void psram_handler(uint32_t offset, int len, bool is_write) {
+  printf("psram offset=0x%x, len=%d, is_write=%d", offset, len, is_write);
+}
+
 void init_ysyxsoc() {
   mrom_base = new_space(CONFIG_MROM_SIZE);
   sram_base = new_space(CONFIG_SRAM_SIZE);
@@ -53,7 +57,7 @@ void init_ysyxsoc() {
   add_mmio_map("ysyxsoc_mrom", CONFIG_MROM_BASE, mrom_base, CONFIG_MROM_SIZE, nullptr);
   add_mmio_map("ysyxsoc_sram", CONFIG_SRAM_BASE, sram_base, CONFIG_SRAM_SIZE, nullptr);
   add_mmio_map("ysyxsoc_flash", CONFIG_FLASH_BASE, flash_base, CONFIG_FLASH_SIZE, nullptr);
-  add_mmio_map("ysyxsoc_psram", CONFIG_PSRAM_BASE, psram_base, CONFIG_PSRAM_SIZE, nullptr);
+  add_mmio_map("ysyxsoc_psram", CONFIG_PSRAM_BASE, psram_base, CONFIG_PSRAM_SIZE, psram_handler);
   add_mmio_map("ysyxsoc_sdram", CONFIG_SDRAM_BASE, sdram_base, CONFIG_SDRAM_SIZE, nullptr);
   add_mmio_map("ysyxsoc_uart", CONFIG_UART_BASE, uart_base, CONFIG_UART_SIZE, uart_io_handler);
 }
