@@ -90,8 +90,9 @@ CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\"" -DRESET_VECTOR=$(RESET_VECT
 # Don't forget to update `VERILOG_STAMP` when `EMIT_VERILOG_FLAGS` is changed.
 EMIT_VERILOG_FLAGS = --reset-vector $(RESET_VECTOR) --without-soc $(WITHOUT_SOC) -- --target-dir $(BUILD_DIR) --split-verilog
 
+TRACE_FILENAME = notrace
 ifneq ($(TRACE), notrace)
-TRACE_FILENAME ?= $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
+TRACE_FILENAME = $(BUILD_DIR)/trace-$(TOPNAME)-$(HW).$(TRACE)
 CXXFLAGS += -DTRACE -DTRACE_$(TRACE) -DTRACE_FILENAME="\"$(TRACE_FILENAME)\""
 endif
 
