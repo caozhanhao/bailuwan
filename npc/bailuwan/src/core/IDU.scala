@@ -130,21 +130,7 @@ class IDU(
     val regfile_out = Output(new IDURegfileOut)
   })
 
-  val s_idle :: s_wait_ready :: Nil = Enum(2)
-
-  val state = RegInit(s_idle)
-
-  state := MuxLookup(state, s_idle)(
-    Seq(
-      s_idle       -> Mux(io.in.fire, s_wait_ready, s_idle),
-      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
-    )
-  )
-
-  io.in.ready  := state === s_idle
-  io.out.valid := state === s_wait_ready
-
-  val inst = RegEnable(io.in.bits.inst, io.in.fire)
+  val inst = io.in.bits.inst
 
   // Registers
   val rd  = inst(11, 7)
@@ -163,7 +149,7 @@ class IDU(
   val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: csr_op :: exec_type :: Nil =
     ListLookup(inst, InstDecodeTable.default, InstDecodeTable.table)
 
-  assert(state =/= s_wait_ready || fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: 0x$inst%x)")
+  assert(!io.in.valid || fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: 0x$inst%x)")
 
   // Choose immediate
   val imm = MuxLookup(fmt, 0.U)(
@@ -210,8 +196,11 @@ class IDU(
   io.out.bits.rs1_data    := io.regfile_in.rs1_data
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
 
+  io.in.ready  := io.out.ready
+  io.out.valid := io.in.valid
+
   // Rising edge
-  val counter_inc = state === s_wait_ready && RegNext(state) =/= s_wait_ready
+  val counter_inc = io.in.valid && !RegNext(io.in.valid)
   def once(b: Bool) = counter_inc && b
 
   PerfCounter(once(exec_type === ExecType.ALU && br_op === BrOp.Nop), "alu_ops")
