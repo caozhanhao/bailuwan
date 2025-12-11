@@ -183,7 +183,7 @@ class IFU(
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle       -> Mux(io.in.fire, s_access, s_idle),
-      s_access     -> Mux(icache_io.req.fire, Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem), s_idle),
+      s_access     -> Mux(icache_io.req.fire, Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem), s_access),
       s_wait_mem   -> Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem),
       s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
