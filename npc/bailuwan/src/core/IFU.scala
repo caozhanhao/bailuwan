@@ -208,18 +208,6 @@ class IFU(
     !icache_io.resp.valid || !icache_io.resp.bits.error,
     cf"IFU: Access fault at 0x${RegEnable(pc, icache_io.req.fire)}%x"
   )
-
-  // Difftest got ready after every pc advance (one instruction done),
-  // which is just in.fire delayed one cycle.
-  //               ___________
-  //   in.valid   |          |
-  //              _____       _____
-  //   clock     |     |_____|     |_____
-  //              cycle 1        cycle 2
-  //                     ^
-  //                     |
-  //          difftest_step is called here
-  SignalProbe(RegNext(io.in.fire), "difftest_ready")
   SignalProbe(pc, "pc")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
 }

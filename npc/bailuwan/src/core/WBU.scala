@@ -74,4 +74,6 @@ class WBU(
   io.regfile_out.rd_we   := (state === s_wait_ready) && exu_out.rd_we
 
   SignalProbe(dnpc, "dnpc")
+  // Difftest got ready after each instruction is done
+  SignalProbe(state === s_wait_ready, "difftest_ready")
 }
