@@ -189,7 +189,7 @@ class IFU(
   )
   pc := dnpc
 
-  val resp_queue = Module(new Queue(new IFUOut, entries = 4))
+  val resp_queue = Module(new Queue(new IFUOut, entries = 4, hasFlush = true))
 
   icache_io.req.bits.addr := pc
   icache_io.req.valid     := !reset.asBool
@@ -199,7 +199,7 @@ class IFU(
   resp_queue.io.enq.bits.inst := icache_io.resp.bits.data
   resp_queue.io.enq.bits.pc   := icache_io.resp.bits.addr
 
-  resp_queue.io.flush := io.redirect_valid
+  resp_queue.io.flush.get := io.redirect_valid
 
   io.out <> resp_queue.io.deq
 
