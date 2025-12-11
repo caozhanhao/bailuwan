@@ -60,6 +60,8 @@ class LSU(
       s_idle       -> Mux(io.in.fire, entry_state, s_idle),
       s_r_addr     -> Mux(io.mem.ar.fire, s_r_wait_mem, s_r_addr),
       s_r_wait_mem -> Mux(io.mem.r.fire, s_wait_ready, s_r_wait_mem),
+      s_w_addr     -> Mux(io.mem.aw.fire, s_w_wait_mem, s_w_addr),
+      s_w_wait_mem -> Mux(io.mem.b.fire, s_wait_ready, s_w_wait_mem),
       s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
   )
