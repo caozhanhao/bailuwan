@@ -155,7 +155,7 @@ class LSU(
   io.mem.ar.bits.burst := 0.U
 
   io.mem.aw.bits.id    := 0.U
-  io.mem.aw.bits.len   := 0.U // burst length=1, equivalent to an AxLEN value of zero.
+  io.mem.aw.bits.len   := 0.U
   io.mem.aw.bits.burst := 0.U
 
   io.mem.w.bits.last := true.B
