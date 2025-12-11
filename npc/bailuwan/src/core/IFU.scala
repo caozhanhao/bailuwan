@@ -202,7 +202,7 @@ class IFU(
 
   io.out.bits             := resp_queue.io.deq.bits
   io.out.valid            := resp_queue.io.deq.valid && !io.redirect_valid
-  resp_queue.io.deq.ready := io.out.ready
+  resp_queue.io.deq.ready := io.out.ready && !io.redirect_valid
 
   assert(
     !icache_io.resp.valid || !icache_io.resp.bits.error,
@@ -212,6 +212,6 @@ class IFU(
   SignalProbe(pc, "pc")
   SignalProbe(dnpc, "dnpc")
   SignalProbe(io.out.bits.inst, "inst")
-  SignalProbe(resp_queue.io.deq.valid, "inst_valid") // FIXME
+  SignalProbe(io.out.valid, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
 }
