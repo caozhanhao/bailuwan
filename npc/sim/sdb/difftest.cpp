@@ -152,7 +152,7 @@ static bool is_accessing_device()
     auto addr = src1 + imm;
 
     // See if it is accessing devices.
-    if (SIM.mem().in_device(addr))
+    if (DUTMemory::in_device(addr))
     {
         // printf("Accessing device at addr: " FMT_WORD "\n", addr);
         return true;
