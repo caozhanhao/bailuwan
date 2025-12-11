@@ -71,9 +71,7 @@ class ICache(
   val req_offset = if (BLOCK_BITS > 2) req_addr(BLOCK_BITS - 1, 2) else 0.U
 
   // Fill Info
-  val fill_addr = RegInit(0.U(32.W))
-  fill_addr := Mux(state === s_idle && req.valid, req_addr, fill_addr)
-
+  val fill_addr   = RegEnable(req_addr, req.fire)
   val fill_tag    = fill_addr(31, INDEX_BITS + BLOCK_BITS)
   val fill_index  = fill_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
   val fill_offset = if (BLOCK_BITS > 2) fill_addr(BLOCK_BITS - 1, 2) else 0.U
@@ -101,7 +99,11 @@ class ICache(
   // State Transfer
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle      -> Mux(req.valid, Mux(hit, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)), s_idle),
+      s_idle      -> Mux(
+        req.fire,
+        Mux(hit, Mux(resp.fire, s_idle, s_resp), Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
+        s_idle
+      ),
       s_fill_addr -> Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr),
       s_wait_mem  -> Mux(fill_done, s_resp, s_wait_mem),
       s_resp      -> Mux(resp.fire, s_idle, s_resp)
@@ -123,17 +125,13 @@ class ICache(
 
   // IFU IO
   // Immediate hit or s_resp
-  resp.valid      := (req.valid && hit) || (state === s_resp)
+  resp.valid      := (req.fire && hit) || (state === s_resp)
   resp.bits.data  := entry_data
   resp.bits.error := err
-
-  // If the IFU sends a request that hits the cache but is not ready to receive
-  // data in the same cycle, the request will be lost because we do NOT latch
-  // hit responses. Thus, we wait resp.ready when cache hit here.
-  req.ready := state === s_idle && (!hit || resp.ready)
+  req.ready       := state === s_idle
 
   // Mem IO
-  val ar_bypass = state === s_idle && req.valid && !hit
+  val ar_bypass = state === s_idle && req.fire && !hit
   io.mem.ar.valid := ar_bypass || (state === s_fill_addr)
 
   val block_align_mask = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
@@ -177,38 +175,40 @@ class IFU(
 
   icache.io.flush := io.icache_flush
 
-  val s_idle :: s_wait_mem :: s_wait_ready :: s_fault :: Nil = Enum(4)
+  val s_idle :: s_access :: s_wait_mem :: s_wait_ready :: Nil = Enum(4)
 
-  val state = RegInit(s_idle)
+  val state = RegInit(s_access) // reset to s_access
   state := MuxLookup(state, s_idle)(
     Seq(
-      s_idle       -> Mux(icache_io.req.fire, Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem), s_idle),
-      s_wait_mem   -> Mux(icache_io.resp.fire, Mux(icache_io.resp.bits.error, s_fault, s_wait_ready), s_wait_mem),
+      s_idle       -> Mux(io.in.fire, s_access, s_idle),
+      s_access     -> Mux(icache_io.req.fire, Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem), s_access),
+      s_wait_mem   -> Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem),
       s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
   )
 
-  icache_io.req.valid  := (state === s_idle) && !reset.asBool // Don't send request when resetting
-  icache_io.resp.ready := state =/= s_wait_ready
+  icache_io.req.valid  := (state === s_access) && !reset.asBool // Don't send request when resetting
+  icache_io.resp.ready := state === s_access || state === s_wait_mem
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
   pc := Mux(io.in.fire, io.in.bits.dnpc, pc)
 
   icache_io.req.bits.addr := pc
 
-  val inst_reg = RegInit(0.U(32.W))
+  val NOP      = 0x00000013.U(32.W)
+  val inst_reg = RegInit(NOP)
   inst_reg := Mux(icache_io.resp.fire, icache_io.resp.bits.data, inst_reg)
 
   io.out.bits.inst := inst_reg
   io.out.bits.pc   := pc
 
-  io.in.ready  := io.out.ready
+  io.in.ready  := state === s_idle
   io.out.valid := state === s_wait_ready
 
-  val fault_addr = RegInit(0.U(p.XLEN.W))
-  fault_addr := Mux(icache_io.req.fire, pc, fault_addr)
-
-  assert(state =/= s_fault, cf"IFU: Access fault at 0x${fault_addr}%x")
+  assert(
+    !icache_io.resp.valid || !icache_io.resp.bits.error,
+    cf"IFU: Access fault at 0x${RegEnable(pc, icache_io.req.fire)}%x"
+  )
 
   // Difftest got ready after every pc advance (one instruction done),
   // which is just in.valid delayed one cycle.
@@ -220,8 +220,9 @@ class IFU(
   //                     ^
   //                     |
   //          difftest_step is called here
-  SignalProbe(RegNext(io.in.valid), "difftest_ready")
+  SignalProbe(RegNext(io.in.fire), "difftest_ready")
   SignalProbe(pc, "pc")
-  SignalProbe(state, "ifu_state")
+  SignalProbe(inst_reg, "inst")
+  SignalProbe(state === s_wait_ready, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
 }

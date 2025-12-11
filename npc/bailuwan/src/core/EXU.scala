@@ -3,21 +3,22 @@
 
 package core
 
-import chisel3._
+import chisel3.{Bundle, _}
 import chisel3.util._
 import constants._
 import amba._
 import utils.PerfCounter
 import bailuwan.CoreParams
 
-class EXUOut(
+class EXUOutForWBU(
   implicit p: CoreParams)
     extends Bundle {
   val src_type = UInt(ExecType.WIDTH)
+  val rd_addr  = UInt(5.W)
   val rd_we    = Bool()
-  val alu_out  = UInt(p.XLEN.W)
-  val lsu_out  = UInt(p.XLEN.W)
 
+  // ALU
+  val alu_out = UInt(p.XLEN.W)
   // CSR Out:
   //   CSR{RW, RS, RC}[I] -> the CSR indicated by inst[31:20]
   //   ECall              -> mtvec
@@ -30,20 +31,47 @@ class EXUOut(
   val br_target = UInt(p.XLEN.W)
 }
 
+class EXUOutForLSU(
+  implicit p: CoreParams)
+    extends Bundle {
+  val lsu_op         = UInt(LSUOp.WIDTH)
+  val lsu_addr       = UInt(p.XLEN.W)
+  val lsu_store_data = UInt(p.XLEN.W)
+}
+
+class EXUOut(
+  implicit p: CoreParams)
+    extends Bundle {
+  val lsu = new EXUOutForLSU
+  val wbu = new EXUOutForWBU
+}
+
 class EXU(
-  implicit p: CoreParams,
-  axi_prop:   AXIProperty)
+  implicit p: CoreParams)
     extends Module {
   val io = IO(new Bundle {
     val in  = Flipped(Decoupled(new IDUOut))
     val out = Decoupled(new EXUOut)
 
-    val mem = new AXI4
-
     val icache_flush = Output(Bool())
   })
 
-  val decoded   = io.in.bits
+  val s_idle :: s_wait_ready :: Nil = Enum(2)
+
+  val state = RegInit(s_idle)
+
+  state := MuxLookup(state, s_idle)(
+    Seq(
+      s_idle       -> Mux(io.in.fire, s_wait_ready, s_idle),
+      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
+    )
+  )
+
+  io.in.ready  := state === s_idle
+  io.out.valid := state === s_wait_ready
+
+  val decoded = RegEnable(io.in.bits, io.in.fire)
+
   val exec_type = decoded.exec_type
   val rs1_data  = decoded.rs1_data
   val rs2_data  = decoded.rs2_data
@@ -53,7 +81,7 @@ class EXU(
   csr_file.io.read_enable := true.B
 
   csr_file.io.write_addr   := decoded.csr_addr
-  csr_file.io.write_enbale := exec_type === ExecType.CSR
+  csr_file.io.write_enable := exec_type === ExecType.CSR
 
   // FIXME
   csr_file.io.has_intr := (exec_type === ExecType.ECall)
@@ -86,28 +114,6 @@ class EXU(
   alu.io.oper1  := oper1
   alu.io.oper2  := oper2
   alu.io.alu_op := decoded.alu_op
-
-  // LSU
-  val lsu = Module(new LSU)
-  lsu.io.mem <> io.mem
-  lsu.io.lsu_op           := decoded.lsu_op
-  lsu.io.addr             := alu.io.result
-  lsu.io.write_data.bits  := rs2_data
-  lsu.io.write_data.valid := io.in.valid
-  lsu.io.read_data.ready  := io.out.ready
-
-  // FIXME: Write ready?
-  val is_ld = MuxLookup(decoded.lsu_op, true.B)(
-    Seq(
-      LSUOp.Nop -> false.B,
-      LSUOp.SB  -> false.B,
-      LSUOp.SH  -> false.B,
-      LSUOp.SW  -> false.B
-    )
-  )
-
-  val is_str    = !is_ld && decoded.lsu_op =/= LSUOp.Nop
-  val lsu_valid = (!is_ld || lsu.io.read_data.valid) && (!is_str || lsu.io.write_data.ready)
 
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
@@ -147,15 +153,20 @@ class EXU(
 
   csr_file.io.write_data := csr_write_data
 
-  io.out.bits.rd_we    := decoded.rd_we
-  io.out.bits.src_type := exec_type
-  io.out.bits.alu_out  := alu.io.result
-  io.out.bits.lsu_out  := lsu.io.read_data.bits
-  io.out.bits.csr_out  := csr_data
+  val wbu = io.out.bits.wbu
+  wbu.rd_addr   := decoded.rd_addr
+  wbu.rd_we     := decoded.rd_we
+  wbu.src_type  := exec_type
+  wbu.alu_out   := alu.io.result
+  wbu.csr_out   := csr_data
+  wbu.snpc      := decoded.pc + 4.U
+  wbu.br_taken  := br_taken
+  wbu.br_target := br_target
 
-  io.out.bits.snpc      := decoded.pc + 4.U
-  io.out.bits.br_taken  := br_taken
-  io.out.bits.br_target := br_target
+  val lsu = io.out.bits.lsu
+  lsu.lsu_op         := decoded.lsu_op
+  lsu.lsu_addr       := alu.io.result
+  lsu.lsu_store_data := rs2_data
 
   // EBreak
   // val ebreak = Module(new TempEBreakForSTA)
@@ -166,9 +177,6 @@ class EXU(
 
   // Fence
   io.icache_flush := decoded.exec_type === ExecType.FenceI
-
-  io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid && lsu_valid
 
   def only_valid(b: Bool) = io.in.valid && b
 

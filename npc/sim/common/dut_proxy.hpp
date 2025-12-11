@@ -91,7 +91,7 @@ class CPUProxy
         uint32_t* dnpc;
         uint32_t* inst;
         uint8_t* difftest_ready;
-        uint8_t* ifu_state;
+        uint8_t* inst_valid;
 
         struct PerfCounters
         {

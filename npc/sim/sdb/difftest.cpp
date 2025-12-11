@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+#include "utils/disasm.hpp"
+
 enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF };
 
 using difftest_memcpy_t = void (*)(uint32_t addr, void* buf, size_t n, bool direction);
@@ -128,8 +130,6 @@ static void checkregs(diff_context_t* ref)
     }
 }
 
-static int accessing_device = false;
-
 static bool is_accessing_device()
 {
     auto& cpu = SIM.cpu();
@@ -152,9 +152,9 @@ static bool is_accessing_device()
     auto addr = src1 + imm;
 
     // See if it is accessing devices.
-    if (SIM.mem().in_device(addr))
+    if (DUTMemory::in_device(addr))
     {
-        // printf("Accessing device at addr: " FMT_WORD "\n", addr);
+        // printf("Accessing device at addr: " FMT_WORD ", inst: 0x%x\n", addr, inst);
         return true;
     }
 
@@ -171,19 +171,16 @@ static bool is_accessing_device()
 //          difftest_step is called here
 void difftest_step()
 {
-    if (is_accessing_device())
-        accessing_device = true;
-
     // If this cycle is ready for difftest,
     // skip this cycle but do NOT sync registers.
     auto& cpu = SIM.cpu();
     if (!cpu.is_ready_for_difftest())
         return;
 
-    if (accessing_device)
+    if (is_accessing_device())
     {
+        // printf("Skipped 0x%x\n", SIM.cpu().curr_inst());
         sync_regs_to_ref();
-        accessing_device = false;
         return;
     }
 

@@ -95,6 +95,7 @@ class IDUOut(
 
   val rs1_data = UInt(p.XLEN.W)
   val rs2_data = UInt(p.XLEN.W)
+  val rd_addr  = UInt(5.W)
   val rd_we    = Bool()
   val imm      = UInt(p.XLEN.W)
   val csr_addr = UInt(12.W)
@@ -116,7 +117,6 @@ class IDURegfileIn(
 class IDURegfileOut extends Bundle {
   val rs1_addr = UInt(5.W)
   val rs2_addr = UInt(5.W)
-  val rd_addr  = UInt(5.W)
 }
 
 class IDU(
@@ -130,8 +130,21 @@ class IDU(
     val regfile_out = Output(new IDURegfileOut)
   })
 
-  val NOP  = 0x00000013.U(32.W)
-  val inst = Mux(io.in.valid, io.in.bits.inst, NOP)
+  val s_idle :: s_wait_ready :: Nil = Enum(2)
+
+  val state = RegInit(s_idle)
+
+  state := MuxLookup(state, s_idle)(
+    Seq(
+      s_idle       -> Mux(io.in.fire, s_wait_ready, s_idle),
+      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
+    )
+  )
+
+  io.in.ready  := state === s_idle
+  io.out.valid := state === s_wait_ready
+
+  val inst = RegEnable(io.in.bits.inst, io.in.fire)
 
   // Registers
   val rd  = inst(11, 7)
@@ -150,7 +163,7 @@ class IDU(
   val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: csr_op :: exec_type :: Nil =
     ListLookup(inst, InstDecodeTable.default, InstDecodeTable.table)
 
-  assert(fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: 0x$inst%x)")
+  assert(state =/= s_wait_ready || fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: 0x$inst%x)")
 
   // Choose immediate
   val imm = MuxLookup(fmt, 0.U)(
@@ -188,19 +201,14 @@ class IDU(
   io.out.bits.br_op          := br_op
   io.out.bits.exec_type      := exec_type
   io.out.bits.csr_op         := csr_op
+  io.out.bits.rd_addr        := rd
+  io.out.bits.rd_we          := we
 
   // Regfile
   io.regfile_out.rs1_addr := rs1
   io.regfile_out.rs2_addr := rs2
-  io.regfile_out.rd_addr  := rd
   io.out.bits.rs1_data    := io.regfile_in.rs1_data
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
-  io.out.bits.rd_we       := we
-
-  io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid
-
-  SignalProbe(inst, "inst")
 
   // Rising edge
   val counter_inc = io.in.valid && !RegNext(io.in.valid)

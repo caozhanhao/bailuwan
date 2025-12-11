@@ -63,7 +63,7 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
 
     // Normal Signals
     BIND_SIGNAL(pc, "pc")
-    BIND_SIGNAL(ifu_state, "ifu_state")
+    BIND_SIGNAL(inst_valid, "inst_valid")
     BIND_SIGNAL(dnpc, "dnpc")
     BIND_SIGNAL(inst, "inst")
     BIND_SIGNAL(difftest_ready, "difftest_ready")
@@ -134,7 +134,7 @@ bool CPUProxy::is_ready_for_difftest() const
 
 bool CPUProxy::is_inst_valid() const
 {
-    return *bindings.ifu_state == 2;
+    return *bindings.inst_valid;
 }
 
 void CPUProxy::dump_gprs(FILE* stream) const
