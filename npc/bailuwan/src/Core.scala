@@ -7,8 +7,6 @@ import chisel3._
 import chisel3.util._
 import core._
 import amba._
-import chisel3.util.experimental.BoringUtils
-import constants.{BrOp, ExecType}
 import utils.PerfCounter
 
 object PipelineConnect {
@@ -19,6 +17,15 @@ object PipelineConnect {
     prevOut.ready := thisIn.ready
     thisIn.bits   := RegEnable(prevOut.bits, prevOut.valid && thisIn.ready)
     thisIn.valid  := RegEnable(prevOut.valid, thisIn.ready)
+  }
+}
+
+object DirectConnect {
+  def apply[T <: Data](
+                        prevOut: DecoupledIO[T],
+                        thisIn:  DecoupledIO[T]
+                      ): Unit = {
+    prevOut <> thisIn
   }
 }
 
@@ -58,11 +65,16 @@ class Core(
 
   val RegFile = Module(new RegFile)
 
-  PipelineConnect(IFU.io.out, IDU.io.in)
-  PipelineConnect(IDU.io.out, EXU.io.in)
-  PipelineConnect(EXU.io.out, LSU.io.in)
-  PipelineConnect(LSU.io.out, WBU.io.in)
-  PipelineConnect(WBU.io.out, IFU.io.in)
+//  PipelineConnect(IFU.io.out, IDU.io.in)
+//  PipelineConnect(IDU.io.out, EXU.io.in)
+//  PipelineConnect(EXU.io.out, LSU.io.in)
+//  PipelineConnect(LSU.io.out, WBU.io.in)
+//  PipelineConnect(WBU.io.out, IFU.io.in)
+  DirectConnect(IFU.io.out, IDU.io.in)
+  DirectConnect(IDU.io.out, EXU.io.in)
+  DirectConnect(EXU.io.out, LSU.io.in)
+  DirectConnect(LSU.io.out, WBU.io.in)
+  DirectConnect(WBU.io.out, IFU.io.in)
 
   // Regfile - IDU
   IDU.io.regfile_in.rs1_data := RegFile.io.rs1_data
