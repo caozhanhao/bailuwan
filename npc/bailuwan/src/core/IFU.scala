@@ -71,9 +71,7 @@ class ICache(
   val req_offset = if (BLOCK_BITS > 2) req_addr(BLOCK_BITS - 1, 2) else 0.U
 
   // Fill Info
-  val fill_addr = RegInit(0.U(32.W))
-  fill_addr := Mux(state === s_idle && req.fire, req_addr, fill_addr)
-
+  val fill_addr   = RegEnable(req_addr, req.fire)
   val fill_tag    = fill_addr(31, INDEX_BITS + BLOCK_BITS)
   val fill_index  = fill_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
   val fill_offset = if (BLOCK_BITS > 2) fill_addr(BLOCK_BITS - 1, 2) else 0.U
@@ -126,7 +124,7 @@ class ICache(
   resp.valid      := (req.fire && hit) || (state === s_resp)
   resp.bits.data  := entry_data
   resp.bits.error := err
-  req.ready := state === s_idle
+  req.ready       := state === s_idle
 
   // Mem IO
   val ar_bypass = state === s_idle && req.fire && !hit
