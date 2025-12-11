@@ -139,6 +139,7 @@ class EXU(
   csr_file.io.write_data := csr_write_data
 
   val wbu = io.out.bits.wbu
+  wbu.rd_addr   := decoded.rd_addr
   wbu.rd_we     := decoded.rd_we
   wbu.src_type  := exec_type
   wbu.alu_out   := alu.io.result

@@ -188,13 +188,14 @@ class IDU(
   io.out.bits.br_op          := br_op
   io.out.bits.exec_type      := exec_type
   io.out.bits.csr_op         := csr_op
+  io.out.bits.rd_addr        := rd
+  io.out.bits.rd_we          := we
 
   // Regfile
   io.regfile_out.rs1_addr := rs1
   io.regfile_out.rs2_addr := rs2
   io.out.bits.rs1_data    := io.regfile_in.rs1_data
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
-  io.out.bits.rd_we       := we
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
