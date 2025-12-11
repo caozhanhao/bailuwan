@@ -181,7 +181,6 @@ void difftest_step()
     {
         printf("Skipped 0x%x\n", SIM.cpu().curr_inst());
         sync_regs_to_ref();
-        accessing_device = false;
         return;
     }
 
