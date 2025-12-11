@@ -41,65 +41,8 @@ static void uart_io_handler(uint32_t offset, int len, bool is_write) {
   }
 }
 
-#include <execinfo.h>
-static void print_stacktrace(FILE *out, unsigned int max_frames) {
-    fprintf(out, "stack trace:\n");
-
-    // storage array for stack trace address data
-    void *addr_list[max_frames + 1];
-
-    // retrieve current stack addresses
-    int addr_len = backtrace(addr_list, sizeof(addr_list) / sizeof(void *));
-
-    if (addr_len == 0) {
-        fprintf(out, "  <empty, possibly corrupt>\n");
-        return;
-    }
-
-    // resolve addresses into strings containing "filename(function+address)",
-    // this array must be free()-ed
-    char **symbol_list = backtrace_symbols(addr_list, addr_len);
-
-    // allocate string which will be filled with the demangled function name
-    size_t func_name_size = 256;
-    char *func_name = (char *)(malloc(func_name_size));
-
-    // iterate over the returned symbol lines. skip the first, it is the
-    // address of this function.
-    for (int i = 1; i < addr_len; i++) {
-        char *begin_name = nullptr, *begin_offset = nullptr, *end_offset = nullptr;
-
-        // find parentheses and +address offset surrounding the mangled name:
-        // ./module(function+0x15c) [0x8048a6d]
-        for (char *p = symbol_list[i]; *p; ++p) {
-            if (*p == '(')
-                begin_name = p;
-            else if (*p == '+')
-                begin_offset = p;
-            else if (*p == ')' && begin_offset) {
-                end_offset = p;
-                break;
-            }
-        }
-
-        if (begin_name && begin_offset && end_offset && begin_name < begin_offset) {
-            *begin_name++ = '\0';
-            *begin_offset++ = '\0';
-            *end_offset = '\0';
-
-          fprintf(out, "  %s: %s()+%s\n", symbol_list[i], begin_name, begin_offset);
-        } else {
-            // couldn't parse the line? print the whole line.
-            fprintf(out, "  %s\n", symbol_list[i]);
-        }
-    }
-
-    free(func_name);
-    free(symbol_list);
-}
 static void psram_handler(uint32_t offset, int len, bool is_write) {
   printf("psram offset=0x%x, len=%d, is_write=%d\n", offset, len, is_write);
-  print_stacktrace(stderr, 63);
 }
 
 void init_ysyxsoc() {
