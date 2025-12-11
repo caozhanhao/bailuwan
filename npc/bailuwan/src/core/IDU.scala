@@ -144,7 +144,6 @@ class IDU(
   io.in.ready  := state === s_idle
   io.out.valid := state === s_wait_ready
 
-  // val NOP  = 0x00000013.U(32.W)
   val inst = RegEnable(io.in.bits.inst, io.in.fire)
 
   // Registers
@@ -211,7 +210,8 @@ class IDU(
   io.out.bits.rs1_data    := io.regfile_in.rs1_data
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
 
-  SignalProbe(inst, "inst")
+  // val NOP  = 0x00000013.U(32.W)
+  SignalProbe(Mux(state === s_wait_ready, inst, 0x00000013.U(32.W)), "inst")
   SignalProbe(state === s_wait_ready, "inst_valid")
 
   // Rising edge
