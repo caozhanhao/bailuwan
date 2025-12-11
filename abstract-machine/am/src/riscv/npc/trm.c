@@ -31,8 +31,8 @@ void _trm_init() {
   char buf[5];
   buf[0] = (char)((mvendorid >> 24) & 0xFF);
   buf[1] = (char)((mvendorid >> 16) & 0xFF);
-  // buf[2] = (char)((mvendorid >>  8) & 0xFF);
-  // buf[3] = (char)( mvendorid        & 0xFF);
+  buf[2] = (char)((mvendorid >>  8) & 0xFF);
+  buf[3] = (char)( mvendorid        & 0xFF);
   buf[4] = '\0';
 
   printf("[trm]: %s_%d caozhanhao\n", buf, marchid);
