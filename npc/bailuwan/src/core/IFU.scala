@@ -195,7 +195,8 @@ class IFU(
 
   icache_io.req.bits.addr := pc
 
-  val inst_reg = RegInit(0.U(32.W))
+  val NOP      = 0x00000013.U(32.W)
+  val inst_reg = RegInit(NOP)
   inst_reg := Mux(icache_io.resp.fire, icache_io.resp.bits.data, inst_reg)
 
   io.out.bits.inst := inst_reg
