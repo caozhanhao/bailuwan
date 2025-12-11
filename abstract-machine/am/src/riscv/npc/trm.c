@@ -1,6 +1,7 @@
 #include <am.h>
 #include <klib-macros.h>
 #include <klib.h>
+#include <stdint.h>
 
 extern char _heap_start;
 int main(const char *args);
@@ -14,6 +15,7 @@ Area heap = RANGE(&_heap_start, PMEM_END);
 static const char mainargs[MAINARGS_MAX_LEN] = TOSTRING(MAINARGS_PLACEHOLDER); // defined in CFLAGS
 
 void putch(char ch) {
+  for (int i = 0; i < 100; i++);
   *(volatile uint8_t*)SERIAL_PORT_MMIO = ch;
 }
 
