@@ -159,6 +159,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
 #define PERF(name) fprintf(stream, TOSTRING(name) " = %lu\n", *b.name)
     PERF(ifu_fetched);
     PERF(lsu_read);
+    PERF(lsu_write);
     PERF(exu_done);
     PERF(all_ops);
     PERF(all_cycles);
