@@ -194,7 +194,7 @@ class IFU(
   )
   pc := dnpc
 
-  val resp_queue = Module(new Queue(new IFUOut, entries = 4, hasFlush = true))
+  val resp_queue = Module(new Queue(new IFUOut, entries = 8, hasFlush = true))
 
   icache_io.kill          := io.redirect_valid
   icache_io.req.bits.addr := pc
