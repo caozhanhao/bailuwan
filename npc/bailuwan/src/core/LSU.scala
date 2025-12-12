@@ -79,12 +79,22 @@ class LSU(
 
   io.out.valid := state === s_wait_ready
 
-  // Assert ready only when
-  //   1. idle and the pipeline register has no data.
-  //      (Thus the upstream can place data to the pipeline register)
-  //   2. before entering idle
-  //      (Thus
-  io.in.ready := (state === s_idle && !io.in.valid) 
+  // To let the requests latched in the pipeline registers, `io.in.ready` is generally
+  // held LOW to "freeze" the requests during execution.
+  //
+  // `io.in.ready` is asserted HIGH only in two specific circumstances to allow the
+  // register to update:
+  //
+  //   1. Initialization / Bubbles: (state === s_idle && !io.in.valid)
+  //        The LSU is idle and the pipeline register contains no data (a bubble).
+  //        We assert ready to allow the upstream to place the first (after a bubble) request.
+  //   2. Completion: (state === s_wait_ready && io.out.ready)
+  //        The current request is finished and accepted by the downstream.
+  //        We MUST assert ready to consume the current request in the pipeline registers.
+  //        Note that this prevents deadlock. Since `io.in.valid` remains HIGH until
+  //        the handshake completes, relying solely on `state === s_idle && !io.in.valid`
+  //        to assert ready would cause a deadlock.
+  io.in.ready := (state === s_idle && !io.in.valid) || (state === s_wait_ready && io.out.ready)
 
   // EXU Forward
   io.out.bits.from_exu := wbu_info
