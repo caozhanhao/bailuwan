@@ -62,7 +62,7 @@ class LSU(
     )
   )
 
-  val state = RegInit(s_idle)
+  val state = RegInit(s_wait_ready)
   state := MuxLookup(state, s_idle)(
     Seq(
       // ATTENTION: io.in.valid rather than `fire`.
