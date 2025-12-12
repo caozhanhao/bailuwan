@@ -51,11 +51,16 @@ class EXU(
     val in  = Flipped(Decoupled(new IDUOut))
     val out = Decoupled(new EXUOut)
 
-    // For IFU
+    // IFU
     val redirect_valid  = Output(Bool())
     val redirect_target = Output(UInt(p.XLEN.W))
 
+    // ICache
     val icache_flush = Output(Bool())
+
+    // Hazard
+    val rd       = Output(UInt(5.W))
+    val rd_valid = Output(Bool())
   })
 
   val decoded = io.in.bits
@@ -171,6 +176,10 @@ class EXU(
       ExecType.MRet  -> csr_data
     )
   )
+
+  // Hazard
+  io.rd       := decoded.rd_addr
+  io.rd_valid := io.in.valid && decoded.rd_we
 
   // Optional Debug Signals
   io.out.bits.lsu.pc.foreach { i => i := decoded.pc }

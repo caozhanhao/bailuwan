@@ -23,7 +23,12 @@ class WBU(
   val io = IO(new Bundle {
     val in = Flipped(Decoupled(new LSUOut))
 
+    // Regfile
     val regfile_out = Output(new WBURegfileOut)
+
+    // Hazard
+    val rd       = Output(UInt(5.W))
+    val rd_valid = Output(Bool())
   })
 
   val exu_out = io.in.bits.from_exu
@@ -43,6 +48,10 @@ class WBU(
   io.regfile_out.rd_we   := io.in.valid && exu_out.rd_we
 
   io.in.ready := true.B
+
+  // Hazard
+  io.rd       := io.in.bits.from_exu.rd_addr
+  io.rd_valid := io.in.valid && exu_out.rd_we
 
   if (p.Debug) {
     dontTouch(io.in.bits.pc.get)

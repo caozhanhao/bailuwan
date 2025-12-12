@@ -18,6 +18,11 @@ class LSUOut(
   // Forward from EXU
   val from_exu  = new EXUOutForWBU
 
+  // Hazard
+  val rd       = Output(UInt(5.W))
+  val rd_valid = Output(Bool())
+
+  // Debug
   val pc   = if (p.Debug) Some(UInt(p.XLEN.W)) else None
   val inst = if (p.Debug) Some(UInt(32.W)) else None
 }
@@ -73,7 +78,9 @@ class LSU(
   io.in.ready  := state === s_idle
 
   // EXU Forward
-  io.out.bits.from_exu := RegEnable(io.in.bits.wbu, io.in.fire)
+  val wbuout     = io.in.bits.wbu
+  val wbuout_reg = RegEnable(wbuout, io.in.fire)
+  io.out.bits.from_exu := wbuout_reg
 
   // Read
   io.mem.ar.bits.addr := addr_reg
@@ -162,6 +169,12 @@ class LSU(
   io.mem.aw.bits.burst := 0.U
 
   io.mem.w.bits.last := true.B
+
+  // Hazard
+  val curr_wbuout       = Mux(state === s_idle, wbuout, wbuout_reg)
+  val curr_wbuout_valid = state =/= s_idle && io.in.valid
+  io.out.bits.rd       := curr_wbuout.rd_addr
+  io.out.bits.rd_valid := curr_wbuout_valid && curr_wbuout.rd_we
 
   // Optional Debug Signals
   io.out.bits.pc.foreach { i => i := io.in.bits.lsu.pc.get }

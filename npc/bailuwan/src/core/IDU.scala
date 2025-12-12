@@ -128,8 +128,17 @@ class IDU(
     val in  = Flipped(Decoupled(new IFUOut))
     val out = Decoupled(new IDUOut)
 
+    // RegFile
     val regfile_in  = Input(new IDURegfileIn)
     val regfile_out = Output(new IDURegfileOut)
+
+    // Hazard
+    val exu_rd       = Input(UInt(5.W))
+    val exu_rd_valid = Input(Bool())
+    val lsu_rd       = Input(UInt(5.W))
+    val lsu_rd_valid = Input(Bool())
+    val wbu_rd       = Input(UInt(5.W))
+    val wbu_rd_valid = Input(Bool())
   })
 
   val inst = io.in.bits.inst
@@ -178,6 +187,24 @@ class IDU(
 
   // printf(cf"[IDU]: Inst: ${inst}, imm: ${imm}, rd: ${rd}, rs1: ${rs1}, rs2: ${rs2}, exec_type: ${exec_type}\n");
 
+  // Detecting Hazards
+  // Don't only use oper_type to detect hazards, because jump/branch's
+  // ALU Op is always pc + 4 or branch cond.
+  val rs1_read = fmt =/= InstFmt.U && fmt =/= InstFmt.J && (
+    // Special case for CSR Insts
+    fmt =/= InstFmt.C || oper2_type === OperType.Rs1
+  )
+
+  val rs2_read = fmt === InstFmt.R || fmt === InstFmt.S || fmt === InstFmt.B
+
+  def has_hazard(rs: UInt, read: Bool) =
+    rs =/= 0.U && read &&
+      ((rs === io.exu_rd && io.exu_rd_valid)
+        || (rs === io.lsu_rd && io.lsu_rd_valid)
+        || (rs === io.wbu_rd && io.wbu_rd_valid))
+
+  val hazard = has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read)
+
   // IO
   io.out.bits.pc             := io.in.bits.pc
   io.out.bits.alu_oper1_type := oper1_type
@@ -201,8 +228,8 @@ class IDU(
   io.out.bits.rs1_data    := io.regfile_in.rs1_data
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
 
-  io.in.ready  := io.out.ready
-  io.out.valid := io.in.valid
+  io.in.ready  := io.out.ready && !hazard
+  io.out.valid := io.in.valid && !hazard
 
   // Rising edge
   val counter_inc = io.in.valid && !RegNext(io.in.valid)
