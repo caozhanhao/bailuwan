@@ -177,8 +177,8 @@ class LSU(
   io.rd_valid := curr_wbuout_valid && curr_wbuout.rd_we
 
   // Optional Debug Signals
-  io.out.bits.pc.foreach { i => i := io.in.bits.lsu.pc.get }
-  io.out.bits.inst.foreach { i => i := io.in.bits.lsu.inst.get }
+  io.out.bits.pc.foreach { i => i := RegEnable(io.in.bits.lsu.pc.get, io.in.fire) }
+  io.out.bits.inst.foreach { i => i := RegEnable(io.in.bits.lsu.inst.get, io.in.fire) }
 
   // Debug
   val misaligned = MuxLookup(op_reg, false.B)(
