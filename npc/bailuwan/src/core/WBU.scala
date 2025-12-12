@@ -44,5 +44,10 @@ class WBU(
 
   io.in.ready := true.B
 
+  if (p.Debug) {
+    dontTouch(io.in.bits.pc.get)
+    dontTouch(io.in.bits.inst.get)
+  }
+
   SignalProbe(RegNext(io.in.fire), "difftest_ready")
 }
