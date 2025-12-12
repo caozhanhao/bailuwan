@@ -98,6 +98,10 @@ class ICache(
 
   val hit = !io.flush && entry_valid && (entry_tag === req_tag)
 
+  // We can't handle kill immediately in `s_wait_mem`
+  val skipping = RegInit(false.B)
+  skipping := MuxCase(skipping, Seq((state === s_idle) -> false.B, io.ifu.kill -> true.B))
+
   // State Transfer
   state := MuxLookup(state, s_idle)(
     Seq(
@@ -108,13 +112,9 @@ class ICache(
       ),
       s_fill_addr -> Mux(io.ifu.kill, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
       s_wait_mem  -> Mux(fill_done, s_resp, s_wait_mem),
-      s_resp      -> Mux(resp.fire || io.ifu.kill, s_idle, s_resp)
+      s_resp      -> Mux(resp.fire || io.ifu.kill || skipping, s_idle, s_resp)
     )
   )
-
-  // We can't handle kill in `s_wait_mem`
-  val skipping = RegInit(false.B)
-  skipping := MuxCase(skipping, Seq((state === s_idle) -> false.B, io.ifu.kill -> true.B))
 
   // Fill
   valid_storage.zipWithIndex.foreach { case (r, i) =>
