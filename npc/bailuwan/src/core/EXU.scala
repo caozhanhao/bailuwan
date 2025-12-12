@@ -24,8 +24,6 @@ class EXUOutForWBU(
   //   ECall              -> mtvec
   //   MRet               -> mepc
   val csr_out = UInt(p.XLEN.W)
-
-  val inst = if (p.Debug) Some(UInt(32.W)) else None
 }
 
 class EXUOutForLSU(
@@ -35,6 +33,7 @@ class EXUOutForLSU(
   val lsu_addr       = UInt(p.XLEN.W)
   val lsu_store_data = UInt(p.XLEN.W)
 
+  val pc   = if (p.Debug) Some(UInt(p.XLEN.W)) else None
   val inst = if (p.Debug) Some(UInt(32.W)) else None
 }
 
@@ -174,8 +173,8 @@ class EXU(
   )
 
   // Optional Debug Signals
+  io.out.bits.lsu.pc.foreach { i => i := decoded.pc }
   io.out.bits.lsu.inst.foreach { i => i := io.in.bits.inst.get }
-  io.out.bits.wbu.inst.foreach { i => i := io.in.bits.inst.get }
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid

@@ -18,6 +18,7 @@ class LSUOut(
   // Forward from EXU
   val from_exu  = new EXUOutForWBU
 
+  val pc   = if (p.Debug) Some(UInt(p.XLEN.W)) else None
   val inst = if (p.Debug) Some(UInt(32.W)) else None
 }
 
@@ -163,6 +164,7 @@ class LSU(
   io.mem.w.bits.last := true.B
 
   // Optional Debug Signals
+  io.out.bits.pc.foreach { i => i := io.in.bits.lsu.pc.get }
   io.out.bits.inst.foreach { i => i := io.in.bits.lsu.inst.get }
 
   // Debug
