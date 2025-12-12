@@ -12,11 +12,14 @@ import utils.PerfCounter
 object PipelineConnect {
   def apply[T <: Data](
     prevOut: DecoupledIO[T],
-    thisIn:  DecoupledIO[T]
+    thisIn:  DecoupledIO[T],
+    flush:   Bool = false.B
   ): Unit = {
     prevOut.ready := thisIn.ready
     thisIn.bits   := RegEnable(prevOut.bits, prevOut.valid && thisIn.ready)
-    thisIn.valid  := RegEnable(prevOut.valid, thisIn.ready)
+    val valid_reg = RegInit(false.B)
+    valid_reg    := Mux(flush, false.B, Mux(thisIn.ready, prevOut.valid, valid_reg))
+    thisIn.valid := valid_reg
   }
 }
 
@@ -56,8 +59,8 @@ class Core(
 
   val RegFile = Module(new RegFile)
 
-  PipelineConnect(IFU.io.out, IDU.io.in)
-  PipelineConnect(IDU.io.out, EXU.io.in)
+  PipelineConnect(IFU.io.out, IDU.io.in, EXU.io.redirect_valid)
+  PipelineConnect(IDU.io.out, EXU.io.in, EXU.io.redirect_valid)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
 
