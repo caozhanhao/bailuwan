@@ -18,10 +18,6 @@ class LSUOut(
   // Forward from EXU
   val from_exu  = new EXUOutForWBU
 
-  // Hazard
-  val rd       = Output(UInt(5.W))
-  val rd_valid = Output(Bool())
-
   // Debug
   val pc   = if (p.Debug) Some(UInt(p.XLEN.W)) else None
   val inst = if (p.Debug) Some(UInt(32.W)) else None
@@ -36,6 +32,10 @@ class LSU(
     val out = Decoupled(new LSUOut)
 
     val mem = new AXI4()
+
+    // Hazard
+    val rd       = Output(UInt(5.W))
+    val rd_valid = Output(Bool())
   })
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
@@ -173,8 +173,8 @@ class LSU(
   // Hazard
   val curr_wbuout       = Mux(state === s_idle, wbuout, wbuout_reg)
   val curr_wbuout_valid = state =/= s_idle && io.in.valid
-  io.out.bits.rd       := curr_wbuout.rd_addr
-  io.out.bits.rd_valid := curr_wbuout_valid && curr_wbuout.rd_we
+  io.rd       := curr_wbuout.rd_addr
+  io.rd_valid := curr_wbuout_valid && curr_wbuout.rd_we
 
   // Optional Debug Signals
   io.out.bits.pc.foreach { i => i := io.in.bits.lsu.pc.get }

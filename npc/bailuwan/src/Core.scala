@@ -84,6 +84,14 @@ class Core(
   // ICache Flush
   IFU.io.icache_flush := EXU.io.icache_flush
 
+  // Hazard
+  IDU.io.exu_rd       := EXU.io.rd
+  IDU.io.exu_rd_valid := EXU.io.rd_valid
+  IDU.io.lsu_rd       := LSU.io.rd
+  IDU.io.lsu_rd_valid := LSU.io.rd_valid
+  IDU.io.wbu_rd       := WBU.io.rd
+  IDU.io.wbu_rd_valid := WBU.io.rd_valid
+
   // Memory, LSU > IFU
   val arbiter = Module(new AXI4Arbiter(2))
   arbiter.io.masters(0) <> LSU.io.mem
