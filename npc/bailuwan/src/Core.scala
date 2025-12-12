@@ -59,8 +59,9 @@ class Core(
 
   val RegFile = Module(new RegFile)
 
-  PipelineConnect(IFU.io.out, IDU.io.in, EXU.io.redirect_valid)
-  PipelineConnect(IDU.io.out, EXU.io.in, EXU.io.redirect_valid)
+  val redirect = EXU.io.redirect_valid
+  PipelineConnect(IFU.io.out, IDU.io.in, redirect)
+  PipelineConnect(IDU.io.out, EXU.io.in, redirect)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
 
