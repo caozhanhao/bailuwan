@@ -17,6 +17,7 @@ object PipelineConnect {
   ): Unit = {
     prevOut.ready := thisIn.ready
     thisIn.bits   := RegEnable(prevOut.bits, prevOut.valid && thisIn.ready)
+
     val valid_reg = RegInit(false.B)
     valid_reg    := Mux(flush, false.B, Mux(thisIn.ready, prevOut.valid, valid_reg))
     thisIn.valid := valid_reg
@@ -60,6 +61,7 @@ class Core(
   val RegFile = Module(new RegFile)
 
   val redirect = EXU.io.redirect_valid
+
   PipelineConnect(IFU.io.out, IDU.io.in, redirect)
   PipelineConnect(IDU.io.out, EXU.io.in, redirect)
   PipelineConnect(EXU.io.out, LSU.io.in)

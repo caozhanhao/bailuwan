@@ -17,6 +17,8 @@ class LSUOut(
   val read_data = UInt(p.XLEN.W)
   // Forward from EXU
   val from_exu  = new EXUOutForWBU
+
+  val inst = if (p.Debug) Some(UInt(32.W)) else None
 }
 
 class LSU(
@@ -159,6 +161,9 @@ class LSU(
   io.mem.aw.bits.burst := 0.U
 
   io.mem.w.bits.last := true.B
+
+  // Optional Debug Signals
+  io.out.bits.inst.foreach { i => i := io.in.bits.lsu.inst.get }
 
   // Debug
   val misaligned = MuxLookup(op_reg, false.B)(
