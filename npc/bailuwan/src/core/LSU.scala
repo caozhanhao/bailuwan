@@ -172,7 +172,7 @@ class LSU(
 
   // Hazard
   val curr_wbuout       = Mux(state === s_idle, wbuout, wbuout_reg)
-  val curr_wbuout_valid = state =/= s_idle && io.in.valid
+  val curr_wbuout_valid = state =/= s_idle || (state === s_idle && io.in.valid)
   io.rd       := curr_wbuout.rd_addr
   io.rd_valid := curr_wbuout_valid && curr_wbuout.rd_we
 
