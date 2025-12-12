@@ -78,7 +78,7 @@ class LSU(
   )
 
   io.out.valid := state === s_wait_ready
-  io.in.ready  := state === s_idle
+  io.in.ready := (state === s_idle && !io.in.valid) || (state === s_wait_ready && io.out.ready)
 
   // EXU Forward
   io.out.bits.from_exu := wbu_info
@@ -176,8 +176,8 @@ class LSU(
   io.rd_valid := io.in.valid && wbu_info.rd_we
 
   // Optional Debug Signals
-  io.out.bits.pc.foreach { i => i := RegEnable(io.in.bits.lsu.pc.get, io.in.fire) }
-  io.out.bits.inst.foreach { i => i := RegEnable(io.in.bits.lsu.inst.get, io.in.fire) }
+  io.out.bits.pc.foreach { i => i := io.in.bits.lsu.pc.get }
+  io.out.bits.inst.foreach { i => i := io.in.bits.lsu.inst.get }
 
   // Debug
   val misaligned = MuxLookup(req_op, false.B)(
