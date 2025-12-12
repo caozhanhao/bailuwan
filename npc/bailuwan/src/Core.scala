@@ -89,8 +89,8 @@ class Core(
   IDU.io.exu_rd_valid := EXU.io.rd_valid
   IDU.io.lsu_rd       := LSU.io.rd
   IDU.io.lsu_rd_valid := LSU.io.rd_valid
-  IDU.io.wbu_rd       := WBU.io.rd
-  IDU.io.wbu_rd_valid := WBU.io.rd_valid
+  IDU.io.wbu_rd       := WBU.io.regfile_out.rd_addr
+  IDU.io.wbu_rd_valid := WBU.io.regfile_out.rd_we
 
   // Memory, LSU > IFU
   val arbiter = Module(new AXI4Arbiter(2))
