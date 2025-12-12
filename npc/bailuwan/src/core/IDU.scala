@@ -190,10 +190,10 @@ class IDU(
   // Detecting Hazards
   // Don't only use oper_type to detect hazards, because jump/branch's
   // ALU Op is always pc + 4 or branch cond.
-  val rs1_read = fmt =/= InstFmt.U && fmt =/= InstFmt.J && (
+  val rs1_read = fmt === InstFmt.R || fmt === InstFmt.I ||
+    fmt === InstFmt.S || fmt === InstFmt.B ||
     // Special case for CSR Insts
-    fmt =/= InstFmt.C || oper2_type === OperType.Rs1
-  )
+    (fmt === InstFmt.C && oper2_type === OperType.Rs1)
 
   val rs2_read = fmt === InstFmt.R || fmt === InstFmt.S || fmt === InstFmt.B
 
