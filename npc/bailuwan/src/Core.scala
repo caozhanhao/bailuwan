@@ -56,10 +56,10 @@ class Core(
 
   val RegFile = Module(new RegFile)
 
-  IFU.io.out <> IDU.io.in
-  IDU.io.out <> EXU.io.in
-  EXU.io.out <> LSU.io.in
-  LSU.io.out <> WBU.io.in
+  PipelineConnect(IFU.io.out, IDU.io.in)
+  PipelineConnect(IDU.io.out, EXU.io.in)
+  PipelineConnect(EXU.io.out, LSU.io.in)
+  PipelineConnect(LSU.io.out, WBU.io.in)
 
   // Redirect
   IFU.io.redirect_valid  := EXU.io.redirect_valid
