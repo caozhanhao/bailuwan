@@ -100,7 +100,7 @@ class ICache(
 
   // We can't handle kill immediately in `s_wait_mem`
   val req_killed = RegInit(false.B)
-  req_killed := MuxCase(req_killed, Seq((state === s_idle) -> false.B, io.ifu.kill -> true.B))
+  req_killed := MuxCase(req_killed, Seq(io.ifu.kill -> true.B, (state === s_idle) -> false.B))
 
   val is_killed = io.ifu.kill || req_killed
 
@@ -108,7 +108,10 @@ class ICache(
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle      -> Mux(
-        req.fire && !is_killed,
+        // ATTENTION: use ifu.kill here not req_killed.
+        //            Because req_killed will be set to false the next cycle after s_idle,
+        //            but ICache is already ok to handle requests the first cycle in s_idle.
+        req.fire && !io.ifu.kill,
         Mux(hit, Mux(resp.fire, s_idle, s_resp), Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
         s_idle
       ),
