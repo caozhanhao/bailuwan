@@ -78,8 +78,7 @@ class LSU(
   )
 
   io.out.valid := state === s_wait_ready
-  // Assert ready when we are returning to `s_idle`
-  io.in.ready  := (state === s_wait_ready) && io.out.fire
+  io.in.ready  := state === s_idle
 
   // EXU Forward
   io.out.bits.from_exu := wbu_info
