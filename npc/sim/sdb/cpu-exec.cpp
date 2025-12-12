@@ -24,7 +24,8 @@ static void trace_and_difftest()
 #endif
 
     auto& cpu = SIM.cpu();
-    if (cpu.is_inst_valid() && !inst_has_been_traced)
+    if (cpu.is_inst_valid())
+    // if (cpu.is_inst_valid() && !inst_has_been_traced)
     {
 #ifdef CONFIG_ITRACE
         auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());

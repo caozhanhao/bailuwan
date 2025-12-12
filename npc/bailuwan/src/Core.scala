@@ -7,15 +7,20 @@ import chisel3._
 import chisel3.util._
 import core._
 import amba._
+import utils.PerfCounter
 
 object PipelineConnect {
   def apply[T <: Data](
     prevOut: DecoupledIO[T],
-    thisIn:  DecoupledIO[T]
+    thisIn:  DecoupledIO[T],
+    flush:   Bool = false.B
   ): Unit = {
     prevOut.ready := thisIn.ready
     thisIn.bits   := RegEnable(prevOut.bits, prevOut.valid && thisIn.ready)
-    thisIn.valid  := RegEnable(prevOut.valid, thisIn.ready)
+
+    val valid_reg = RegInit(false.B)
+    valid_reg    := Mux(flush, false.B, Mux(thisIn.ready, prevOut.valid, valid_reg))
+    thisIn.valid := valid_reg
   }
 }
 
@@ -55,11 +60,16 @@ class Core(
 
   val RegFile = Module(new RegFile)
 
-  PipelineConnect(IFU.io.out, IDU.io.in)
-  PipelineConnect(IDU.io.out, EXU.io.in)
+  val redirect = EXU.io.redirect_valid
+
+  PipelineConnect(IFU.io.out, IDU.io.in, redirect)
+  PipelineConnect(IDU.io.out, EXU.io.in, redirect)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
-  PipelineConnect(WBU.io.out, IFU.io.in)
+
+  // Redirect
+  IFU.io.redirect_valid  := EXU.io.redirect_valid
+  IFU.io.redirect_target := EXU.io.redirect_target
 
   // Regfile - IDU
   IDU.io.regfile_in.rs1_data := RegFile.io.rs1_data
@@ -73,6 +83,14 @@ class Core(
 
   // ICache Flush
   IFU.io.icache_flush := EXU.io.icache_flush
+
+  // Hazard
+  IDU.io.exu_rd       := EXU.io.rd
+  IDU.io.exu_rd_valid := EXU.io.rd_valid
+  IDU.io.lsu_rd       := LSU.io.rd
+  IDU.io.lsu_rd_valid := LSU.io.rd_valid
+  IDU.io.wbu_rd       := WBU.io.regfile_out.rd_addr
+  IDU.io.wbu_rd_valid := WBU.io.regfile_out.rd_we
 
   // Memory, LSU > IFU
   val arbiter = Module(new AXI4Arbiter(2))
@@ -108,4 +126,6 @@ class Core(
   xbar.io.slaves(1) <> clint.io
 
   arbiter.io.slave <> xbar.io.master
+
+  PerfCounter(true.B, "all_cycles")
 }

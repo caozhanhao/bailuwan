@@ -68,15 +68,22 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
     BIND_SIGNAL(inst, "inst")
     BIND_SIGNAL(difftest_ready, "difftest_ready")
 
-    // Perf Counters
-#define PERF_COUNTER_TABLE_ENTRY(name) BIND_SIGNAL(perf_counters.name, TOSTRING(name))
-    PERF_COUNTER_TABLE
-#undef PERF_COUNTER_TABLE_ENTRY
-
     // CSRs
 #define CSR_TABLE_ENTRY(name, idx) BIND_SIGNAL(csrs[idx], TOSTRING(name))
     CSR_TABLE
 #undef CSR_TABLE_ENTRY
+
+    // Perf Counters
+#ifdef CONFIG_PERF_COUNTERS
+#define PERF_COUNTER_TABLE_ENTRY(name) BIND_SIGNAL(perf_counters.name, TOSTRING(name))
+    PERF_COUNTER_TABLE
+#undef PERF_COUNTER_TABLE_ENTRY
+#else
+    static uint64_t invalid_binding = 0;
+#define PERF_COUNTER_TABLE_ENTRY(name) bindings.perf_counters.name = &invalid_binding;
+    PERF_COUNTER_TABLE
+#undef PERF_COUNTER_TABLE_ENTRY
+#endif
 
 #undef BIND_SIGNAL
 }
@@ -155,14 +162,15 @@ void CPUProxy::dump_csrs(FILE* stream) const
 
 void CPUProxy::dump_perf_counters(FILE* stream)
 {
+#ifdef CONFIG_PERF_COUNTERS
     auto& b = bindings.perf_counters;
 #define PERF(name) fprintf(stream, TOSTRING(name) " = %lu\n", *b.name)
     PERF(ifu_fetched);
     PERF(lsu_read);
+    PERF(lsu_write);
     PERF(exu_done);
     PERF(all_ops);
     PERF(all_cycles);
-    PERF(wait_cycles);
     PERF(icache_hit);
     PERF(icache_miss);
 #undef PERF
@@ -194,6 +202,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     fprintf(stream, "icache hit rate = %f\n", hit_rate);
     fprintf(stream, "icache miss penalty = %f\n", miss_penalty);
     fprintf(stream, "icache AMAT = %f\n", AMAT);
+#endif
 }
 
 void CPUProxy::dump(FILE* stream)

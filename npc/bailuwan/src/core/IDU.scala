@@ -105,6 +105,8 @@ class IDUOut(
   val lsu_op    = UInt(LSUOp.WIDTH)
   val br_op     = UInt(BrOp.WIDTH)
   val csr_op    = UInt(CSROp.WIDTH)
+
+  val inst = if (p.Debug) Some(UInt(32.W)) else None
 }
 
 class IDURegfileIn(
@@ -126,25 +128,20 @@ class IDU(
     val in  = Flipped(Decoupled(new IFUOut))
     val out = Decoupled(new IDUOut)
 
+    // RegFile
     val regfile_in  = Input(new IDURegfileIn)
     val regfile_out = Output(new IDURegfileOut)
+
+    // Hazard
+    val exu_rd       = Input(UInt(5.W))
+    val exu_rd_valid = Input(Bool())
+    val lsu_rd       = Input(UInt(5.W))
+    val lsu_rd_valid = Input(Bool())
+    val wbu_rd       = Input(UInt(5.W))
+    val wbu_rd_valid = Input(Bool())
   })
 
-  val s_idle :: s_wait_ready :: Nil = Enum(2)
-
-  val state = RegInit(s_idle)
-
-  state := MuxLookup(state, s_idle)(
-    Seq(
-      s_idle       -> Mux(io.in.fire, s_wait_ready, s_idle),
-      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
-    )
-  )
-
-  io.in.ready  := state === s_idle
-  io.out.valid := state === s_wait_ready
-
-  val inst = RegEnable(io.in.bits.inst, io.in.fire)
+  val inst = io.in.bits.inst
 
   // Registers
   val rd  = inst(11, 7)
@@ -163,7 +160,7 @@ class IDU(
   val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: csr_op :: exec_type :: Nil =
     ListLookup(inst, InstDecodeTable.default, InstDecodeTable.table)
 
-  assert(state =/= s_wait_ready || fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: 0x$inst%x)")
+  assert(!io.in.valid || fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: 0x$inst%x)")
 
   // Choose immediate
   val imm = MuxLookup(fmt, 0.U)(
@@ -190,6 +187,24 @@ class IDU(
 
   // printf(cf"[IDU]: Inst: ${inst}, imm: ${imm}, rd: ${rd}, rs1: ${rs1}, rs2: ${rs2}, exec_type: ${exec_type}\n");
 
+  // Detecting Hazards
+  // Don't only use oper_type to detect hazards, because jump/branch's
+  // ALU Op is always pc + 4 or branch cond.
+  val rs1_read = fmt === InstFmt.R || fmt === InstFmt.I ||
+    fmt === InstFmt.S || fmt === InstFmt.B ||
+    // Special case for CSR Insts
+    (fmt === InstFmt.C && oper2_type === OperType.Rs1)
+
+  val rs2_read = fmt === InstFmt.R || fmt === InstFmt.S || fmt === InstFmt.B
+
+  def has_hazard(rs: UInt, read: Bool) =
+    rs =/= 0.U && read &&
+      ((rs === io.exu_rd && io.exu_rd_valid)
+        || (rs === io.lsu_rd && io.lsu_rd_valid)
+        || (rs === io.wbu_rd && io.wbu_rd_valid))
+
+  val hazard = has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read)
+
   // IO
   io.out.bits.pc             := io.in.bits.pc
   io.out.bits.alu_oper1_type := oper1_type
@@ -204,11 +219,17 @@ class IDU(
   io.out.bits.rd_addr        := rd
   io.out.bits.rd_we          := we
 
+  // Optional Debug Signals
+  io.out.bits.inst.foreach { i => i := inst }
+
   // Regfile
   io.regfile_out.rs1_addr := rs1
   io.regfile_out.rs2_addr := rs2
   io.out.bits.rs1_data    := io.regfile_in.rs1_data
   io.out.bits.rs2_data    := io.regfile_in.rs2_data
+
+  io.in.ready  := io.out.ready && !hazard
+  io.out.valid := io.in.valid && !hazard
 
   // Rising edge
   val counter_inc = io.in.valid && !RegNext(io.in.valid)

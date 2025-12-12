@@ -26,6 +26,7 @@ class ICacheResp(
   implicit p: CoreParams)
     extends Bundle {
   val data  = UInt(32.W)
+  val addr  = Output(UInt(p.XLEN.W))
   val error = Bool()
 }
 
@@ -34,6 +35,7 @@ class ICacheIO(
     extends Bundle {
   val req  = Decoupled(new ICacheReq)
   val resp = Flipped(Decoupled(new ICacheResp))
+  val kill = Bool()
 }
 
 class ICache(
@@ -96,17 +98,26 @@ class ICache(
 
   val hit = !io.flush && entry_valid && (entry_tag === req_tag)
 
+  // We can't handle kill immediately in `s_wait_mem`
+  val req_killed = RegInit(false.B)
+  req_killed := MuxCase(req_killed, Seq(io.ifu.kill -> true.B, (state === s_idle) -> false.B))
+
+  val is_killed = io.ifu.kill || req_killed
+
   // State Transfer
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle      -> Mux(
-        req.fire,
+        // ATTENTION: use ifu.kill here not req_killed.
+        //            Because req_killed will be set to false the next cycle after s_idle,
+        //            but ICache is already ok to handle requests the first cycle in s_idle.
+        req.fire && !io.ifu.kill,
         Mux(hit, Mux(resp.fire, s_idle, s_resp), Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
         s_idle
       ),
-      s_fill_addr -> Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr),
-      s_wait_mem  -> Mux(fill_done, s_resp, s_wait_mem),
-      s_resp      -> Mux(resp.fire, s_idle, s_resp)
+      s_fill_addr -> Mux(is_killed, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
+      s_wait_mem  -> Mux(fill_done, Mux(is_killed, s_idle, s_resp), s_wait_mem),
+      s_resp      -> Mux(resp.fire || is_killed, s_idle, s_resp)
     )
   )
 
@@ -125,14 +136,15 @@ class ICache(
 
   // IFU IO
   // Immediate hit or s_resp
-  resp.valid      := (req.fire && hit) || (state === s_resp)
+  resp.valid      := ((req.fire && hit) || (state === s_resp)) && !is_killed
   resp.bits.data  := entry_data
+  resp.bits.addr  := Mux(state === s_idle, req_addr, fill_addr)
   resp.bits.error := err
   req.ready       := state === s_idle
 
   // Mem IO
   val ar_bypass = state === s_idle && req.fire && !hit
-  io.mem.ar.valid := ar_bypass || (state === s_fill_addr)
+  io.mem.ar.valid := (ar_bypass || (state === s_fill_addr)) && !is_killed
 
   val block_align_mask = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
   val base_addr        = Mux(ar_bypass, req.bits.addr, fill_addr)
@@ -161,8 +173,10 @@ class IFU(
   axi_prop:   AXIProperty)
     extends Module {
   val io = IO(new Bundle {
-    val in  = Flipped(Decoupled(new WBUOut))
     val out = Decoupled(new IFUOut)
+
+    val redirect_valid  = Input(Bool())
+    val redirect_target = Input(UInt(p.XLEN.W))
 
     val mem          = new AXI4()
     val icache_flush = Input(Bool())
@@ -172,57 +186,43 @@ class IFU(
   val icache_io = icache.io.ifu
 
   icache.io.mem <> io.mem
-
   icache.io.flush := io.icache_flush
 
-  val s_idle :: s_access :: s_wait_mem :: s_wait_ready :: Nil = Enum(4)
+  val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
 
-  val state = RegInit(s_access) // reset to s_access
-  state := MuxLookup(state, s_idle)(
+  val dnpc = MuxCase(
+    pc,
     Seq(
-      s_idle       -> Mux(io.in.fire, s_access, s_idle),
-      s_access     -> Mux(icache_io.req.fire, Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem), s_access),
-      s_wait_mem   -> Mux(icache_io.resp.fire, s_wait_ready, s_wait_mem),
-      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
+      io.redirect_valid  -> io.redirect_target,
+      icache_io.req.fire -> (pc + 4.U)
     )
   )
+  pc := dnpc
 
-  icache_io.req.valid  := (state === s_access) && !reset.asBool // Don't send request when resetting
-  icache_io.resp.ready := state === s_access || state === s_wait_mem
+  val resp_queue = Module(new Queue(new IFUOut, entries = 4, hasFlush = true))
 
-  val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
-  pc := Mux(io.in.fire, io.in.bits.dnpc, pc)
-
+  icache_io.kill          := io.redirect_valid
   icache_io.req.bits.addr := pc
+  icache_io.req.valid     := !reset.asBool && !io.redirect_valid
+  icache_io.resp.ready    := resp_queue.io.enq.ready
 
-  val NOP      = 0x00000013.U(32.W)
-  val inst_reg = RegInit(NOP)
-  inst_reg := Mux(icache_io.resp.fire, icache_io.resp.bits.data, inst_reg)
+  resp_queue.io.enq.valid     := icache_io.resp.valid
+  resp_queue.io.enq.bits.inst := icache_io.resp.bits.data
+  resp_queue.io.enq.bits.pc   := icache_io.resp.bits.addr
+  resp_queue.io.flush.get     := io.redirect_valid
 
-  io.out.bits.inst := inst_reg
-  io.out.bits.pc   := pc
-
-  io.in.ready  := state === s_idle
-  io.out.valid := state === s_wait_ready
+  io.out.bits             := resp_queue.io.deq.bits
+  io.out.valid            := resp_queue.io.deq.valid && !io.redirect_valid
+  resp_queue.io.deq.ready := io.out.ready && !io.redirect_valid
 
   assert(
     !icache_io.resp.valid || !icache_io.resp.bits.error,
     cf"IFU: Access fault at 0x${RegEnable(pc, icache_io.req.fire)}%x"
   )
 
-  // Difftest got ready after every pc advance (one instruction done),
-  // which is just in.valid delayed one cycle.
-  //               ___________
-  //   ready      |          |
-  //              _____       _____
-  //   clock     |     |_____|     |_____
-  //              cycle 1        cycle 2
-  //                     ^
-  //                     |
-  //          difftest_step is called here
-  SignalProbe(RegNext(io.in.fire), "difftest_ready")
-  SignalProbe(pc, "pc")
-  SignalProbe(inst_reg, "inst")
-  SignalProbe(state === s_wait_ready, "inst_valid")
+  SignalProbe(dnpc, "dnpc")
+  SignalProbe(io.out.bits.pc, "pc")
+  SignalProbe(io.out.bits.inst, "inst")
+  SignalProbe(io.out.valid, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
 }

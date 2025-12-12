@@ -24,11 +24,6 @@ class EXUOutForWBU(
   //   ECall              -> mtvec
   //   MRet               -> mepc
   val csr_out = UInt(p.XLEN.W)
-
-  // PC
-  val snpc      = UInt(p.XLEN.W)
-  val br_taken  = Bool()
-  val br_target = UInt(p.XLEN.W)
 }
 
 class EXUOutForLSU(
@@ -37,6 +32,9 @@ class EXUOutForLSU(
   val lsu_op         = UInt(LSUOp.WIDTH)
   val lsu_addr       = UInt(p.XLEN.W)
   val lsu_store_data = UInt(p.XLEN.W)
+
+  val pc   = if (p.Debug) Some(UInt(p.XLEN.W)) else None
+  val inst = if (p.Debug) Some(UInt(32.W)) else None
 }
 
 class EXUOut(
@@ -53,24 +51,19 @@ class EXU(
     val in  = Flipped(Decoupled(new IDUOut))
     val out = Decoupled(new EXUOut)
 
+    // IFU
+    val redirect_valid  = Output(Bool())
+    val redirect_target = Output(UInt(p.XLEN.W))
+
+    // ICache
     val icache_flush = Output(Bool())
+
+    // Hazard
+    val rd       = Output(UInt(5.W))
+    val rd_valid = Output(Bool())
   })
 
-  val s_idle :: s_wait_ready :: Nil = Enum(2)
-
-  val state = RegInit(s_idle)
-
-  state := MuxLookup(state, s_idle)(
-    Seq(
-      s_idle       -> Mux(io.in.fire, s_wait_ready, s_idle),
-      s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
-    )
-  )
-
-  io.in.ready  := state === s_idle
-  io.out.valid := state === s_wait_ready
-
-  val decoded = RegEnable(io.in.bits, io.in.fire)
+  val decoded = io.in.bits
 
   val exec_type = decoded.exec_type
   val rs1_data  = decoded.rs1_data
@@ -154,14 +147,11 @@ class EXU(
   csr_file.io.write_data := csr_write_data
 
   val wbu = io.out.bits.wbu
-  wbu.rd_addr   := decoded.rd_addr
-  wbu.rd_we     := decoded.rd_we
-  wbu.src_type  := exec_type
-  wbu.alu_out   := alu.io.result
-  wbu.csr_out   := csr_data
-  wbu.snpc      := decoded.pc + 4.U
-  wbu.br_taken  := br_taken
-  wbu.br_target := br_target
+  wbu.rd_addr  := decoded.rd_addr
+  wbu.rd_we    := decoded.rd_we
+  wbu.src_type := exec_type
+  wbu.alu_out  := alu.io.result
+  wbu.csr_out  := csr_data
 
   val lsu = io.out.bits.lsu
   lsu.lsu_op         := decoded.lsu_op
@@ -178,21 +168,25 @@ class EXU(
   // Fence
   io.icache_flush := decoded.exec_type === ExecType.FenceI
 
-  def only_valid(b: Bool) = io.in.valid && b
+  // dnpc
+  io.redirect_valid  := io.in.valid && (br_taken || exec_type === ExecType.ECall || exec_type === ExecType.MRet)
+  io.redirect_target := MuxLookup(exec_type, br_target)(
+    Seq(
+      ExecType.ECall -> csr_data,
+      ExecType.MRet  -> csr_data
+    )
+  )
+
+  // Hazard
+  io.rd       := decoded.rd_addr
+  io.rd_valid := io.in.valid && decoded.rd_we
+
+  // Optional Debug Signals
+  io.out.bits.lsu.pc.foreach { i => i := decoded.pc }
+  io.out.bits.lsu.inst.foreach { i => i := io.in.bits.inst.get }
+
+  io.in.ready  := io.out.ready
+  io.out.valid := io.in.valid
 
   PerfCounter(io.out.valid, "exu_done")
-  PerfCounter(only_valid(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_cycles")
-  PerfCounter(only_valid(decoded.br_op =/= BrOp.Nop), "br_cycles")
-  PerfCounter(only_valid(exec_type === ExecType.LSU), "lsu_cycles")
-  PerfCounter(only_valid(exec_type === ExecType.CSR), "csr_cycles")
-  PerfCounter(
-    only_valid(
-      exec_type =/= ExecType.ALU &&
-        exec_type =/= ExecType.LSU &&
-        exec_type =/= ExecType.CSR
-    ),
-    "other_cycles"
-  )
-  PerfCounter(!io.in.valid, "wait_cycles")
-  PerfCounter(true.B, "all_cycles")
 }
