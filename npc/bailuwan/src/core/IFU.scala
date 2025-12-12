@@ -220,8 +220,8 @@ class IFU(
     cf"IFU: Access fault at 0x${RegEnable(pc, icache_io.req.fire)}%x"
   )
 
-  SignalProbe(pc, "pc")
   SignalProbe(dnpc, "dnpc")
+  SignalProbe(io.out.bits.pc, "pc")
   SignalProbe(io.out.bits.inst, "inst")
   SignalProbe(io.out.valid, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
