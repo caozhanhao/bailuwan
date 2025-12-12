@@ -78,7 +78,13 @@ class LSU(
   )
 
   io.out.valid := state === s_wait_ready
-  io.in.ready := (state === s_idle && !io.in.valid) || (state === s_wait_ready && io.out.ready)
+
+  // Assert ready only when
+  //   1. idle and the pipeline register has no data.
+  //      (Thus the upstream can place data to the pipeline register)
+  //   2. before entering idle
+  //      (Thus
+  io.in.ready := (state === s_idle && !io.in.valid) 
 
   // EXU Forward
   io.out.bits.from_exu := wbu_info
