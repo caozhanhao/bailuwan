@@ -99,20 +99,22 @@ class ICache(
   val hit = !io.flush && entry_valid && (entry_tag === req_tag)
 
   // We can't handle kill immediately in `s_wait_mem`
-  val skipping = RegInit(false.B)
-  skipping := MuxCase(skipping, Seq((state === s_idle) -> false.B, io.ifu.kill -> true.B))
+  val req_killed = RegInit(false.B)
+  req_killed := MuxCase(req_killed, Seq((state === s_idle) -> false.B, io.ifu.kill -> true.B))
+
+  val is_killed = io.ifu.kill || req_killed
 
   // State Transfer
   state := MuxLookup(state, s_idle)(
     Seq(
       s_idle      -> Mux(
-        req.fire && !io.ifu.kill,
+        req.fire && !is_killed,
         Mux(hit, Mux(resp.fire, s_idle, s_resp), Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
         s_idle
       ),
-      s_fill_addr -> Mux(io.ifu.kill, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
-      s_wait_mem  -> Mux(fill_done, s_resp, s_wait_mem),
-      s_resp      -> Mux(resp.fire || io.ifu.kill || skipping, s_idle, s_resp)
+      s_fill_addr -> Mux(is_killed, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
+      s_wait_mem  -> Mux(fill_done, Mux(is_killed, s_idle, s_resp), s_wait_mem),
+      s_resp      -> Mux(resp.fire || is_killed, s_idle, s_resp)
     )
   )
 
@@ -131,7 +133,7 @@ class ICache(
 
   // IFU IO
   // Immediate hit or s_resp
-  resp.valid      := ((req.fire && hit) || (state === s_resp)) && !skipping && !io.ifu.kill
+  resp.valid      := ((req.fire && hit) || (state === s_resp)) && !is_killed
   resp.bits.data  := entry_data
   resp.bits.addr  := Mux(state === s_idle, req_addr, fill_addr)
   resp.bits.error := err
@@ -139,7 +141,7 @@ class ICache(
 
   // Mem IO
   val ar_bypass = state === s_idle && req.fire && !hit
-  io.mem.ar.valid := ar_bypass || (state === s_fill_addr)
+  io.mem.ar.valid := (ar_bypass || (state === s_fill_addr)) && !is_killed
 
   val block_align_mask = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
   val base_addr        = Mux(ar_bypass, req.bits.addr, fill_addr)
