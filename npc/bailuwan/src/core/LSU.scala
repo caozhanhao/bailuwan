@@ -211,8 +211,8 @@ class LSU(
 
   assert(!misaligned, cf"LSU: Misaligned access at 0x${req_addr}%x")
 
-  val pc_for_assert   = if (p.Debug) io.in.bits.lsu.pc.get else 0.U
-  val inst_for_assert = if (p.Debug) io.in.bits.lsu.inst.get else 0.U
+  val pc_for_assert   = if (p.Debug) io.in.bits.lsu.pc.get else 25100251.U
+  val inst_for_assert = if (p.Debug) io.in.bits.lsu.inst.get else 25100251.U
   assert(
     !io.mem.r.valid || io.mem.r.bits.resp === AXIResp.OKAY,
     cf"LSU: Read fault. pc=0x${pc_for_assert}%x, inst=0x${inst_for_assert}%x, " +
