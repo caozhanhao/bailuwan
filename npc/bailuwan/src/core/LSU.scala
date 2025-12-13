@@ -46,7 +46,9 @@ class LSU(
   val wbu_info = io.in.bits.wbu
 
   // States
-  val s_idle :: s_r_addr :: s_r_wait_mem :: s_w_addr :: s_w_data :: s_w_wait_mem :: s_wait_ready :: Nil = Enum(6)
+  val (s_idle :: s_r_addr :: s_r_wait_mem ::
+    s_w_addr :: s_w_data :: s_w_wait_mem ::
+    s_wait_ready :: Nil) = Enum(7)
 
   val entry_state = MuxLookup(req_op, s_idle)(
     Seq(
