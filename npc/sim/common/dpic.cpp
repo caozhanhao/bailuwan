@@ -157,6 +157,7 @@ void pmem_write(int waddr, int wdata, char wmask)
 
 void ebreak_handler()
 {
+    fprintf(stderr, "EBREAK\n");
     SIM.ebreak();
 }
 }
