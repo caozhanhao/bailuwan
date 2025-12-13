@@ -202,7 +202,7 @@ class IDU(
         || (rs === io.lsu_rd && io.lsu_rd_valid)
         || (rs === io.wbu_rd && io.wbu_rd_valid))
 
-  val hazard = has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read)
+  val hazard = io.in.valid && (has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read))
 
   // IO
   io.out.bits.pc             := io.in.bits.pc
