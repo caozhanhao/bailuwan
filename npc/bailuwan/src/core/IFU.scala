@@ -115,7 +115,8 @@ class ICache(
         Mux(hit, Mux(resp.fire, s_idle, s_resp), Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
         s_idle
       ),
-      s_fill_addr -> Mux(is_killed, s_idle, Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
+      // ATTENTION: If we've asserted ar.valid, we can NOT deassert it until ar.fire
+      s_fill_addr -> Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr),
       s_wait_mem  -> Mux(fill_done, Mux(is_killed, s_idle, s_resp), s_wait_mem),
       s_resp      -> Mux(resp.fire || is_killed, s_idle, s_resp)
     )
@@ -143,12 +144,9 @@ class ICache(
   req.ready       := state === s_idle
 
   // Mem IO
-  val ar_bypass = state === s_idle && req.fire && !hit
-  io.mem.ar.valid := (ar_bypass || (state === s_fill_addr)) && !is_killed
-
+  io.mem.ar.valid := state === s_fill_addr
   val block_align_mask = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
-  val base_addr        = Mux(ar_bypass, req.bits.addr, fill_addr)
-  io.mem.ar.bits.addr := base_addr & block_align_mask
+  io.mem.ar.bits.addr := fill_addr & block_align_mask
 
   io.mem.r.ready := state === s_wait_mem
 
@@ -221,8 +219,6 @@ class IFU(
   )
 
   SignalProbe(dnpc, "dnpc")
-  SignalProbe(io.out.bits.pc, "pc")
-  SignalProbe(io.out.bits.inst, "inst")
   SignalProbe(io.out.valid, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
 }

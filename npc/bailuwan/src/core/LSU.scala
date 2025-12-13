@@ -46,7 +46,9 @@ class LSU(
   val wbu_info = io.in.bits.wbu
 
   // States
-  val s_idle :: s_r_addr :: s_r_wait_mem :: s_w_addr :: s_w_wait_mem :: s_wait_ready :: Nil = Enum(6)
+  val (s_idle :: s_r_addr :: s_r_wait_mem ::
+    s_w_addr :: s_w_data :: s_w_wait_mem ::
+    s_wait_ready :: Nil) = Enum(7)
 
   val entry_state = MuxLookup(req_op, s_idle)(
     Seq(
@@ -71,7 +73,8 @@ class LSU(
       s_idle       -> Mux(io.in.valid, entry_state, s_idle),
       s_r_addr     -> Mux(io.mem.ar.fire, s_r_wait_mem, s_r_addr),
       s_r_wait_mem -> Mux(io.mem.r.fire, s_wait_ready, s_r_wait_mem),
-      s_w_addr     -> Mux(io.mem.aw.fire, s_w_wait_mem, s_w_addr),
+      s_w_addr     -> Mux(io.mem.aw.fire, Mux(io.mem.w.fire, s_w_wait_mem, s_w_data), s_w_addr),
+      s_w_data     -> Mux(io.mem.w.fire, s_w_wait_mem, s_w_data),
       s_w_wait_mem -> Mux(io.mem.b.fire, s_wait_ready, s_w_wait_mem),
       s_wait_ready -> Mux(io.out.fire, s_idle, s_wait_ready)
     )
@@ -174,7 +177,7 @@ class LSU(
   io.mem.aw.valid     := state === s_w_addr
   io.mem.w.bits.data  := selected_store_data
   io.mem.w.bits.strb  := write_mask
-  io.mem.w.valid      := state === s_w_addr || state === s_w_wait_mem
+  io.mem.w.valid      := state === s_w_addr || state === s_w_data
   io.mem.b.ready      := state === s_w_wait_mem
 
   io.mem.ar.bits.id    := 0.U
@@ -207,13 +210,18 @@ class LSU(
   )
 
   assert(!misaligned, cf"LSU: Misaligned access at 0x${req_addr}%x")
+
+  val pc_for_assert   = if (p.Debug) io.in.bits.lsu.pc.get else 0x25100251.U
+  val inst_for_assert = if (p.Debug) io.in.bits.lsu.inst.get else 0x25100251.U
   assert(
     !io.mem.r.valid || io.mem.r.bits.resp === AXIResp.OKAY,
-    cf"LSU: Read fault at 0x${RegEnable(req_addr, io.mem.ar.fire)}%x, resp=${io.mem.r.bits.resp}"
+    cf"LSU: Read fault. pc=0x${pc_for_assert}%x, inst=0x${inst_for_assert}%x, " +
+      cf"addr=0x${RegEnable(req_addr, io.mem.ar.fire)}%x, resp=${io.mem.r.bits.resp}"
   )
   assert(
     !io.mem.b.valid || io.mem.b.bits.resp === AXIResp.OKAY,
-    cf"LSU: Write fault at 0x${RegEnable(req_addr, io.mem.aw.fire)}%x, resp=${io.mem.b.bits.resp}"
+    cf"LSU: Write fault. pc=0x${pc_for_assert}%x, inst=0x${inst_for_assert}%x, " +
+      cf"addr=0x${RegEnable(req_addr, io.mem.aw.fire)}%x, resp=${io.mem.b.bits.resp}"
   )
 
   PerfCounter(io.mem.r.fire, "lsu_read")
