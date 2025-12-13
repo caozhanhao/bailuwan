@@ -7,7 +7,7 @@ import chisel3.{Bundle, _}
 import chisel3.util._
 import constants._
 import amba._
-import utils.PerfCounter
+import utils.{PerfCounter, SignalProbe}
 import bailuwan.CoreParams
 
 class EXUOutForWBU(
@@ -187,6 +187,11 @@ class EXU(
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
+
+
+  // Expose pc and inst in EXU to avoid the testbench see the flushed instructions
+  SignalProbe(decoded.pc, "pc")
+  SignalProbe(decoded.inst, "inst")
 
   PerfCounter(io.out.valid, "exu_done")
 }

@@ -88,7 +88,8 @@ object InstDecodeTable {
 class IDUOut(
   implicit p: CoreParams)
     extends Bundle {
-  val pc = UInt(p.XLEN.W)
+  val pc   = UInt(p.XLEN.W)
+  val inst = UInt(32.W)
 
   val alu_oper1_type = UInt(OperType.WIDTH)
   val alu_oper2_type = UInt(OperType.WIDTH)
@@ -105,8 +106,6 @@ class IDUOut(
   val lsu_op    = UInt(LSUOp.WIDTH)
   val br_op     = UInt(BrOp.WIDTH)
   val csr_op    = UInt(CSROp.WIDTH)
-
-  val inst = if (p.Debug) Some(UInt(32.W)) else None
 }
 
 class IDURegfileIn(
@@ -207,6 +206,7 @@ class IDU(
 
   // IO
   io.out.bits.pc             := io.in.bits.pc
+  io.out.bits.inst           := inst
   io.out.bits.alu_oper1_type := oper1_type
   io.out.bits.alu_oper2_type := oper2_type
   io.out.bits.imm            := imm
@@ -218,9 +218,6 @@ class IDU(
   io.out.bits.csr_op         := csr_op
   io.out.bits.rd_addr        := rd
   io.out.bits.rd_we          := we
-
-  // Optional Debug Signals
-  io.out.bits.inst.foreach { i => i := inst }
 
   // Regfile
   io.regfile_out.rs1_addr := rs1
