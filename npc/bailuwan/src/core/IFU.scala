@@ -115,8 +115,8 @@ class ICache(
         Mux(hit, Mux(resp.fire, s_idle, s_resp), Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr)),
         s_idle
       ),
-      // If ar fire, we can't kill it immediately
-      s_fill_addr -> Mux(io.mem.ar.fire, s_wait_mem, Mux(is_killed, s_idle, s_fill_addr)),
+      // ATTENTION: If we've asserted ar.valid, we can NOT deassert it until ar.fire
+      s_fill_addr -> Mux(io.mem.ar.fire, s_wait_mem, s_fill_addr),
       s_wait_mem  -> Mux(fill_done, Mux(is_killed, s_idle, s_resp), s_wait_mem),
       s_resp      -> Mux(resp.fire || is_killed, s_idle, s_resp)
     )
@@ -144,8 +144,7 @@ class ICache(
   req.ready       := state === s_idle
 
   // Mem IO
-  io.mem.ar.valid := (state === s_fill_addr) && !is_killed
-
+  io.mem.ar.valid := state === s_fill_addr
   val block_align_mask = (~((1 << BLOCK_BITS) - 1).U(32.W)).asUInt
   io.mem.ar.bits.addr := fill_addr & block_align_mask
 
