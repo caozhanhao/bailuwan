@@ -183,7 +183,7 @@ class EXU(
 
   // Optional Debug Signals
   io.out.bits.lsu.pc.foreach { i => i := decoded.pc }
-  io.out.bits.lsu.inst.foreach { i => i := io.in.bits.inst.get }
+  io.out.bits.lsu.inst.foreach { i => i := decoded.inst }
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
