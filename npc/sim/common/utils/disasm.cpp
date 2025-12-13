@@ -31,6 +31,9 @@ void Disassembler::init()
 
 std::string Disassembler::disassemble(uint32_t pc, uint32_t inst) const
 {
+    if (inst == 0)
+        return "<null>";
+
     char buffer[128];
 
     cs_insn* insn;
