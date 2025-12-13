@@ -210,13 +210,18 @@ class LSU(
   )
 
   assert(!misaligned, cf"LSU: Misaligned access at 0x${req_addr}%x")
+
+  val pc_for_assert   = if (p.Debug) io.in.bits.lsu.pc.get else 0.U
+  val inst_for_assert = if (p.Debug) io.in.bits.lsu.inst.get else 0.U
   assert(
     !io.mem.r.valid || io.mem.r.bits.resp === AXIResp.OKAY,
-    cf"LSU: Read fault at 0x${RegEnable(req_addr, io.mem.ar.fire)}%x, resp=${io.mem.r.bits.resp}"
+    cf"LSU: Read fault. pc=0x${pc_for_assert}, inst=0x${inst_for_assert}, " +
+      cf"addr=0x${RegEnable(req_addr, io.mem.ar.fire)}%x, resp=${io.mem.r.bits.resp}"
   )
   assert(
     !io.mem.b.valid || io.mem.b.bits.resp === AXIResp.OKAY,
-    cf"LSU: Write fault at 0x${RegEnable(req_addr, io.mem.aw.fire)}%x, resp=${io.mem.b.bits.resp}"
+    cf"LSU: Write fault. pc=0x${pc_for_assert}, inst=0x${inst_for_assert}, " +
+      cf"addr=0x${RegEnable(req_addr, io.mem.aw.fire)}%x, resp=${io.mem.b.bits.resp}"
   )
 
   PerfCounter(io.mem.r.fire, "lsu_read")
