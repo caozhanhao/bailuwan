@@ -61,17 +61,15 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
     for (size_t i = 0; i < 16; ++i)
         bindings.gprs[i] = &verilated_regs[i];
 
-    // Normal Signals
-    BIND_SIGNAL(pc, "pc")
-    BIND_SIGNAL(inst_trace_ready, "inst_trace_ready")
-    BIND_SIGNAL(dnpc, "dnpc")
-    BIND_SIGNAL(inst, "inst")
-    BIND_SIGNAL(difftest_ready, "difftest_ready")
-
     // CSRs
 #define CSR_TABLE_ENTRY(name, idx) BIND_SIGNAL(csrs[idx], TOSTRING(name))
     CSR_TABLE
 #undef CSR_TABLE_ENTRY
+
+    // Normal Signals
+#define SIGNAL_TABLE_ENTRY(type, name) BIND_SIGNAL(name, TOSTRING(name))
+    SIGNAL_TABLE
+#undef SIGNAL_TABLE_ENTRY
 
     // Perf Counters
 #ifdef CONFIG_PERF_COUNTERS

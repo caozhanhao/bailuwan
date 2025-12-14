@@ -77,6 +77,13 @@ PERF_COUNTER_TABLE_ENTRY(icache_hit) \
 PERF_COUNTER_TABLE_ENTRY(icache_miss) \
 PERF_COUNTER_TABLE_ENTRY(icache_mem_access_cycles)
 
+#define SIGNAL_TABLE \
+SIGNAL_TABLE_ENTRY(uint32_t, pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, dnpc) \
+SIGNAL_TABLE_ENTRY(uint32_t, inst) \
+SIGNAL_TABLE_ENTRY(uint8_t, inst_trace_ready) \
+SIGNAL_TABLE_ENTRY(uint8_t, difftest_ready)
+
 class CPUProxy
 {
     friend class SimHandle;
@@ -87,16 +94,12 @@ class CPUProxy
         uint32_t* gprs[16];
         uint32_t* csrs[4096];
 
-        // Normal Signals
-        uint32_t* pc;
-        uint32_t* dnpc;
-        uint32_t* inst;
-        uint8_t* difftest_ready;
-        uint8_t* inst_trace_ready;
+#define SIGNAL_TABLE_ENTRY(type, name) type* name;
+        SIGNAL_TABLE
+#undef SIGNAL_TABLE_ENTRY
 
         struct PerfCounters
         {
-            // Perf Counters
 #define PERF_COUNTER_TABLE_ENTRY(name) uint64_t* name;
             PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
@@ -231,7 +234,7 @@ public:
     void drain();
     void reset(int n);
 
-    void dump_after_ebreak() ;
+    void dump_after_ebreak();
     void dump_statistics(FILE* stream = stderr) const;
     void dump_statistics_json(FILE* stream = nullptr) const;
     void ebreak() { got_ebreak = true; }
