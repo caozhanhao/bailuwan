@@ -62,7 +62,7 @@ class Core(
 
   val flush = EXU.io.redirect_valid
   PipelineConnect(IFU.io.out, IDU.io.in, flush)
-  PipelineConnect(IDU.io.out, EXU.io.in, flush)
+  PipelineConnect(IDU.io.out, EXU.io.in, RegNext(flush))
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
 
