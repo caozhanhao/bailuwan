@@ -159,8 +159,7 @@ static bool is_accessing_device()
 
 void difftest_step()
 {
-    fprintf(stderr, "DIFF_STEP, 0x%x: %s\n",
-            SIM.cpu().wbu_pc(),
+    fprintf(stderr, "DIFF_STEP, 0x%x: %s\n", SIM.cpu().wbu_pc(),
             rv32_disasm(SIM.cpu().wbu_pc(), SIM.cpu().wbu_inst()).c_str());
 
     if (is_accessing_device())
@@ -176,6 +175,9 @@ void difftest_step()
 
     diff_context_t ref_r{};
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
+
+    fprintf(stderr, "Curr Ref PC=0x%x\n", ref_r.pc);
+    
     check_regs(&ref_r);
 }
 #else
