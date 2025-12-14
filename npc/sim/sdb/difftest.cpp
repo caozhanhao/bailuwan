@@ -126,12 +126,14 @@ static void checkregs(diff_context_t* ref)
         }
     }
 
-    if (cpu.pc() != ref->pc)
-    {
-        Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", ref->pc, cpu.pc());
-        Log("dnpc: " FMT_WORD "\n", cpu.dnpc());
-        match = false;
-    }
+    // Don't check pc here.
+    // Note that pc is a binding in EXU, but difftest_ready is asserted in WBU.
+    // They refer to different instructions.
+    // if (cpu.pc() != ref->pc)
+    // {
+    //     Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", ref->pc, cpu.pc());
+    //     match = false;
+    // }
 
     if (!match)
     {
