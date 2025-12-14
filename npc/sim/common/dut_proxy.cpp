@@ -178,7 +178,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     auto idu_hazard_percent = (static_cast<double>(idu_hazard) / all_cycles_d) * 100.0;
     fprintf(stream, "IDU hazard stalled = %lu (%f %%)\n", idu_hazard, idu_hazard_percent);
 
-    auto mispredicted_br = *b.branch_mispredict_count;
+    auto mispredicted_br = *b.mispredicted_branches;
     auto mispredicted_br_percent = (static_cast<double>(mispredicted_br) / static_cast<double>(*b.br_ops)) * 100.0;
     fprintf(stream, "Mispredicted branches = %lu (%f %%)\n", mispredicted_br, mispredicted_br_percent);
 #endif
