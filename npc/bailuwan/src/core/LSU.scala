@@ -40,10 +40,14 @@ class LSU(
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
+  val pc        = io.in.bits.pc
+  val inst      = io.in.bits.inst
+  val prev_excp = io.in.bits.exception
+  
   val req_addr = io.in.bits.lsu.addr
-  val req_op   = io.in.bits.lsu.op
   val req_data = io.in.bits.lsu.store_data
   val wbu_info = io.in.bits.wbu
+  val req_op   = Mux(prev_excp.valid, LSUOp.Nop, io.in.bits.lsu.op)
 
   // States
   val (s_idle :: s_r_addr :: s_r_wait_mem ::
@@ -64,17 +68,13 @@ class LSU(
     )
   )
 
-  val pc        = io.in.bits.pc
-  val inst      = io.in.bits.inst
-  val prev_excp = io.in.bits.exception
-
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
       // ATTENTION: io.in.valid rather than `fire`.
       //            Because we want the request latched in the pipeline registers during
       //            the transaction.
-      s_idle       -> Mux(io.in.valid && !prev_excp.valid, entry_state, s_idle),
+      s_idle       -> Mux(io.in.valid, entry_state, s_idle),
       s_r_addr     -> Mux(io.mem.ar.fire, s_r_wait_mem, s_r_addr),
       s_r_wait_mem -> Mux(io.mem.r.fire, s_wait_ready, s_r_wait_mem),
       s_w_addr     -> Mux(io.mem.aw.fire, Mux(io.mem.w.fire, s_w_wait_mem, s_w_data), s_w_addr),
