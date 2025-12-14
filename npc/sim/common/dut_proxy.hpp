@@ -78,10 +78,15 @@ PERF_COUNTER_TABLE_ENTRY(icache_miss) \
 PERF_COUNTER_TABLE_ENTRY(icache_mem_access_cycles)
 
 #define SIGNAL_TABLE \
+SIGNAL_TABLE_ENTRY(uint32_t, ifu_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, idu_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, idu_inst) \
 SIGNAL_TABLE_ENTRY(uint32_t, exu_pc) \
 SIGNAL_TABLE_ENTRY(uint32_t, exu_dnpc) \
 SIGNAL_TABLE_ENTRY(uint32_t, exu_inst) \
 SIGNAL_TABLE_ENTRY(uint8_t,  exu_inst_trace_ready) \
+SIGNAL_TABLE_ENTRY(uint32_t, lsu_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, lsu_inst) \
 SIGNAL_TABLE_ENTRY(uint32_t, wbu_pc) \
 SIGNAL_TABLE_ENTRY(uint32_t, wbu_inst) \
 SIGNAL_TABLE_ENTRY(uint8_t,  wbu_difftest_ready)
@@ -116,11 +121,11 @@ public:
     void dump_csrs(FILE* stream = stderr) const;
     void dump_perf_counters(FILE* stream = stderr);
     void dump(FILE* stream = stderr);
-    [[nodiscard]] uint32_t exu_pc() const;
-    [[nodiscard]] uint32_t exu_dnpc() const;
-    [[nodiscard]] uint32_t exu_inst() const;
-    [[nodiscard]] uint32_t wbu_pc() const;
-    [[nodiscard]] uint32_t wbu_inst() const;
+
+#define SIGNAL_TABLE_ENTRY(type, name) [[nodiscard]] type name() const { return *bindings.name; }
+    SIGNAL_TABLE
+#undef SIGNAL_TABLE_ENTRY
+
     [[nodiscard]] uint64_t inst_count() const;
     [[nodiscard]] uint64_t cycle_count() const;
     [[nodiscard]] uint32_t reg(uint32_t idx) const;

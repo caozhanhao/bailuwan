@@ -228,6 +228,9 @@ class IDU(
   io.in.ready  := io.out.ready && !hazard
   io.out.valid := io.in.valid && !hazard
 
+  SignalProbe(io.in.bits.pc, "idu_pc")
+  SignalProbe(inst, "idu_inst")
+
   // Rising edge
   val counter_inc = io.in.valid && !RegNext(io.in.valid)
   def once(b: Bool) = counter_inc && b

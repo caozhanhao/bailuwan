@@ -116,32 +116,6 @@ bool CPUProxy::is_csr_valid(uint32_t idx) const
     return bindings.csrs[idx] != nullptr;
 }
 
-
-uint32_t CPUProxy::exu_pc() const
-{
-    return *bindings.exu_pc;
-}
-
-uint32_t CPUProxy::exu_dnpc() const
-{
-    return *bindings.exu_dnpc;
-}
-
-uint32_t CPUProxy::exu_inst() const
-{
-    return *bindings.exu_inst;
-}
-
-uint32_t CPUProxy::wbu_pc() const
-{
-    return *bindings.wbu_pc;
-}
-
-uint32_t CPUProxy::wbu_inst() const
-{
-    return *bindings.wbu_inst;
-}
-
 bool CPUProxy::is_ready_for_difftest_wbu() const
 {
     return *bindings.wbu_difftest_ready;
@@ -302,7 +276,8 @@ void DUTMemory::destroy()
 void DUTMemory::out_of_bound_abort(uint32_t addr)
 {
     auto& cpu = SIM.cpu();
-    printf("Out of bound memory access at PC = 0x%08x, addr = 0x%08x\n", cpu.pc(), addr);
+    printf("Out of bound memory access at addr=0x%08x\n, ifu_pc=0x%08x, lsu_pc=0x%08x",
+        addr, cpu.ifu_pc(), cpu.lsu_pc());
     cpu.dump();
     SIM.cleanup();
     exit(-1);

@@ -8,7 +8,7 @@ import chisel3.util._
 import constants._
 import utils.Utils._
 import amba._
-import utils.PerfCounter
+import utils.{PerfCounter, SignalProbe}
 import bailuwan.CoreParams
 
 class LSUOut(
@@ -194,9 +194,12 @@ class LSU(
   io.rd       := wbu_info.rd_addr
   io.rd_valid := io.in.valid && wbu_info.rd_we
 
-  // Debug Signals
-  io.out.bits.pc   := io.in.bits.lsu.pc
-  io.out.bits.inst := io.in.bits.lsu.inst
+
+  val pc = io.in.bits.lsu.pc
+  val inst = io.in.bits.lsu.inst
+
+  io.out.bits.pc   := pc
+  io.out.bits.inst := inst
 
   // Debug
   val misaligned = MuxLookup(req_op, false.B)(
@@ -213,14 +216,17 @@ class LSU(
 
   assert(
     !io.mem.r.valid || io.mem.r.bits.resp === AXIResp.OKAY,
-    cf"LSU: Read fault. pc=0x${io.in.bits.lsu.pc}%x, inst=0x${io.in.bits.lsu.inst}%x, " +
+    cf"LSU: Read fault. pc=0x${pc}%x, inst=0x${inst}%x, " +
       cf"addr=0x${req_addr}%x, resp=${io.mem.r.bits.resp}"
   )
   assert(
     !io.mem.b.valid || io.mem.b.bits.resp === AXIResp.OKAY,
-    cf"LSU: Write fault. pc=0x${io.in.bits.lsu.pc}%x, inst=0x${io.in.bits.lsu.inst}%x, " +
+    cf"LSU: Write fault. pc=0x${pc}%x, inst=0x${inst}%x, " +
       cf"addr=0x${req_addr}%x, resp=${io.mem.b.bits.resp}"
   )
+
+  SignalProbe(pc, "lsu_pc")
+  SignalProbe(inst, "lsu_inst")
 
   PerfCounter(io.mem.r.fire, "lsu_read")
   PerfCounter(io.mem.b.fire, "lsu_write")
