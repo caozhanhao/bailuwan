@@ -185,7 +185,7 @@ class EXU(
   io.out.bits.lsu.pc   := decoded.pc
   io.out.bits.lsu.inst := decoded.inst
 
-  io.in.ready  := io.out.ready
+  io.in.ready  := io.out.ready && !io.redirect_valid
   io.out.valid := io.in.valid
 
   // Expose pc and inst in EXU to avoid the testbench see the flushed instructions
