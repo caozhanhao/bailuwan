@@ -140,7 +140,7 @@ class IDU(
     val wbu_rd_valid = Input(Bool())
   })
 
-  val pc = io.in.bits.pc
+  val pc   = io.in.bits.pc
   val inst = io.in.bits.inst
 
   // Registers
@@ -203,7 +203,8 @@ class IDU(
         || (rs === io.lsu_rd && io.lsu_rd_valid)
         || (rs === io.wbu_rd && io.wbu_rd_valid))
 
-  val hazard = io.in.valid && (has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read))
+  val hazard = io.in.valid && (exec_type === ExecType.EBreak ||
+    has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read))
 
   // IO
   io.out.bits.pc             := pc
