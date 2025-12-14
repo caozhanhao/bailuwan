@@ -169,7 +169,8 @@ class EXU(
   io.icache_flush := decoded.exec_type === ExecType.FenceI
 
   // dnpc
-  io.redirect_valid  := io.in.valid && (br_taken || exec_type === ExecType.ECall || exec_type === ExecType.MRet)
+  val redirect_taken = (br_taken || exec_type === ExecType.ECall || exec_type === ExecType.MRet)
+  io.redirect_valid  := io.in.valid && redirect_taken && io.out.fire
   io.redirect_target := MuxLookup(exec_type, br_target)(
     Seq(
       ExecType.ECall -> csr_data,
