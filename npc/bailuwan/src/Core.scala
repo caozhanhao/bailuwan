@@ -27,6 +27,14 @@ object PipelineConnect {
       valid_reg := Mux(flush, false.B, Mux(this_in.ready, prev_out.valid, valid_reg))
     } else {
       // If stalled (!this_in.ready):  Keep `valid_reg`.
+      // If not stalled, mask the input with `!flush`.
+      // Imaging a state where EXU holds jal (flush=1) and LSU is Ready (No Stall).
+      // At the exact rising edge of the clock:
+      //   1. [EXU->LSU]: LSU captures JAL from EXU.
+      //   2. [IFU->IDU]: IDU captures 0 due to force flush.
+      //   3. [IDU->EXU]: EXU captures 0 due to `!flush` mask.
+      //      Note that IDU currently holds the instruction after jal, and
+      //    ` prev_out.valid` is still HIGH. Thus, we must mask it with `!flush`
       valid_reg := Mux(this_in.ready, !flush && prev_out.valid, valid_reg)
     }
 
