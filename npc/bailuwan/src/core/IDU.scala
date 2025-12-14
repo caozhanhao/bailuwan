@@ -140,6 +140,7 @@ class IDU(
     val wbu_rd_valid = Input(Bool())
   })
 
+  val pc = io.in.bits.pc
   val inst = io.in.bits.inst
 
   // Registers
@@ -205,7 +206,7 @@ class IDU(
   val hazard = io.in.valid && (has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read))
 
   // IO
-  io.out.bits.pc             := io.in.bits.pc
+  io.out.bits.pc             := pc
   io.out.bits.inst           := inst
   io.out.bits.alu_oper1_type := oper1_type
   io.out.bits.alu_oper2_type := oper2_type
@@ -228,7 +229,7 @@ class IDU(
   io.in.ready  := io.out.ready && !hazard
   io.out.valid := io.in.valid && !hazard
 
-  SignalProbe(io.in.bits.pc, "idu_pc")
+  SignalProbe(pc, "idu_pc")
   SignalProbe(inst, "idu_inst")
 
   // Rising edge
