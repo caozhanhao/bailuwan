@@ -195,8 +195,8 @@ class LSU(
   io.rd_valid := io.in.valid && wbu_info.rd_we
 
   // Debug Signals
-  io.out.bits.pc   := io.in.bits.lsu.pc.get
-  io.out.bits.inst := io.in.bits.lsu.inst.get
+  io.out.bits.pc   := io.in.bits.lsu.pc
+  io.out.bits.inst := io.in.bits.lsu.inst
 
   // Debug
   val misaligned = MuxLookup(req_op, false.B)(
