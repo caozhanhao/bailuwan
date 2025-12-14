@@ -159,6 +159,7 @@ static bool is_accessing_device()
 
 void difftest_step()
 {
+    printf("STEP\n");
     if (is_accessing_device())
     {
         // ATTENTION: wbu_pc + 4
