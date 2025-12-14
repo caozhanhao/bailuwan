@@ -86,10 +86,9 @@ void init_difftest(size_t img_size)
     Log("Initializing memory. RESET_VECTOR=0x%x, img_size=0x%lx", RESET_VECTOR, img_size);
     ref_difftest_memcpy(RESET_VECTOR, mem.guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
 
-    auto& cpu = SIM.cpu();
-
     // Initialize registers
     diff_context_t ctx{};
+    auto& cpu = SIM.cpu();
     for (int i = 0; i < 4096; i++)
     {
         if (cpu.is_csr_valid(i))
