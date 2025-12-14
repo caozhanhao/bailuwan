@@ -40,9 +40,9 @@ class LSU(
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
-  val req_addr = io.in.bits.lsu.lsu_addr
-  val req_op   = io.in.bits.lsu.lsu_op
-  val req_data = io.in.bits.lsu.lsu_store_data
+  val req_addr = io.in.bits.lsu.addr
+  val req_op   = io.in.bits.lsu.op
+  val req_data = io.in.bits.lsu.store_data
   val wbu_info = io.in.bits.wbu
 
   // States

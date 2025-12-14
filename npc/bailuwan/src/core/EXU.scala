@@ -29,9 +29,9 @@ class EXUOutForWBU(
 class EXUOutForLSU(
   implicit p: CoreParams)
     extends Bundle {
-  val lsu_op         = UInt(LSUOp.WIDTH)
-  val lsu_addr       = UInt(p.XLEN.W)
-  val lsu_store_data = UInt(p.XLEN.W)
+  val op         = UInt(LSUOp.WIDTH)
+  val addr       = UInt(p.XLEN.W)
+  val store_data = UInt(p.XLEN.W)
 
   val pc   = UInt(p.XLEN.W)
   val inst = UInt(32.W)
