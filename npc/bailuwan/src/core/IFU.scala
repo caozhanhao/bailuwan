@@ -219,6 +219,5 @@ class IFU(
   )
 
   SignalProbe(dnpc, "dnpc")
-  SignalProbe(io.out.valid, "inst_valid")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
 }
