@@ -53,14 +53,11 @@ class WBU(
   // Exposed signals for difftest
   // Note that the width of a RegNext is not set based on the next or
   // init connections for Element types
-//  val wbu_pc = Reg(UInt(p.XLEN.W))
-//  wbu_pc := io.in.bits.pc
-//  val wbu_inst = Reg(UInt(32.W))
-//  wbu_inst := io.in.bits.inst
-//  SignalProbe(wbu_pc, "wbu_pc")
-//  SignalProbe(wbu_inst, "wbu_inst")
-//  SignalProbe(RegNext(io.in.fire), "wbu_difftest_ready")
-    SignalProbe(io.in.bits.pc, "wbu_pc")
-    SignalProbe(io.in.bits.inst, "wbu_inst")
-    SignalProbe(io.in.fire, "wbu_difftest_ready")
+  val wbu_pc = Reg(UInt(p.XLEN.W))
+  wbu_pc := io.in.bits.pc
+  val wbu_inst = Reg(UInt(32.W))
+  wbu_inst := io.in.bits.inst
+  SignalProbe(wbu_pc, "wbu_pc")
+  SignalProbe(wbu_inst, "wbu_inst")
+  SignalProbe(RegNext(io.in.fire), "wbu_difftest_ready")
 }
