@@ -216,12 +216,12 @@ class LSU(
   assert(
     !io.mem.r.valid || io.mem.r.bits.resp === AXIResp.OKAY,
     cf"LSU: Read fault. pc=0x${pc_for_assert}%x, inst=0x${inst_for_assert}%x, " +
-      cf"addr=0x${RegEnable(req_addr, io.mem.ar.fire)}%x, resp=${io.mem.r.bits.resp}"
+      cf"addr=0x${req_addr}%x, resp=${io.mem.r.bits.resp}"
   )
   assert(
     !io.mem.b.valid || io.mem.b.bits.resp === AXIResp.OKAY,
     cf"LSU: Write fault. pc=0x${pc_for_assert}%x, inst=0x${inst_for_assert}%x, " +
-      cf"addr=0x${RegEnable(req_addr, io.mem.aw.fire)}%x, resp=${io.mem.b.bits.resp}"
+      cf"addr=0x${req_addr}%x, resp=${io.mem.b.bits.resp}"
   )
 
   PerfCounter(io.mem.r.fire, "lsu_read")
