@@ -412,7 +412,8 @@ int main(int argc, char* argv[])
         if (Verilated::gotError())
         {
             Log("Terminating due to a verilator error.");
-            printf("PC = " FMT_WORD "\n", SIM.cpu().pc());
+            printf("exu_pc=" FMT_WORD ", wbu_pc=" FMT_WORD "\n",
+                   SIM.cpu().exu_pc(), SIM.cpu().wbu_pc());
             SIM.cpu().dump();
             // SIM.cleanup();
         }
@@ -437,7 +438,7 @@ int main(int argc, char* argv[])
     IFDEF(CONFIG_DIFFTEST, init_difftest(SIM.mem().inst_memory_size));
 
     if (elf_file)
-        IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
+    IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
 
     sdb_mainloop();
 

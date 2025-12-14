@@ -78,11 +78,13 @@ PERF_COUNTER_TABLE_ENTRY(icache_miss) \
 PERF_COUNTER_TABLE_ENTRY(icache_mem_access_cycles)
 
 #define SIGNAL_TABLE \
-SIGNAL_TABLE_ENTRY(uint32_t, pc) \
-SIGNAL_TABLE_ENTRY(uint32_t, dnpc) \
-SIGNAL_TABLE_ENTRY(uint32_t, inst) \
-SIGNAL_TABLE_ENTRY(uint8_t, inst_trace_ready) \
-SIGNAL_TABLE_ENTRY(uint8_t, difftest_ready)
+SIGNAL_TABLE_ENTRY(uint32_t, exu_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, exu_dnpc) \
+SIGNAL_TABLE_ENTRY(uint32_t, exu_inst) \
+SIGNAL_TABLE_ENTRY(uint8_t,  exu_inst_trace_ready) \
+SIGNAL_TABLE_ENTRY(uint32_t, wbu_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, wbu_inst) \
+SIGNAL_TABLE_ENTRY(uint8_t,  wbu_difftest_ready)
 
 class CPUProxy
 {
@@ -114,9 +116,11 @@ public:
     void dump_csrs(FILE* stream = stderr) const;
     void dump_perf_counters(FILE* stream = stderr);
     void dump(FILE* stream = stderr);
-    [[nodiscard]] uint32_t pc() const;
-    [[nodiscard]] uint32_t dnpc() const;
-    [[nodiscard]] uint32_t curr_inst() const;
+    [[nodiscard]] uint32_t exu_pc() const;
+    [[nodiscard]] uint32_t exu_dnpc() const;
+    [[nodiscard]] uint32_t exu_inst() const;
+    [[nodiscard]] uint32_t wbu_pc() const;
+    [[nodiscard]] uint32_t wbu_inst() const;
     [[nodiscard]] uint64_t inst_count() const;
     [[nodiscard]] uint64_t cycle_count() const;
     [[nodiscard]] uint32_t reg(uint32_t idx) const;
@@ -124,10 +128,10 @@ public:
     [[nodiscard]] bool is_csr_valid(uint32_t idx) const;
 
     // Indicate one instruction done
-    [[nodiscard]] bool is_ready_for_difftest() const;
+    [[nodiscard]] bool is_ready_for_difftest_wbu() const;
 
     // Indicate one instruction **is going to** be executed
-    [[nodiscard]] bool is_inst_ready_for_trace() const;
+    [[nodiscard]] bool is_inst_ready_for_trace_exu() const;
 };
 
 struct DUTMemory

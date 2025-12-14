@@ -19,8 +19,8 @@ class LSUOut(
   val from_exu  = new EXUOutForWBU
 
   // Debug
-  val pc   = if (p.Debug) Some(UInt(p.XLEN.W)) else None
-  val inst = if (p.Debug) Some(UInt(32.W)) else None
+  val pc   = UInt(p.XLEN.W)
+  val inst = UInt(32.W)
 }
 
 class LSU(
@@ -194,9 +194,9 @@ class LSU(
   io.rd       := wbu_info.rd_addr
   io.rd_valid := io.in.valid && wbu_info.rd_we
 
-  // Optional Debug Signals
-  io.out.bits.pc.foreach { i => i := io.in.bits.lsu.pc.get }
-  io.out.bits.inst.foreach { i => i := io.in.bits.lsu.inst.get }
+  // Debug Signals
+  io.out.bits.pc   := io.in.bits.lsu.pc.get
+  io.out.bits.inst := io.in.bits.lsu.inst.get
 
   // Debug
   val misaligned = MuxLookup(req_op, false.B)(
@@ -211,16 +211,14 @@ class LSU(
 
   assert(!misaligned, cf"LSU: Misaligned access at 0x${req_addr}%x")
 
-  val pc_for_assert   = if (p.Debug) io.in.bits.lsu.pc.get else 0x25100251.U
-  val inst_for_assert = if (p.Debug) io.in.bits.lsu.inst.get else 0x25100251.U
   assert(
     !io.mem.r.valid || io.mem.r.bits.resp === AXIResp.OKAY,
-    cf"LSU: Read fault. pc=0x${pc_for_assert}%x, inst=0x${inst_for_assert}%x, " +
+    cf"LSU: Read fault. pc=0x${io.in.bits.lsu.pc}%x, inst=0x${io.in.bits.lsu.inst}%x, " +
       cf"addr=0x${req_addr}%x, resp=${io.mem.r.bits.resp}"
   )
   assert(
     !io.mem.b.valid || io.mem.b.bits.resp === AXIResp.OKAY,
-    cf"LSU: Write fault. pc=0x${pc_for_assert}%x, inst=0x${inst_for_assert}%x, " +
+    cf"LSU: Write fault. pc=0x${io.in.bits.lsu.pc}%x, inst=0x${io.in.bits.lsu.inst}%x, " +
       cf"addr=0x${req_addr}%x, resp=${io.mem.b.bits.resp}"
   )
 

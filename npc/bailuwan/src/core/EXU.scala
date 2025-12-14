@@ -33,8 +33,8 @@ class EXUOutForLSU(
   val lsu_addr       = UInt(p.XLEN.W)
   val lsu_store_data = UInt(p.XLEN.W)
 
-  val pc   = if (p.Debug) Some(UInt(p.XLEN.W)) else None
-  val inst = if (p.Debug) Some(UInt(32.W)) else None
+  val pc   = UInt(p.XLEN.W)
+  val inst = UInt(32.W)
 }
 
 class EXUOut(
@@ -181,19 +181,18 @@ class EXU(
   io.rd       := decoded.rd_addr
   io.rd_valid := io.in.valid && decoded.rd_we
 
-  // Optional Debug Signals
-  io.out.bits.lsu.pc.foreach { i => i := decoded.pc }
-  io.out.bits.lsu.inst.foreach { i => i := decoded.inst }
-  io.out.bits.lsu.inst.foreach { i => i := decoded.inst }
+  // Debug Signals
+  io.out.bits.lsu.pc   := decoded.pc
+  io.out.bits.lsu.inst := decoded.inst
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
 
   // Expose pc and inst in EXU to avoid the testbench see the flushed instructions
-  SignalProbe(decoded.pc, "pc")
-  SignalProbe(decoded.inst, "inst")
-  SignalProbe(io.in.fire, "inst_trace_ready")
-  SignalProbe(Mux(io.redirect_valid, io.redirect_target, decoded.pc + 4.U), "dnpc")
+  SignalProbe(decoded.pc, "exu_pc")
+  SignalProbe(decoded.inst, "exu_inst")
+  SignalProbe(io.in.fire, "exu_inst_trace_ready")
+  SignalProbe(Mux(io.redirect_valid, io.redirect_target, decoded.pc + 4.U), "exu_dnpc")
 
   PerfCounter(io.out.valid, "exu_done")
 }

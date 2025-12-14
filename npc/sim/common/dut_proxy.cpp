@@ -86,11 +86,6 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
 #undef BIND_SIGNAL
 }
 
-uint32_t CPUProxy::curr_inst() const
-{
-    return *bindings.inst;
-}
-
 uint64_t CPUProxy::inst_count() const
 {
     return *bindings.perf_counters.all_ops;
@@ -99,17 +94,6 @@ uint64_t CPUProxy::inst_count() const
 uint64_t CPUProxy::cycle_count() const
 {
     return *bindings.perf_counters.all_cycles;
-}
-
-
-uint32_t CPUProxy::pc() const
-{
-    return *bindings.pc;
-}
-
-uint32_t CPUProxy::dnpc() const
-{
-    return *bindings.dnpc;
 }
 
 uint32_t CPUProxy::reg(uint32_t idx) const
@@ -132,14 +116,40 @@ bool CPUProxy::is_csr_valid(uint32_t idx) const
     return bindings.csrs[idx] != nullptr;
 }
 
-bool CPUProxy::is_ready_for_difftest() const
+
+uint32_t CPUProxy::exu_pc() const
 {
-    return *bindings.difftest_ready;
+    return *bindings.exu_pc;
 }
 
-bool CPUProxy::is_inst_ready_for_trace() const
+uint32_t CPUProxy::exu_dnpc() const
 {
-    return *bindings.inst_trace_ready;
+    return *bindings.exu_dnpc;
+}
+
+uint32_t CPUProxy::exu_inst() const
+{
+    return *bindings.exu_inst;
+}
+
+uint32_t CPUProxy::wbu_pc() const
+{
+    return *bindings.wbu_pc;
+}
+
+uint32_t CPUProxy::wbu_inst() const
+{
+    return *bindings.wbu_inst;
+}
+
+bool CPUProxy::is_ready_for_difftest_wbu() const
+{
+    return *bindings.wbu_difftest_ready;
+}
+
+bool CPUProxy::is_inst_ready_for_trace_exu() const
+{
+    return *bindings.exu_inst_trace_ready;
 }
 
 void CPUProxy::dump_gprs(FILE* stream) const
@@ -206,8 +216,10 @@ void CPUProxy::dump_perf_counters(FILE* stream)
 void CPUProxy::dump(FILE* stream)
 {
     fprintf(stream, "Dumping CPU state:\n");
-    fprintf(stream, "PC=0x%08x\n", pc());
-    fprintf(stream, "Inst=0x%08x\n", curr_inst());
+    fprintf(stream, "exu_pc=0x%08x\n", exu_pc());
+    fprintf(stream, "exu_inst=0x%08x\n", exu_inst());
+    fprintf(stream, "wbu_pc=0x%08x\n", wbu_pc());
+    fprintf(stream, "wbu_inst=0x%08x\n", wbu_inst());
     fprintf(stream, "Registers:\n");
     dump_gprs(stream);
     fprintf(stream, "CSRs:\n");
@@ -215,7 +227,6 @@ void CPUProxy::dump(FILE* stream)
     fprintf(stream, "Perfeormance Counters:\n");
     dump_perf_counters();
 }
-
 
 void DUTMemory::init(const std::string& filename)
 {

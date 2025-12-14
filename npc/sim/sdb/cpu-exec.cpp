@@ -21,11 +21,11 @@ static void trace_and_difftest()
 #endif
 
     auto& cpu = SIM.cpu();
-    if (cpu.is_inst_ready_for_trace())
+    if (cpu.is_ready_for_difftest_exu())
     {
 #ifdef CONFIG_ITRACE
-        auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
-        fprintf(stderr, FMT_WORD ": %s\n", cpu.pc(), str.c_str());
+        auto str = disasm.disassemble(cpu.exu_pc(), cpu.exu_inst());
+        fprintf(stderr, FMT_WORD ": %s\n", cpu.exu_pc(), str.c_str());
 #endif
 
 #ifdef CONFIG_FTRACE
@@ -42,7 +42,7 @@ static void trace_and_difftest()
 #endif
     }
 
-    if (cpu.is_ready_for_difftest())
+    if (cpu.is_ready_for_difftest_exu())
     {
         IFDEF(CONFIG_DIFFTEST, difftest_step());
     }

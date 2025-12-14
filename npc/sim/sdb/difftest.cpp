@@ -126,19 +126,11 @@ static void checkregs(diff_context_t* ref)
         }
     }
 
-    // Don't check pc here.
-    // Note that pc is a binding in EXU, but difftest_ready is asserted in WBU.
-    // They refer to different instructions.
-    // if (cpu.pc() != ref->pc)
-    // {
-    //     Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", ref->pc, cpu.pc());
-    //     match = false;
-    // }
-
     if (!match)
     {
         sdb_state = SDBState::Abort;
-        printf("Test failed at pc = " FMT_WORD "\n", cpu.pc());
+        printf("Test failed after wbu_pc=" FMT_WORD ", wbu_inst=" FMT_WORD "\n",
+               cpu.wbu_pc(), cpu.wbu_inst());
         cpu.dump();
     }
 }
@@ -146,7 +138,7 @@ static void checkregs(diff_context_t* ref)
 static bool is_accessing_device()
 {
     auto& cpu = SIM.cpu();
-    auto inst = cpu.curr_inst();
+    auto inst = cpu.wbu_inst();
 
     bool is_store = BITS(inst, 6, 0) == 0b0100011;
     bool is_load = BITS(inst, 6, 0) == 0b0000011;
