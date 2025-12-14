@@ -237,22 +237,4 @@ class IDU(
 
   SignalProbe(pc, "idu_pc")
   SignalProbe(inst, "idu_inst")
-
-  // Rising edge
-  val counter_inc = io.in.valid && !RegNext(io.in.valid)
-  def once(b: Bool) = counter_inc && b
-
-  PerfCounter(once(exec_type === ExecType.ALU && br_op === BrOp.Nop), "alu_ops")
-  PerfCounter(once(br_op =/= BrOp.Nop), "br_ops")
-  PerfCounter(once(exec_type === ExecType.LSU), "lsu_ops")
-  PerfCounter(once(exec_type === ExecType.CSR), "csr_ops")
-  PerfCounter(
-    once(
-      exec_type =/= ExecType.ALU &&
-        exec_type =/= ExecType.LSU &&
-        exec_type =/= ExecType.CSR
-    ),
-    "other_ops"
-  )
-  PerfCounter(once(true.B), "all_ops")
 }

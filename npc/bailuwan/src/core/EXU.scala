@@ -194,5 +194,18 @@ class EXU(
   SignalProbe(io.in.fire, "exu_inst_trace_ready")
   SignalProbe(Mux(io.redirect_valid, io.redirect_target, decoded.pc + 4.U), "exu_dnpc")
 
-  PerfCounter(io.out.valid, "exu_done")
+  def once(b: Bool) = io.in.fire && b
+  PerfCounter(once(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_ops")
+  PerfCounter(once(decoded.br_op =/= BrOp.Nop), "br_ops")
+  PerfCounter(once(exec_type === ExecType.LSU), "lsu_ops")
+  PerfCounter(once(exec_type === ExecType.CSR), "csr_ops")
+  PerfCounter(
+    once(
+      exec_type =/= ExecType.ALU &&
+        exec_type =/= ExecType.LSU &&
+        exec_type =/= ExecType.CSR
+    ),
+    "other_ops"
+  )
+  PerfCounter(once(true.B), "all_ops")
 }
