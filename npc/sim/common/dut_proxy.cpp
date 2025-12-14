@@ -155,7 +155,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     TOSTRING(display_name), \
     *b.name##_ops, \
     100.0 * (static_cast<double>(*b.name##_ops) / all_ops_d), \
-    (static_cast<double>(*b.name##_cycles) / static_cast<double>(*b.name##_ops)))
+    *b.name##_ops == 0 ? 0.0f : (static_cast<double>(*b.name##_cycles) / static_cast<double>(*b.name##_ops)))
 
     PERF(ALU, alu);
     PERF(Branch, br);
