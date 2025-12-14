@@ -90,7 +90,7 @@ void init_difftest(size_t img_size)
     sync_regs_to_ref(RESET_VECTOR);
 }
 
-static void checkregs(diff_context_t* ref)
+static void check_regs(diff_context_t* ref)
 {
     auto& cpu = SIM.cpu();
     bool match = true;
@@ -172,7 +172,7 @@ void difftest_step()
 
     diff_context_t ref_r{};
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-    checkregs(&ref_r);
+    check_regs(&ref_r);
 }
 #else
 void init_difftest()
