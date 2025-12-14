@@ -5,6 +5,7 @@ package constants
 
 import chisel3._
 import chisel3.util._
+import bailuwan.CoreParams
 
 object ExceptionCode {
   val InstructionAddressMisaligned = 0.U
@@ -14,7 +15,7 @@ object ExceptionCode {
   val LoadAddressMisaligned = 4.U
   val LoadAccessFault = 5.U
   val StoreAMOAddressMisaligned = 6.U
-  val StoreAMOFault = 7.U
+  val StoreAMOAccessFault = 7.U
   val EnvironmentCallFromUMode = 8.U
   val EnvironmentCallFromSMode = 9.U
   val EnvironmentCallFromMMode = 11.U
@@ -22,3 +23,5 @@ object ExceptionCode {
   val LoadPageFault = 13.U
   val StoreAMOPageFault = 15.U
 }
+
+

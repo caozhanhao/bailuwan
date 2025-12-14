@@ -77,43 +77,58 @@ class Core(
   val WBU = Module(new WBU)
 
   val RegFile = Module(new RegFile)
+  val CSRFile = Module(new CSRFile)
 
-  val flush = EXU.io.redirect_valid
+  val exu_flush = EXU.io.br_valid
+  val wbu_flush = WBU.io.redirect_valid
 
   // The instruction currently in the IFU -> IDU register is possibly on the
   // wrong branch (or follows a jump). We must clear it immediately, even if IDU is stalled.
-  PipelineConnect(IFU.io.out, IDU.io.in, flush, force_flush = true)
+  PipelineConnect(IFU.io.out, IDU.io.in, exu_flush, force_flush = true)
   // The instruction currently in the IDU->EXU register is the jump/branch itself.
   // If the pipeline stalls, this JAL must remain in the register until it is accepted
   // by the next stage (LSU). A force flush would kill the jump/branch before it enters the LSU.
-  PipelineConnect(IDU.io.out, EXU.io.in, flush, force_flush = false)
+  PipelineConnect(IDU.io.out, EXU.io.in, exu_flush, force_flush = false)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
 
   // Redirect
-  IFU.io.redirect_valid  := EXU.io.redirect_valid
-  IFU.io.redirect_target := EXU.io.redirect_target
+  IFU.io.redirect_valid  := exu_flush || wbu_flush
+  IFU.io.redirect_target := Mux(wbu_flush, WBU.io.redirect_target, EXU.io.br_target)
 
-  // Regfile - IDU
-  IDU.io.regfile_in.rs1_data := RegFile.io.rs1_data
-  IDU.io.regfile_in.rs2_data := RegFile.io.rs2_data
-  RegFile.io.rs1_addr        := IDU.io.regfile_out.rs1_addr
-  RegFile.io.rs2_addr        := IDU.io.regfile_out.rs2_addr
-  // Regfile - WBU
-  RegFile.io.rd_addr         := WBU.io.regfile_out.rd_addr
-  RegFile.io.rd_we           := WBU.io.regfile_out.rd_we
-  RegFile.io.rd_data         := WBU.io.regfile_out.rd_data
+  // RegFile - IDU
+  IDU.io.rs1_data     := RegFile.io.rs1_data
+  IDU.io.rs2_data     := RegFile.io.rs2_data
+  RegFile.io.rs1_addr := IDU.io.rs1_addr
+  RegFile.io.rs2_addr := IDU.io.rs2_addr
+
+  // RegFile - WBU
+  RegFile.io.rd_addr := WBU.io.rd_addr
+  RegFile.io.rd_we   := WBU.io.rd_we
+  RegFile.io.rd_data := WBU.io.rd_data
+
+  // CSRFile - EXU
+  EXU.io.csr_rs_data     := CSRFile.io.read_data
+  CSRFile.io.read_addr   := EXU.io.csr_rs_addr
+  CSRFile.io.read_enable := EXU.io.csr_rs_en
+
+  // CSRFile - WBU
+  CSRFile.io.write_addr   := WBU.io.csr_rd_addr
+  CSRFile.io.write_enable := WBU.io.csr_rd_we
+  CSRFile.io.write_data   := WBU.io.csr_rd_data
+  CSRFile.io.exception    := WBU.io.exception
+  CSRFile.io.epc          := WBU.io.csr_epc
 
   // ICache Flush
   IFU.io.icache_flush := EXU.io.icache_flush
 
   // Hazard
-  IDU.io.exu_rd       := EXU.io.rd
-  IDU.io.exu_rd_valid := EXU.io.rd_valid
-  IDU.io.lsu_rd       := LSU.io.rd
-  IDU.io.lsu_rd_valid := LSU.io.rd_valid
-  IDU.io.wbu_rd       := WBU.io.regfile_out.rd_addr
-  IDU.io.wbu_rd_valid := WBU.io.regfile_out.rd_we
+  IDU.io.exu_hazard_rd       := EXU.io.hazard_rd
+  IDU.io.exu_hazard_rd_valid := EXU.io.hazard_rd_valid
+  IDU.io.lsu_hazard_rd       := LSU.io.hazard_rd
+  IDU.io.lsu_hazard_rd_valid := LSU.io.hazard_rd_valid
+  IDU.io.wbu_hazard_rd       := WBU.io.rd_addr
+  IDU.io.wbu_hazard_rd_valid := WBU.io.rd_we
 
   // Memory, LSU > IFU
   val arbiter = Module(new AXI4Arbiter(2))

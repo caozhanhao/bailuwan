@@ -106,18 +106,8 @@ class IDUOut(
   val lsu_op    = UInt(LSUOp.WIDTH)
   val br_op     = UInt(BrOp.WIDTH)
   val csr_op    = UInt(CSROp.WIDTH)
-}
 
-class IDURegfileIn(
-  implicit p: CoreParams)
-    extends Bundle {
-  val rs1_data = UInt(p.XLEN.W)
-  val rs2_data = UInt(p.XLEN.W)
-}
-
-class IDURegfileOut extends Bundle {
-  val rs1_addr = UInt(5.W)
-  val rs2_addr = UInt(5.W)
+  val exception = new ExceptionInfo
 }
 
 class IDU(
@@ -128,16 +118,18 @@ class IDU(
     val out = Decoupled(new IDUOut)
 
     // RegFile
-    val regfile_in  = Input(new IDURegfileIn)
-    val regfile_out = Output(new IDURegfileOut)
+    val rs1_data = Input(UInt(p.XLEN.W))
+    val rs2_data = Input(UInt(p.XLEN.W))
+    val rs1_addr = Output(UInt(5.W))
+    val rs2_addr = Output(UInt(5.W))
 
     // Hazard
-    val exu_rd       = Input(UInt(5.W))
-    val exu_rd_valid = Input(Bool())
-    val lsu_rd       = Input(UInt(5.W))
-    val lsu_rd_valid = Input(Bool())
-    val wbu_rd       = Input(UInt(5.W))
-    val wbu_rd_valid = Input(Bool())
+    val exu_hazard_rd       = Input(UInt(5.W))
+    val exu_hazard_rd_valid = Input(Bool())
+    val lsu_hazard_rd       = Input(UInt(5.W))
+    val lsu_hazard_rd_valid = Input(Bool())
+    val wbu_hazard_rd       = Input(UInt(5.W))
+    val wbu_hazard_rd_valid = Input(Bool())
   })
 
   val pc   = io.in.bits.pc
@@ -159,10 +151,6 @@ class IDU(
   // Decode
   val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: csr_op :: exec_type :: Nil =
     ListLookup(inst, InstDecodeTable.default, InstDecodeTable.table)
-
-  // Don't assert since IFU sometimes fetches invalid instructions.
-  // That does not matter because they'll be flushed later.
-  // assert(!io.in.valid || fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: 0x$inst%x)")
 
   // Choose immediate
   val imm = MuxLookup(fmt, 0.U)(
@@ -187,8 +175,6 @@ class IDU(
     )
   )
 
-  // printf(cf"[IDU]: Inst: ${inst}, imm: ${imm}, rd: ${rd}, rs1: ${rs1}, rs2: ${rs2}, exec_type: ${exec_type}\n");
-
   // Detecting Hazards
   // Don't only use oper_type to detect hazards, because jump/branch's
   // ALU Op is always pc + 4 or branch cond.
@@ -201,15 +187,24 @@ class IDU(
 
   def has_hazard(rs: UInt, read: Bool) =
     rs =/= 0.U && read &&
-      ((rs === io.exu_rd && io.exu_rd_valid)
-        || (rs === io.lsu_rd && io.lsu_rd_valid)
-        || (rs === io.wbu_rd && io.wbu_rd_valid))
+      ((rs === io.exu_hazard_rd && io.exu_hazard_rd_valid)
+        || (rs === io.lsu_hazard_rd && io.lsu_hazard_rd_valid)
+        || (rs === io.wbu_hazard_rd && io.wbu_hazard_rd_valid))
 
   val wait_ebreak = exec_type === ExecType.EBreak && (
-    io.exu_rd_valid || io.lsu_rd_valid || io.wbu_rd_valid
+    io.exu_hazard_rd_valid || io.lsu_hazard_rd_valid || io.wbu_hazard_rd_valid
   )
 
   val hazard = io.in.valid && (has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read) || wait_ebreak)
+
+  // Exception
+  val prev_excp  = io.in.bits.exception
+  val excp       = Wire(new ExceptionInfo)
+  val is_illegal = fmt === InstFmt.E
+
+  excp.valid := prev_excp.valid || is_illegal
+  excp.cause := Mux(prev_excp.valid, prev_excp.cause, ExceptionCode.IllegalInstruction)
+  excp.tval  := Mux(prev_excp.valid, prev_excp.tval, inst)
 
   // IO
   io.out.bits.pc             := pc
@@ -227,10 +222,10 @@ class IDU(
   io.out.bits.rd_we          := we
 
   // Regfile
-  io.regfile_out.rs1_addr := rs1
-  io.regfile_out.rs2_addr := rs2
-  io.out.bits.rs1_data    := io.regfile_in.rs1_data
-  io.out.bits.rs2_data    := io.regfile_in.rs2_data
+  io.rs1_addr := rs1
+  io.rs2_addr := rs2
+  io.out.bits.rs1_data    := io.rs1_data
+  io.out.bits.rs2_data    := io.rs2_data
 
   io.in.ready  := io.out.ready && !hazard
   io.out.valid := io.in.valid && !hazard
