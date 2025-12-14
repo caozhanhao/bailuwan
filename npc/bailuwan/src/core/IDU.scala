@@ -220,12 +220,13 @@ class IDU(
   io.out.bits.csr_op         := csr_op
   io.out.bits.rd_addr        := rd
   io.out.bits.rd_we          := we
+  io.out.bits.exception      := excp
 
   // Regfile
-  io.rs1_addr := rs1
-  io.rs2_addr := rs2
-  io.out.bits.rs1_data    := io.rs1_data
-  io.out.bits.rs2_data    := io.rs2_data
+  io.rs1_addr          := rs1
+  io.rs2_addr          := rs2
+  io.out.bits.rs1_data := io.rs1_data
+  io.out.bits.rs2_data := io.rs2_data
 
   io.in.ready  := io.out.ready && !hazard
   io.out.valid := io.in.valid && !hazard
