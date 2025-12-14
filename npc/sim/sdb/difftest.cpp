@@ -49,7 +49,7 @@ static void sync_regs_to_ref()
     }
     ctx.pc = cpu.pc();
     ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
-    Log("Syncing to ref at pc: " FMT_WORD "\n", cpu.pc());
+    // Log("Syncing to ref at pc: " FMT_WORD "\n", cpu.pc());
 }
 
 void init_difftest(size_t img_size)
@@ -86,7 +86,18 @@ void init_difftest(size_t img_size)
     Log("Initializing memory. RESET_VECTOR=0x%x, img_size=0x%lx", RESET_VECTOR, img_size);
     ref_difftest_memcpy(RESET_VECTOR, mem.guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
 
-    sync_regs_to_ref();
+    auto& cpu = SIM.cpu();
+
+    // Initialize registers
+    diff_context_t ctx{};
+    for (int i = 0; i < 4096; i++)
+    {
+        if (cpu.is_csr_valid(i))
+            ctx.csr[i] = cpu.csr(i);
+    }
+    // Don't use cpu.pc() here, since pc is a binding in EXU, and might be invalid at the beginning.
+    ctx.pc = RESET_VECTOR;
+    ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
 }
 
 static void checkregs(diff_context_t* ref)
