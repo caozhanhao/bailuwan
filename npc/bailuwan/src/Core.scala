@@ -60,12 +60,9 @@ class Core(
 
   val RegFile = Module(new RegFile)
 
-  // Note that redirect should flush the instruction in IFU -> IDU,
-  // but MUST NOT flush the instruction already in IDU -> EXU.
-  // The instruction in IDU -> EXU is the branch/jump itself and must complete
-  // the rest of the pipeline (for example, `jalr` must reach WBU to update rd).
-  PipelineConnect(IFU.io.out, IDU.io.in, EXU.io.redirect_valid)
-  PipelineConnect(IDU.io.out, EXU.io.in)
+  val flush = EXU.io.redirect_valid
+  PipelineConnect(IFU.io.out, IDU.io.in, flush)
+  PipelineConnect(IDU.io.out, EXU.io.in, flush)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
 
