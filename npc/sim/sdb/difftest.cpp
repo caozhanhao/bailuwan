@@ -37,7 +37,7 @@ static void sync_regs_to_ref()
 {
     auto& cpu = SIM.cpu();
 
-    diff_context_t ctx;
+    diff_context_t ctx{};
     for (int i = 0; i < 16; i++)
         ctx.gpr[i] = cpu.reg(i);
     for (int i = 0; i < 4096; i++)
@@ -49,7 +49,7 @@ static void sync_regs_to_ref()
     }
     ctx.pc = cpu.pc();
     ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
-    // Log("Syncing to ref at pc: " FMT_WORD "\n", cpu.pc());
+    Log("Syncing to ref at pc: " FMT_WORD "\n", cpu.pc());
 }
 
 void init_difftest(size_t img_size)
