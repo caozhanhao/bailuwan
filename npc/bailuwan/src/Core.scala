@@ -11,16 +11,24 @@ import utils.PerfCounter
 
 object PipelineConnect {
   def apply[T <: Data](
-    prevOut: DecoupledIO[T],
-    thisIn:  DecoupledIO[T],
-    flush:   Bool = false.B
+    prev_out:    DecoupledIO[T],
+    this_in:     DecoupledIO[T],
+    flush:       Bool = false.B,
+    // Force Flush indicates if we should flush the instruction stalled in register.
+    force_flush: Boolean = false
   ): Unit = {
-    prevOut.ready := thisIn.ready
-    thisIn.bits   := RegEnable(prevOut.bits, prevOut.valid && thisIn.ready)
+    prev_out.ready := this_in.ready
+    this_in.bits   := RegEnable(prev_out.bits, prev_out.valid && this_in.ready)
 
     val valid_reg = RegInit(false.B)
-    valid_reg    := Mux(flush, false.B, Mux(thisIn.ready, prevOut.valid, valid_reg))
-    thisIn.valid := valid_reg
+
+    if (force_flush) {
+      valid_reg := Mux(flush, false.B, Mux(this_in.ready, prev_out.valid, valid_reg))
+    } else {
+      valid_reg := Mux(this_in.ready, !flush && prev_out.valid, valid_reg)
+    }
+
+    this_in.valid := valid_reg
   }
 }
 
@@ -61,8 +69,8 @@ class Core(
   val RegFile = Module(new RegFile)
 
   val flush = EXU.io.redirect_valid
-  PipelineConnect(IFU.io.out, IDU.io.in, flush)
-  PipelineConnect(IDU.io.out, EXU.io.in, RegNext(flush))
+  PipelineConnect(IFU.io.out, IDU.io.in, flush, force_flush = true)
+  PipelineConnect(IDU.io.out, EXU.io.in, flush, force_flush = false)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
 
