@@ -203,8 +203,11 @@ class IDU(
         || (rs === io.lsu_rd && io.lsu_rd_valid)
         || (rs === io.wbu_rd && io.wbu_rd_valid))
 
-  val hazard = io.in.valid && (exec_type === ExecType.EBreak ||
-    has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read))
+  val wait_ebreak = exec_type === ExecType.EBreak && (
+    io.exu_rd_valid || io.lsu_rd_valid || io.wbu_rd_valid
+  )
+
+  val hazard = io.in.valid && (has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read) || wait_ebreak)
 
   // IO
   io.out.bits.pc             := pc
