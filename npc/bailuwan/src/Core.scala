@@ -23,8 +23,10 @@ object PipelineConnect {
     val valid_reg = RegInit(false.B)
 
     if (force_flush) {
+      // Even if stalled, the data in this register is invalidated immediately.
       valid_reg := Mux(flush, false.B, Mux(this_in.ready, prev_out.valid, valid_reg))
     } else {
+      // If stalled (!this_in.ready):  Keep `valid_reg`.
       valid_reg := Mux(this_in.ready, !flush && prev_out.valid, valid_reg)
     }
 
@@ -69,8 +71,14 @@ class Core(
   val RegFile = Module(new RegFile)
 
   val flush = EXU.io.redirect_valid
+
+  // The instruction currently in the IFU -> IDU register is possibly on the
+  // wrong branch (or follows a jump). We must clear it immediately, even if IDU is stalled.
   PipelineConnect(IFU.io.out, IDU.io.in, flush, force_flush = true)
-  PipelineConnect(IDU.io.out, EXU.io.in, flush, force_flush = false)
+  // The instruction currently in the IDU->EXU register is the jump/branch itself.
+  // If the pipeline stalls, this JAL must remain in the register until it is accepted
+  // by the next stage (LSU). A force flush would kill the jump/branch before it enters the LSU.
+  PipelineConnect(IDU.io.out, EXU.io.in)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
 
