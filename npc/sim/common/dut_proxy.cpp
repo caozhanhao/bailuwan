@@ -116,16 +116,6 @@ bool CPUProxy::is_csr_valid(uint32_t idx) const
     return bindings.csrs[idx] != nullptr;
 }
 
-bool CPUProxy::is_ready_for_difftest_wbu() const
-{
-    return *bindings.wbu_difftest_ready;
-}
-
-bool CPUProxy::is_inst_ready_for_trace_exu() const
-{
-    return *bindings.exu_inst_trace_ready;
-}
-
 void CPUProxy::dump_gprs(FILE* stream) const
 {
     for (int i = 0; i < 16; i++)

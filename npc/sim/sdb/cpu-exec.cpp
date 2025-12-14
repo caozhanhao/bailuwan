@@ -21,7 +21,7 @@ static void trace_and_difftest()
 #endif
 
     auto& cpu = SIM.cpu();
-    if (cpu.is_ready_for_difftest_exu())
+    if (cpu.exu_inst_trace_ready())
     {
 #ifdef CONFIG_ITRACE
         auto str = disasm.disassemble(cpu.exu_pc(), cpu.exu_inst());
@@ -42,7 +42,7 @@ static void trace_and_difftest()
 #endif
     }
 
-    if (cpu.is_ready_for_difftest_exu())
+    if (cpu.wbu_difftest_ready())
     {
         IFDEF(CONFIG_DIFFTEST, difftest_step());
     }

@@ -131,12 +131,6 @@ public:
     [[nodiscard]] uint32_t reg(uint32_t idx) const;
     [[nodiscard]] uint32_t csr(uint32_t idx) const;
     [[nodiscard]] bool is_csr_valid(uint32_t idx) const;
-
-    // Indicate one instruction done
-    [[nodiscard]] bool is_ready_for_difftest_wbu() const;
-
-    // Indicate one instruction **is going to** be executed
-    [[nodiscard]] bool is_inst_ready_for_trace_exu() const;
 };
 
 struct DUTMemory
