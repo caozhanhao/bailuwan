@@ -77,7 +77,8 @@ class LSU(
       //   1. io.in.valid rather than `fire`.
       //      Because we want the request latched in the pipeline registers during
       //      the transaction.
-      //   2. !io.wbu.flush to avoid 
+      //   2. !io.wbu.flush to avoid control hazard.
+      //      If WBU is flushing the pipeline, we must NOT enter any state.
       s_idle       -> Mux(io.in.valid && !io.wbu_flush, entry_state, s_idle),
       s_r_addr     -> Mux(io.mem.ar.fire, s_r_wait_mem, s_r_addr),
       s_r_wait_mem -> Mux(io.mem.r.fire, s_wait_ready, s_r_wait_mem),
