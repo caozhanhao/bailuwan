@@ -55,7 +55,7 @@ class WBU(
   // init connections for Element types
   val wbu_inst = Reg(UInt(32.W))
   wbu_inst := io.in.bits.inst
-  val wbu_pc = Reg(UInt(32.W))
+  val wbu_pc = Reg(UInt(p.XLEN.W))
   wbu_pc := io.in.bits.pc
   SignalProbe(wbu_inst, "wbu_inst")
   SignalProbe(wbu_pc, "wbu_pc")
