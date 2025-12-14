@@ -69,7 +69,8 @@ PERF_COUNTER_TABLE_ENTRY(all_ops) \
 PERF_COUNTER_TABLE_ENTRY(all_cycles) \
 PERF_COUNTER_TABLE_ENTRY(icache_hit) \
 PERF_COUNTER_TABLE_ENTRY(icache_miss) \
-PERF_COUNTER_TABLE_ENTRY(icache_mem_access_cycles)
+PERF_COUNTER_TABLE_ENTRY(icache_mem_access_cycles) \
+PERF_COUNTER_TABLE_ENTRY(idu_hazard_stall_cycles)
 
 #define SIGNAL_TABLE \
 SIGNAL_TABLE_ENTRY(uint32_t, ifu_pc) \
