@@ -65,7 +65,7 @@ class Core(
   // The instruction in IDU -> EXU is the branch/jump itself and must complete
   // the rest of the pipeline (for example, `jalr` must reach WBU to update rd).
   PipelineConnect(IFU.io.out, IDU.io.in, EXU.io.redirect_valid)
-  PipelineConnect(IDU.io.out, EXU.io.in, EXU.io.redirect_valid)
+  PipelineConnect(IDU.io.out, EXU.io.in)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
 
