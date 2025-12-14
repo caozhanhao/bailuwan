@@ -191,7 +191,7 @@ class EXU(
   // Expose pc and inst in EXU to avoid the testbench see the flushed instructions
   SignalProbe(decoded.pc, "pc")
   SignalProbe(decoded.inst, "inst")
-  SignalProbe(io.in.valid, "inst_valid")
+  SignalProbe(io.in.fire, "inst_valid")
 
   PerfCounter(io.out.valid, "exu_done")
 }
