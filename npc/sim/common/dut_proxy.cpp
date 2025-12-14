@@ -449,11 +449,11 @@ void SimHandle::reset(int n)
 void SimHandle::dump_after_ebreak()
 {
     auto a0 = cpu().reg(10);
-    auto pc = cpu().pc();
+    auto exu_pc = cpu().exu_pc();
     if (a0 == 0)
-        printf("\33[1;32mHIT GOOD TRAP\33[0m at pc = 0x%x\n", pc);
+        printf("\33[1;32mHIT GOOD TRAP\33[0m at exu_pc = 0x%x\n", exu_pc);
     else
-        printf("\33[1;41mHIT BAD TRAP\33[0m at pc = 0x%x, a0=%d\n", pc, a0);
+        printf("\33[1;41mHIT BAD TRAP\33[0m at exu_pc = 0x%x, a0=%d\n", exu_pc, a0);
 
     printf("Ebreak after %lu cycles\n", simulator_cycles());
     printf("Statistics:\n");

@@ -96,8 +96,8 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
         return -1;
     }
 
-    auto pc = SIM.cpu().pc();
-    auto dnpc = SIM.cpu().dnpc();
+    auto pc = SIM.cpu().exu_pc();
+    auto dnpc = SIM.cpu().exu_dnpc();
 
     if (is_call)
     {
