@@ -43,7 +43,7 @@ class LSU(
   val pc        = io.in.bits.pc
   val inst      = io.in.bits.inst
   val prev_excp = io.in.bits.exception
-  
+
   val req_addr = io.in.bits.lsu.addr
   val req_data = io.in.bits.lsu.store_data
   val wbu_info = io.in.bits.wbu
