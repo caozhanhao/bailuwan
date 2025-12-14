@@ -18,12 +18,16 @@ class EXUOutForWBU(
   val rd_we    = Bool()
 
   // ALU
-  val alu_out = UInt(p.XLEN.W)
+  val alu_out     = UInt(p.XLEN.W)
   // CSR Out:
   //   CSR{RW, RS, RC}[I] -> the CSR indicated by inst[31:20]
   //   ECall              -> mtvec
   //   MRet               -> mepc
-  val csr_out = UInt(p.XLEN.W)
+  val csr_out     = UInt(p.XLEN.W)
+  val csr_rd_addr = UInt(12.W)
+  val csr_rd_data = UInt(p.XLEN.W)
+
+  val is_trap_return = Bool()
 }
 
 class EXUOutForLSU(
@@ -32,9 +36,6 @@ class EXUOutForLSU(
   val op         = UInt(LSUOp.WIDTH)
   val addr       = UInt(p.XLEN.W)
   val store_data = UInt(p.XLEN.W)
-
-  val pc        = UInt(p.XLEN.W)
-  val inst      = UInt(32.W)
 }
 
 class EXUOut(
@@ -42,6 +43,10 @@ class EXUOut(
     extends Bundle {
   val lsu = new EXUOutForLSU
   val wbu = new EXUOutForWBU
+
+  val pc        = UInt(p.XLEN.W)
+  val inst      = UInt(32.W)
+  val exception = new ExceptionInfo
 }
 
 class EXU(
@@ -51,16 +56,21 @@ class EXU(
     val in  = Flipped(Decoupled(new IDUOut))
     val out = Decoupled(new EXUOut)
 
-    // IFU
-    val redirect_valid  = Output(Bool())
-    val redirect_target = Output(UInt(p.XLEN.W))
+    // CSRFile
+    val csr_rs_addr = Output(UInt(12.W))
+    val csr_rs_en   = Output(Bool())
+    val csr_rs_data = Input(UInt(p.XLEN.W))
+
+    // Branch
+    val br_valid  = Output(Bool())
+    val br_target = Output(UInt(p.XLEN.W))
 
     // ICache
     val icache_flush = Output(Bool())
 
     // Hazard
-    val rd       = Output(UInt(5.W))
-    val rd_valid = Output(Bool())
+    val hazard_rd       = Output(UInt(5.W))
+    val hazard_rd_valid = Output(Bool())
   })
 
   val decoded = io.in.bits
@@ -69,25 +79,6 @@ class EXU(
   val rs1_data  = decoded.rs1_data
   val rs2_data  = decoded.rs2_data
 
-  val csr_file = Module(new CSRFile)
-  csr_file.io.read_addr   := decoded.csr_addr
-  csr_file.io.read_enable := true.B
-
-  csr_file.io.write_addr   := decoded.csr_addr
-  csr_file.io.write_enable := exec_type === ExecType.CSR
-
-  // FIXME
-  csr_file.io.has_intr := (exec_type === ExecType.ECall)
-  csr_file.io.epc      := decoded.pc
-  csr_file.io.cause    := MuxLookup(exec_type, 0.U)(
-    Seq(
-      // ECall from M priv.
-      ExecType.ECall -> (0x3 + 8).U
-    )
-  )
-
-  val csr_data = csr_file.io.read_data
-
   val oper_table = Seq(
     OperType.Rs1  -> rs1_data,
     OperType.Rs2  -> rs2_data,
@@ -95,7 +86,7 @@ class EXU(
     OperType.Zero -> 0.U,
     OperType.Four -> 4.U,
     OperType.PC   -> decoded.pc,
-    OperType.CSR  -> csr_data
+    OperType.CSR  -> io.csr_rs_data
   )
 
   val oper1 = MuxLookup(decoded.alu_oper1_type, 0.U)(oper_table)
@@ -133,25 +124,25 @@ class EXU(
 
   // CSR
   // Use oper2 to select imm for CSR{RWI/RSI/RCI}
-  val csr_write_data = MuxLookup(decoded.csr_op, 0.U)(
+  io.csr_rs_addr := decoded.csr_addr
+  io.csr_rs_en   := true.B
+
+  io.out.bits.wbu.csr_rd_addr := decoded.csr_addr
+  io.out.bits.wbu.csr_rd_data := MuxLookup(decoded.csr_op, 0.U)(
     Seq(
       CSROp.Nop -> 0.U,
       CSROp.RW  -> oper2,
-      CSROp.RS  -> (csr_data | oper2),
-      CSROp.RC  -> (csr_data & (~oper2).asUInt)
+      CSROp.RS  -> (io.csr_rs_data | oper2),
+      CSROp.RC  -> (io.csr_rs_data & (~oper2).asUInt)
     )
   )
-
-  // printf(cf"[EXU/CSR]: op=${decoded.csr_op}, oper2=${oper2}, csr_addr=${decoded.csr_addr}, csr_data=${csr_data}, rd=${decoded.rd}, rd_we=${decoded.rd_we}\n")
-
-  csr_file.io.write_data := csr_write_data
 
   val wbu = io.out.bits.wbu
   wbu.rd_addr  := decoded.rd_addr
   wbu.rd_we    := decoded.rd_we
   wbu.src_type := exec_type
   wbu.alu_out  := alu.io.result
-  wbu.csr_out  := csr_data
+  wbu.csr_out  := io.csr_rs_data
 
   val lsu = io.out.bits.lsu
   lsu.op         := decoded.lsu_op
@@ -162,29 +153,45 @@ class EXU(
   // val ebreak = Module(new TempEBreakForSTA)
   val ebreak = Module(new EBreak)
 
-  ebreak.io.en    := decoded.exec_type === ExecType.EBreak
+  ebreak.io.en    := io.in.fire && decoded.exec_type === ExecType.EBreak
   ebreak.io.clock := clock
 
   // Fence
-  io.icache_flush := decoded.exec_type === ExecType.FenceI
-
-  // dnpc
-  io.redirect_valid  := io.in.valid && (br_taken || exec_type === ExecType.ECall || exec_type === ExecType.MRet)
-  io.redirect_target := MuxLookup(exec_type, br_target)(
-    Seq(
-      ExecType.ECall -> csr_data,
-      ExecType.MRet  -> csr_data
-    )
-  )
+  io.icache_flush := io.in.fire && decoded.exec_type === ExecType.FenceI
 
   // Hazard
-  io.rd       := decoded.rd_addr
-  io.rd_valid := io.in.valid && decoded.rd_we
+  io.hazard_rd       := decoded.rd_addr
+  io.hazard_rd_valid := io.in.valid && decoded.rd_we
 
-  // Debug Signals
-  io.out.bits.lsu.pc   := decoded.pc
-  io.out.bits.lsu.inst := decoded.inst
+  io.out.bits.pc   := decoded.pc
+  io.out.bits.inst := decoded.inst
 
+  // Exception
+  val prev_excp = io.in.bits.exception
+  val excp      = Wire(new ExceptionInfo)
+
+  val is_ebreak = decoded.exec_type === ExecType.EBreak
+  val is_ecall  = decoded.exec_type === ExecType.ECall
+
+  excp.valid := prev_excp.valid || is_ebreak || is_ecall
+  excp.cause := MuxCase(
+    0.U,
+    Seq(
+      prev_excp.valid -> prev_excp.cause,
+      is_ebreak       -> ExceptionCode.Breakpoint,
+      is_ecall        -> ExceptionCode.EnvironmentCallFromMMode
+    )
+  )
+  excp.tval  := Mux(prev_excp.valid, prev_excp.tval, decoded.pc)
+
+  io.out.bits.exception          := excp
+  io.out.bits.wbu.is_trap_return := decoded.exec_type === ExecType.MRet
+
+  // Jump
+  io.br_valid  := io.in.fire && br_taken && !excp.valid
+  io.br_target := br_target
+
+  // IO
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
 
@@ -192,7 +199,7 @@ class EXU(
   SignalProbe(decoded.pc, "exu_pc")
   SignalProbe(decoded.inst, "exu_inst")
   SignalProbe(io.in.fire, "exu_inst_trace_ready")
-  SignalProbe(Mux(io.redirect_valid, io.redirect_target, decoded.pc + 4.U), "exu_dnpc")
+  SignalProbe(Mux(io.br_valid, io.br_target, decoded.pc + 4.U), "exu_dnpc")
 
   def once(b: Bool) = io.in.fire && b
   PerfCounter(once(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_ops")

@@ -8,12 +8,14 @@ import chisel3.util._
 import amba._
 import utils.{PerfCounter, SignalProbe}
 import bailuwan.CoreParams
+import constants.ExceptionCode
 
 class IFUOut(
   implicit p: CoreParams)
     extends Bundle {
-  val pc   = Output(UInt(p.XLEN.W))
-  val inst = Output(UInt(32.W))
+  val pc        = UInt(p.XLEN.W)
+  val inst      = UInt(32.W)
+  val exception = new ExceptionInfo
 }
 
 class ICacheReq(
@@ -199,15 +201,29 @@ class IFU(
 
   val resp_queue = Module(new Queue(new IFUOut, entries = 4, hasFlush = true))
 
+  // Exception
+  val is_misaligned   = icache_io.resp.bits.addr(1, 0) =/= 0.U
+  val is_access_fault = icache_io.resp.bits.error
+  val excp            = Wire(new ExceptionInfo)
+  excp.valid := is_misaligned || is_access_fault
+  excp.cause := Mux(
+    is_misaligned,
+    ExceptionCode.InstructionAddressMisaligned,
+    ExceptionCode.InstructionAccessFault
+  )
+  excp.tval  := icache_io.resp.bits.addr
+
+  // IO
   icache_io.kill          := io.redirect_valid
   icache_io.req.bits.addr := pc
   icache_io.req.valid     := !reset.asBool && !io.redirect_valid
   icache_io.resp.ready    := resp_queue.io.enq.ready
 
-  resp_queue.io.enq.valid     := icache_io.resp.valid
-  resp_queue.io.enq.bits.inst := icache_io.resp.bits.data
-  resp_queue.io.enq.bits.pc   := icache_io.resp.bits.addr
-  resp_queue.io.flush.get     := io.redirect_valid
+  resp_queue.io.enq.valid          := icache_io.resp.valid
+  resp_queue.io.enq.bits.pc        := icache_io.resp.bits.addr
+  resp_queue.io.enq.bits.inst      := icache_io.resp.bits.data
+  resp_queue.io.enq.bits.exception := excp
+  resp_queue.io.flush.get          := io.redirect_valid
 
   io.out.bits             := resp_queue.io.deq.bits
   io.out.valid            := resp_queue.io.deq.valid && !io.redirect_valid

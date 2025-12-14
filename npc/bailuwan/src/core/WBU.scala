@@ -9,26 +9,31 @@ import constants._
 import utils.SignalProbe
 import bailuwan.CoreParams
 
-class WBURegfileOut(
-  implicit p: CoreParams)
-    extends Bundle {
-  val rd_addr = UInt(5.W)
-  val rd_data = UInt(p.XLEN.W)
-  val rd_we   = Bool()
-}
-
 class WBU(
   implicit p: CoreParams)
     extends Module {
   val io = IO(new Bundle {
     val in = Flipped(Decoupled(new LSUOut))
 
-    // Regfile
-    val regfile_out = Output(new WBURegfileOut)
+    // RegFile
+    val rd_addr = Output(UInt(5.W))
+    val rd_data = Output(UInt(p.XLEN.W))
+    val rd_we   = Output(Bool())
+
+    // CSRFile and Exception
+    val csr_rd_we   = Output(Bool())
+    val csr_rd_addr = Output(UInt(12.W))
+    val csr_rd_data = Output(UInt(p.XLEN.W))
+    val csr_epc     = Output(UInt(p.XLEN.W))
+
+    val exception       = Output(new ExceptionInfo)
+    val redirect_valid  = Output(Bool())
+    val redirect_target = Output(UInt(p.XLEN.W))
   })
 
   val exu_out = io.in.bits.from_exu
   val lsu_out = io.in.bits.read_data
+  val excp    = io.in.bits.exception
 
   import ExecType._
   val rd_data = MuxLookup(exu_out.src_type, 0.U)(
@@ -39,9 +44,25 @@ class WBU(
     )
   )
 
-  io.regfile_out.rd_addr := io.in.bits.from_exu.rd_addr
-  io.regfile_out.rd_data := rd_data
-  io.regfile_out.rd_we   := io.in.valid && exu_out.rd_we
+  io.rd_addr := exu_out.rd_addr
+  io.rd_data := rd_data
+  io.rd_we   := io.in.valid && exu_out.rd_we && !excp.valid
+
+  // CSR
+  val is_csr = exu_out.src_type === ExecType.CSR
+  io.csr_rd_we   := io.in.valid && !excp.valid && is_csr
+  io.csr_rd_addr := exu_out.csr_rd_addr
+  io.csr_rd_data := exu_out.csr_rd_data
+
+  // Exception
+  io.exception.valid := io.in.valid && excp.valid
+  io.exception.cause := excp.cause
+  io.exception.tval  := excp.tval
+  io.csr_epc         := io.in.bits.pc
+
+  // Redirect
+  io.redirect_valid  := io.in.valid && (excp.valid || exu_out.is_trap_return)
+  io.redirect_target := exu_out.csr_out
 
   io.in.ready := true.B
 

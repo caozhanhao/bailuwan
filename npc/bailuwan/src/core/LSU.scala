@@ -18,9 +18,9 @@ class LSUOut(
   // Forward from EXU
   val from_exu  = new EXUOutForWBU
 
-  // Debug
-  val pc   = UInt(p.XLEN.W)
-  val inst = UInt(32.W)
+  val pc        = UInt(p.XLEN.W)
+  val inst      = UInt(32.W)
+  val exception = new ExceptionInfo
 }
 
 class LSU(
@@ -34,16 +34,22 @@ class LSU(
     val mem = new AXI4()
 
     // Hazard
-    val rd       = Output(UInt(5.W))
-    val rd_valid = Output(Bool())
+    val hazard_rd       = Output(UInt(5.W))
+    val hazard_rd_valid = Output(Bool())
+
+    val wbu_flush = Input(Bool())
   })
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
+  val pc        = io.in.bits.pc
+  val inst      = io.in.bits.inst
+  val prev_excp = io.in.bits.exception
+
   val req_addr = io.in.bits.lsu.addr
-  val req_op   = io.in.bits.lsu.op
   val req_data = io.in.bits.lsu.store_data
   val wbu_info = io.in.bits.wbu
+  val req_op   = Mux(prev_excp.valid, LSUOp.Nop, io.in.bits.lsu.op)
 
   // States
   val (s_idle :: s_r_addr :: s_r_wait_mem ::
@@ -67,10 +73,13 @@ class LSU(
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(
     Seq(
-      // ATTENTION: io.in.valid rather than `fire`.
-      //            Because we want the request latched in the pipeline registers during
-      //            the transaction.
-      s_idle       -> Mux(io.in.valid, entry_state, s_idle),
+      // ATTENTION:
+      //   1. io.in.valid rather than `fire`.
+      //      Because we want the request latched in the pipeline registers during
+      //      the transaction.
+      //   2. !io.wbu.flush to avoid control hazard.
+      //      If WBU is flushing the pipeline, we must NOT enter any state.
+      s_idle       -> Mux(io.in.valid && !io.wbu_flush, entry_state, s_idle),
       s_r_addr     -> Mux(io.mem.ar.fire, s_r_wait_mem, s_r_addr),
       s_r_wait_mem -> Mux(io.mem.r.fire, s_wait_ready, s_r_wait_mem),
       s_w_addr     -> Mux(io.mem.aw.fire, Mux(io.mem.w.fire, s_w_wait_mem, s_w_data), s_w_addr),
@@ -191,40 +200,30 @@ class LSU(
   io.mem.w.bits.last := true.B
 
   // Hazard
-  io.rd       := wbu_info.rd_addr
-  io.rd_valid := io.in.valid && wbu_info.rd_we
+  io.hazard_rd       := wbu_info.rd_addr
+  io.hazard_rd_valid := io.in.valid && wbu_info.rd_we
 
+  // Exception
+  val excp = Wire(new ExceptionInfo)
 
-  val pc = io.in.bits.lsu.pc
-  val inst = io.in.bits.lsu.inst
+  val resp_err = (io.mem.r.fire && io.mem.r.bits.resp =/= AXIResp.OKAY) ||
+    (io.mem.b.fire && io.mem.b.bits.resp =/= AXIResp.OKAY)
 
-  io.out.bits.pc   := pc
-  io.out.bits.inst := inst
+  val access_fault = RegInit(false.B)
+  access_fault := MuxCase(access_fault, Seq((state === s_idle) -> false.B, resp_err -> true.B))
+
+  val is_store = req_op === LSUOp.SB || req_op === LSUOp.SH || req_op === LSUOp.SW
+  val cause    = Mux(is_store, ExceptionCode.StoreAMOPageFault, ExceptionCode.LoadAccessFault)
+
+  excp.valid := prev_excp.valid || access_fault
+  excp.cause := Mux(prev_excp.valid, prev_excp.cause, cause)
+  excp.tval  := Mux(prev_excp.valid, prev_excp.tval, req_addr)
+
+  io.out.bits.pc        := pc
+  io.out.bits.inst      := inst
+  io.out.bits.exception := excp
 
   // Debug
-  val misaligned = MuxLookup(req_op, false.B)(
-    Seq(
-      LSUOp.LH  -> req_addr(0),
-      LSUOp.SH  -> req_addr(0),
-      LSUOp.LHU -> req_addr(0),
-      LSUOp.LW  -> (req_addr(1) | req_addr(0)),
-      LSUOp.SW  -> (req_addr(1) | req_addr(0))
-    )
-  )
-
-  assert(!misaligned, cf"LSU: Misaligned access at 0x${req_addr}%x")
-
-  assert(
-    !io.mem.r.valid || io.mem.r.bits.resp === AXIResp.OKAY,
-    cf"LSU: Read fault. pc=0x${pc}%x, inst=0x${inst}%x, " +
-      cf"addr=0x${req_addr}%x, resp=${io.mem.r.bits.resp}"
-  )
-  assert(
-    !io.mem.b.valid || io.mem.b.bits.resp === AXIResp.OKAY,
-    cf"LSU: Write fault. pc=0x${pc}%x, inst=0x${inst}%x, " +
-      cf"addr=0x${req_addr}%x, resp=${io.mem.b.bits.resp}"
-  )
-
   SignalProbe(pc, "lsu_pc")
   SignalProbe(inst, "lsu_inst")
 

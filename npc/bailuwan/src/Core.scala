@@ -11,21 +11,23 @@ import utils.PerfCounter
 
 object PipelineConnect {
   def apply[T <: Data](
-    prev_out:    DecoupledIO[T],
-    this_in:     DecoupledIO[T],
-    flush:       Bool = false.B,
+    prev_out:        DecoupledIO[T],
+    this_in:         DecoupledIO[T],
+    wbu_flush:       Bool, // WBU always force flush
+    exu_flush:       Bool = false.B,
     // Force Flush indicates if we should flush the instruction stalled in register.
-    force_flush: Boolean = false
+    exu_force_flush: Boolean = false
   ): Unit = {
     prev_out.ready := this_in.ready
     this_in.bits   := RegEnable(prev_out.bits, prev_out.valid && this_in.ready)
 
     val valid_reg = RegInit(false.B)
 
-    if (force_flush) {
+    if (exu_force_flush) {
       // Even if stalled, the data in this register is invalidated immediately.
-      valid_reg := Mux(flush, false.B, Mux(this_in.ready, prev_out.valid, valid_reg))
+      valid_reg := Mux(wbu_flush || exu_flush, false.B, Mux(this_in.ready, prev_out.valid, valid_reg))
     } else {
+      // For non-force exu flush:
       // If stalled (!this_in.ready):  Keep `valid_reg`.
       // If not stalled, mask the input with `!flush`.
       // Imaging a state where EXU holds jal (flush=1) and LSU is Ready (No Stall).
@@ -35,7 +37,7 @@ object PipelineConnect {
       //   3. [IDU->EXU]: EXU captures 0 due to `!flush` mask.
       //      Note that IDU currently holds the instruction after jal, and
       //    ` prev_out.valid` is still HIGH. Thus, we must mask it with `!flush`
-      valid_reg := Mux(this_in.ready, !flush && prev_out.valid, valid_reg)
+      valid_reg := Mux(wbu_flush, false.B, Mux(this_in.ready, !exu_flush && prev_out.valid, valid_reg))
     }
 
     this_in.valid := valid_reg
@@ -77,43 +79,58 @@ class Core(
   val WBU = Module(new WBU)
 
   val RegFile = Module(new RegFile)
+  val CSRFile = Module(new CSRFile)
 
-  val flush = EXU.io.redirect_valid
+  val exu_flush = EXU.io.br_valid
+  val wbu_flush = WBU.io.redirect_valid
 
-  // The instruction currently in the IFU -> IDU register is possibly on the
-  // wrong branch (or follows a jump). We must clear it immediately, even if IDU is stalled.
-  PipelineConnect(IFU.io.out, IDU.io.in, flush, force_flush = true)
+  PipelineConnect(IFU.io.out, IDU.io.in, wbu_flush, exu_flush, exu_force_flush = true)
   // The instruction currently in the IDU->EXU register is the jump/branch itself.
   // If the pipeline stalls, this JAL must remain in the register until it is accepted
-  // by the next stage (LSU). A force flush would kill the jump/branch before it enters the LSU.
-  PipelineConnect(IDU.io.out, EXU.io.in, flush, force_flush = false)
-  PipelineConnect(EXU.io.out, LSU.io.in)
-  PipelineConnect(LSU.io.out, WBU.io.in)
+  // by the next stage (LSU). EXU's flush MUST NOT kill the jump/branch before
+  // it enters the LSU.
+  PipelineConnect(IDU.io.out, EXU.io.in, wbu_flush, exu_flush, exu_force_flush = false)
+  PipelineConnect(EXU.io.out, LSU.io.in, wbu_flush)
+  PipelineConnect(LSU.io.out, WBU.io.in, wbu_flush)
 
   // Redirect
-  IFU.io.redirect_valid  := EXU.io.redirect_valid
-  IFU.io.redirect_target := EXU.io.redirect_target
+  IFU.io.redirect_valid  := exu_flush || wbu_flush
+  IFU.io.redirect_target := Mux(wbu_flush, WBU.io.redirect_target, EXU.io.br_target)
+  LSU.io.wbu_flush       := wbu_flush
 
-  // Regfile - IDU
-  IDU.io.regfile_in.rs1_data := RegFile.io.rs1_data
-  IDU.io.regfile_in.rs2_data := RegFile.io.rs2_data
-  RegFile.io.rs1_addr        := IDU.io.regfile_out.rs1_addr
-  RegFile.io.rs2_addr        := IDU.io.regfile_out.rs2_addr
-  // Regfile - WBU
-  RegFile.io.rd_addr         := WBU.io.regfile_out.rd_addr
-  RegFile.io.rd_we           := WBU.io.regfile_out.rd_we
-  RegFile.io.rd_data         := WBU.io.regfile_out.rd_data
+  // RegFile - IDU
+  IDU.io.rs1_data     := RegFile.io.rs1_data
+  IDU.io.rs2_data     := RegFile.io.rs2_data
+  RegFile.io.rs1_addr := IDU.io.rs1_addr
+  RegFile.io.rs2_addr := IDU.io.rs2_addr
+
+  // RegFile - WBU
+  RegFile.io.rd_addr := WBU.io.rd_addr
+  RegFile.io.rd_we   := WBU.io.rd_we
+  RegFile.io.rd_data := WBU.io.rd_data
+
+  // CSRFile - EXU
+  EXU.io.csr_rs_data     := CSRFile.io.read_data
+  CSRFile.io.read_addr   := EXU.io.csr_rs_addr
+  CSRFile.io.read_enable := EXU.io.csr_rs_en
+
+  // CSRFile - WBU
+  CSRFile.io.write_addr   := WBU.io.csr_rd_addr
+  CSRFile.io.write_enable := WBU.io.csr_rd_we
+  CSRFile.io.write_data   := WBU.io.csr_rd_data
+  CSRFile.io.exception    := WBU.io.exception
+  CSRFile.io.epc          := WBU.io.csr_epc
 
   // ICache Flush
   IFU.io.icache_flush := EXU.io.icache_flush
 
   // Hazard
-  IDU.io.exu_rd       := EXU.io.rd
-  IDU.io.exu_rd_valid := EXU.io.rd_valid
-  IDU.io.lsu_rd       := LSU.io.rd
-  IDU.io.lsu_rd_valid := LSU.io.rd_valid
-  IDU.io.wbu_rd       := WBU.io.regfile_out.rd_addr
-  IDU.io.wbu_rd_valid := WBU.io.regfile_out.rd_we
+  IDU.io.exu_hazard_rd       := EXU.io.hazard_rd
+  IDU.io.exu_hazard_rd_valid := EXU.io.hazard_rd_valid
+  IDU.io.lsu_hazard_rd       := LSU.io.hazard_rd
+  IDU.io.lsu_hazard_rd_valid := LSU.io.hazard_rd_valid
+  IDU.io.wbu_hazard_rd       := WBU.io.rd_addr
+  IDU.io.wbu_hazard_rd_valid := WBU.io.rd_we
 
   // Memory, LSU > IFU
   val arbiter = Module(new AXI4Arbiter(2))

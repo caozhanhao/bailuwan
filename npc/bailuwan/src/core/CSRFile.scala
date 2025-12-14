@@ -21,10 +21,11 @@ class CSRFile(
     val write_data   = Input(UInt(p.XLEN.W))
     val write_enable = Input(Bool())
 
-    val has_intr = Input(Bool())
-    val epc      = Input(UInt(p.XLEN.W))
-    val cause    = Input(UInt(p.XLEN.W))
+    val exception = Input(new ExceptionInfo())
+    val epc       = Input(UInt(p.XLEN.W))
   })
+
+  val excp = io.exception
 
   // ysyx_25100251 caozhanhao
   val mvendorid = 0x79737978.U(32.W)
@@ -36,6 +37,7 @@ class CSRFile(
   val mtvec   = RegInit(0.U(p.XLEN.W))
   val mepc    = RegInit(0.U(p.XLEN.W))
   val mcause  = RegInit(0.U(p.XLEN.W))
+  val mtval   = RegInit(0.U(p.XLEN.W))
 
   val mcycle = RegInit(0.U(64.W))
   mcycle := mcycle + 1.U
@@ -45,8 +47,9 @@ class CSRFile(
   mstatus := writable(CSR.mstatus, mstatus)
   mtvec   := writable(CSR.mtvec, mtvec)
 
-  mepc   := Mux(io.has_intr, io.epc, writable(CSR.mepc, mepc))
-  mcause := Mux(io.has_intr, io.cause, writable(CSR.mcause, mcause))
+  mepc   := Mux(excp.valid, io.epc, writable(CSR.mepc, mepc))
+  mcause := Mux(excp.valid, excp.cause, writable(CSR.mcause, mcause))
+  mtval  := Mux(excp.valid, excp.tval, writable(CSR.mtval, mtval))
 
   val mcycle_read_val  = (if (p.XLEN == 32) mcycle(31, 0) else mcycle)
   val mcycleh_read_val = (if (p.XLEN == 32) mcycle(63, 32) else 0.U)
@@ -57,6 +60,7 @@ class CSRFile(
       CSR.mtvec     -> mtvec,
       CSR.mepc      -> mepc,
       CSR.mcause    -> mcause,
+      CSR.mtval     -> mtval,
       CSR.mcycle    -> mcycle_read_val,
       CSR.mcycleh   -> mcycleh_read_val,
       CSR.mvendorid -> mvendorid,
@@ -72,6 +76,7 @@ class CSRFile(
   SignalProbe(mtvec, "mtvec")
   SignalProbe(mepc, "mepc")
   SignalProbe(mcause, "mcause")
+  SignalProbe(mtval, "mtval")
   SignalProbe(mcycle_read_val, "mcycle")
   SignalProbe(mcycleh_read_val, "mcycleh")
   SignalProbe(mvendorid, "mvendorid")

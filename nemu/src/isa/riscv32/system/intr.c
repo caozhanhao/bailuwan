@@ -23,6 +23,7 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
    */
 
   cpu_csr(CSR_mepc) = epc;
+  cpu_csr(CSR_mtval) = epc; // FIXME
   cpu_csr(CSR_mcause) = NO;
 
   IFDEF(CONFIG_ETRACE,

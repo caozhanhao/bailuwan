@@ -41,6 +41,7 @@ typedef struct {
   CSR_TABLE_ENTRY(mtvec, 0x305)                                                                                        \
   CSR_TABLE_ENTRY(mepc, 0x341)                                                                                         \
   CSR_TABLE_ENTRY(mcause, 0x342)                                                                                       \
+  CSR_TABLE_ENTRY(mtval, 0x343)                                                                                        \
   CSR_TABLE_ENTRY(mcycle, 0xb00)                                                                                       \
   CSR_TABLE_ENTRY(mcycleh, 0xb80)                                                                                      \
   CSR_TABLE_ENTRY(mvendorid, 0xf11)                                                                                    \
