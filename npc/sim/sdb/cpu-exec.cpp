@@ -21,7 +21,7 @@ static void trace_and_difftest()
 #endif
 
     auto& cpu = SIM.cpu();
-    if (cpu.is_inst_valid())
+    if (cpu.is_inst_ready_for_trace())
     {
 #ifdef CONFIG_ITRACE
         auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
@@ -42,7 +42,10 @@ static void trace_and_difftest()
 #endif
     }
 
-    IFDEF(CONFIG_DIFFTEST, difftest_step());
+    if (cpu.is_ready_for_difftest())
+    {
+        IFDEF(CONFIG_DIFFTEST, difftest_step());
+    }
 }
 
 static void execute(uint64_t n)
@@ -63,7 +66,7 @@ static void execute(uint64_t n)
 
         if (sdb_state != SDBState::Running) break;
 
-        if (cpu.is_inst_valid())
+        if (cpu.is_inst_ready_for_trace())
             --n;
 
         if (sim_stop_requested)

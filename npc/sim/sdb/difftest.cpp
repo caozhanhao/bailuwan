@@ -161,22 +161,8 @@ static bool is_accessing_device()
     return false;
 }
 
-// Difftest happens after each cycle, and before the rising edge of the next cycle.
-//
-//              _____       _____
-//   clock     |     |_____|     |_____
-//              cycle 1        cycle 2
-//                     ^
-//                     |
-//          difftest_step is called here
 void difftest_step()
 {
-    // If this cycle is ready for difftest,
-    // skip this cycle but do NOT sync registers.
-    auto& cpu = SIM.cpu();
-    if (!cpu.is_ready_for_difftest())
-        return;
-
     if (is_accessing_device())
     {
         // printf("Skipped 0x%x\n", SIM.cpu().curr_inst());

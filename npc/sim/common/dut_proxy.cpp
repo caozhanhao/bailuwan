@@ -139,9 +139,9 @@ bool CPUProxy::is_ready_for_difftest() const
     return *bindings.difftest_ready;
 }
 
-bool CPUProxy::is_inst_valid() const
+bool CPUProxy::is_inst_ready_for_trace() const
 {
-    return *bindings.inst_valid;
+    return *bindings.inst_trace_ready;
 }
 
 void CPUProxy::dump_gprs(FILE* stream) const
