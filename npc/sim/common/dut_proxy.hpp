@@ -79,6 +79,7 @@ PERF_COUNTER_TABLE_ENTRY(icache_mem_access_cycles)
 
 #define SIGNAL_TABLE \
 SIGNAL_TABLE_ENTRY(uint32_t, pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, dnpc) \
 SIGNAL_TABLE_ENTRY(uint32_t, inst) \
 SIGNAL_TABLE_ENTRY(uint8_t, inst_trace_ready) \
 SIGNAL_TABLE_ENTRY(uint8_t, difftest_ready)
@@ -114,6 +115,7 @@ public:
     void dump_perf_counters(FILE* stream = stderr);
     void dump(FILE* stream = stderr);
     [[nodiscard]] uint32_t pc() const;
+    [[nodiscard]] uint32_t dnpc() const;
     [[nodiscard]] uint32_t curr_inst() const;
     [[nodiscard]] uint64_t inst_count() const;
     [[nodiscard]] uint64_t cycle_count() const;
