@@ -136,7 +136,7 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
 
 int isa_ftrace_dump(char* buf, size_t buf_size)
 {
-    auto inst = SIM.cpu().curr_inst();
+    auto inst = SIM.cpu().exu_inst();
 
 
     // jal
