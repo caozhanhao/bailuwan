@@ -20,6 +20,8 @@ static void trace_and_difftest()
     }
 #endif
 
+    // Trace ready is asserted in EXU, thus operations in trace should
+    // use exu_pc, exu_inst, ...
     auto& cpu = SIM.cpu();
     if (cpu.exu_inst_trace_ready())
     {
@@ -42,6 +44,8 @@ static void trace_and_difftest()
 #endif
     }
 
+    // Difftest ready is asserted in WBU, thus operations in trace should
+    // use wbu_pc, wbu_inst, ...
     if (cpu.wbu_difftest_ready())
     {
         IFDEF(CONFIG_DIFFTEST, difftest_step());
@@ -66,7 +70,7 @@ static void execute(uint64_t n)
 
         if (sdb_state != SDBState::Running) break;
 
-        if (cpu.is_inst_ready_for_trace())
+        if (cpu.exu_inst_trace_ready())
             --n;
 
         if (sim_stop_requested)

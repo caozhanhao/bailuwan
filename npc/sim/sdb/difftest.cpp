@@ -163,7 +163,7 @@ void difftest_step()
     {
         // ATTENTION: wbu_pc + 4
         //   `is_accessing_device` can only be true in store or load, thus the dnpc
-        //   is always wbu_pc + 4. We can NOT use pc or dnpc here because they are bindings in EXU.
+        //   is always wbu_pc + 4. We can NOT use dnpc here because they are bindings in EXU.
         sync_regs_to_ref(SIM.cpu().wbu_pc() + 4);
         return;
     }
