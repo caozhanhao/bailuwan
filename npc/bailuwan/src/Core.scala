@@ -19,7 +19,7 @@ object PipelineConnect {
     thisIn.bits   := RegEnable(prevOut.bits, prevOut.valid && thisIn.ready)
 
     val valid_reg = RegInit(false.B)
-    valid_reg    := Mux(flush, false.B, Mux(thisIn.ready, prevOut.valid, valid_reg))
+    valid_reg    := Mux(thisIn.ready, !flush && prevOut.valid, valid_reg)
     thisIn.valid := valid_reg
   }
 }
