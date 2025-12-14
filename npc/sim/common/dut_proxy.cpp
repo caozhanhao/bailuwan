@@ -63,7 +63,7 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
 
     // Normal Signals
     BIND_SIGNAL(pc, "pc")
-    BIND_SIGNAL(inst_valid, "inst_valid")
+    BIND_SIGNAL(inst_trace_ready, "inst_trace_ready")
     BIND_SIGNAL(dnpc, "dnpc")
     BIND_SIGNAL(inst, "inst")
     BIND_SIGNAL(difftest_ready, "difftest_ready")
