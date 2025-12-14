@@ -168,4 +168,5 @@ class Core(
   arbiter.io.slave <> xbar.io.master
 
   PerfCounter(true.B, "all_cycles")
+  PerfCounter(exu_flush, "branch_mispredict_count")
 }
