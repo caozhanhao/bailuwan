@@ -11,70 +11,38 @@ import utils.PerfCounter
 
 object PipelineConnect {
   def apply[T <: Data](
-    prev_out:  DecoupledIO[T],
-    this_in:   DecoupledIO[T],
-    flush_ops: (Bool, Bool)*
+    prev_out:        DecoupledIO[T],
+    this_in:         DecoupledIO[T],
+    wbu_flush:       Bool, // WBU always force flush
+    exu_flush:       Bool = false.B,
+    // Force Flush indicates if we should flush the instruction stalled in register.
+    exu_force_flush: Boolean = false
   ): Unit = {
     prev_out.ready := this_in.ready
     this_in.bits   := RegEnable(prev_out.bits, prev_out.valid && this_in.ready)
 
-    // Valid Bit
     val valid_reg = RegInit(false.B)
 
-    // effective_flush: true if ANY request is active
-    val flush = flush_ops.map(_._1).foldLeft(false.B)(_ || _)
-
-    // effective_force: true if ANY active request demands a force flush
-    val force = flush_ops.map { case (req, is_force) => req && is_force }.foldLeft(false.B)(_ || _)
-
-    // State Update:
-    // If the Pipeline is Moving (ready=1)
-    //    -> Update valid with input, mask with !flush.
-    // Or the Pipeline is Stalled (ready=0)
-    //    -> Keep current valid_reg.
-    //    -> UNLESS (flush && force) is true, then clear to 0 immediately.
-
-    val next_valid_moving  = !flush && prev_out.valid
-    val next_valid_stalled = valid_reg && !(flush && force)
-
-    valid_reg := Mux(this_in.ready, next_valid_moving, next_valid_stalled)
+    if (exu_force_flush) {
+      // Even if stalled, the data in this register is invalidated immediately.
+      valid_reg := Mux(wbu_flush || exu_flush, false.B, Mux(this_in.ready, prev_out.valid, valid_reg))
+    } else {
+      // For non-force exu flush:
+      // If stalled (!this_in.ready):  Keep `valid_reg`.
+      // If not stalled, mask the input with `!flush`.
+      // Imaging a state where EXU holds jal (flush=1) and LSU is Ready (No Stall).
+      // At the exact rising edge of the clock:
+      //   1. [EXU->LSU]: LSU captures JAL from EXU.
+      //   2. [IFU->IDU]: IDU captures 0 due to force flush.
+      //   3. [IDU->EXU]: EXU captures 0 due to `!flush` mask.
+      //      Note that IDU currently holds the instruction after jal, and
+      //    ` prev_out.valid` is still HIGH. Thus, we must mask it with `!flush`
+      valid_reg := Mux(wbu_flush, false.B, Mux(this_in.ready, !exu_flush && prev_out.valid, valid_reg))
+    }
 
     this_in.valid := valid_reg
   }
 }
-
-//object PipelineConnecst {
-//  def apply[T <: Data](
-//    prev_out:    DecoupledIO[T],
-//    this_in:     DecoupledIO[T],
-//    flush:       Bool = false.B,
-//    // Force Flush indicates if we should flush the instruction stalled in register.
-//    force_flush: Boolean = false
-//  ): Unit = {
-//    prev_out.ready := this_in.ready
-//    this_in.bits   := RegEnable(prev_out.bits, prev_out.valid && this_in.ready)
-//
-//    val valid_reg = RegInit(false.B)
-//
-//    if (force_flush) {
-//      // Even if stalled, the data in this register is invalidated immediately.
-//      valid_reg := Mux(flush, false.B, Mux(this_in.ready, prev_out.valid, valid_reg))
-//    } else {
-//      // If stalled (!this_in.ready):  Keep `valid_reg`.
-//      // If not stalled, mask the input with `!flush`.
-//      // Imaging a state where EXU holds jal (flush=1) and LSU is Ready (No Stall).
-//      // At the exact rising edge of the clock:
-//      //   1. [EXU->LSU]: LSU captures JAL from EXU.
-//      //   2. [IFU->IDU]: IDU captures 0 due to force flush.
-//      //   3. [IDU->EXU]: EXU captures 0 due to `!flush` mask.
-//      //      Note that IDU currently holds the instruction after jal, and
-//      //    ` prev_out.valid` is still HIGH. Thus, we must mask it with `!flush`
-//      valid_reg := Mux(this_in.ready, !flush && prev_out.valid, valid_reg)
-//    }
-//
-//    this_in.valid := valid_reg
-//  }
-//}
 
 class Core(
   implicit p: CoreParams,
@@ -116,14 +84,14 @@ class Core(
   val exu_flush = EXU.io.br_valid
   val wbu_flush = WBU.io.redirect_valid
 
-  PipelineConnect(IFU.io.out, IDU.io.in, (exu_flush, true.B), (wbu_flush, true.B))
+  PipelineConnect(IFU.io.out, IDU.io.in, wbu_flush, exu_flush, exu_force_flush = true)
   // The instruction currently in the IDU->EXU register is the jump/branch itself.
   // If the pipeline stalls, this JAL must remain in the register until it is accepted
   // by the next stage (LSU). EXU's flush MUST NOT kill the jump/branch before
   // it enters the LSU.
-  PipelineConnect(IDU.io.out, EXU.io.in, (exu_flush, false.B), (wbu_flush, true.B))
-  PipelineConnect(EXU.io.out, LSU.io.in, (wbu_flush, true.B))
-  PipelineConnect(LSU.io.out, WBU.io.in, (wbu_flush, true.B))
+  PipelineConnect(IDU.io.out, EXU.io.in, wbu_flush, exu_flush, exu_force_flush = false)
+  PipelineConnect(EXU.io.out, LSU.io.in, wbu_flush)
+  PipelineConnect(LSU.io.out, WBU.io.in, wbu_flush)
 
   // Redirect
   IFU.io.redirect_valid  := exu_flush || wbu_flush
