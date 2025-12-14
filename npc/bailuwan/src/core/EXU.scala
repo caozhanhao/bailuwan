@@ -33,8 +33,8 @@ class EXUOutForLSU(
   val addr       = UInt(p.XLEN.W)
   val store_data = UInt(p.XLEN.W)
 
-  val pc   = UInt(p.XLEN.W)
-  val inst = UInt(32.W)
+  val pc        = UInt(p.XLEN.W)
+  val inst      = UInt(32.W)
 }
 
 class EXUOut(

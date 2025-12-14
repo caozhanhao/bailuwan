@@ -7,7 +7,8 @@ import chisel3._
 import chisel3.util._
 import core._
 import amba._
-import utils.PerfCounter
+import constants.{BrOp, ExecType}
+import utils.{PerfCounter, SignalProbe}
 
 object PipelineConnect {
   def apply[T <: Data](
@@ -150,5 +151,71 @@ class Core(
 
   arbiter.io.slave <> xbar.io.master
 
-  PerfCounter(true.B, "all_cycles")
+  // Perf Counters
+  import chisel3.util.BitPat
+
+  case class InstTypeProbe(
+    is_alu: Bool,
+    is_br:  Bool,
+    is_lsu: Bool,
+    is_csr: Bool)
+
+  def QuickDecode(inst: UInt): InstTypeProbe = {
+    val opcode = inst(6, 0)
+
+    val is_load   = opcode === BitPat("b0000011")
+    val is_store  = opcode === BitPat("b0100011")
+    val is_branch = opcode === BitPat("b1100011")
+    val is_jal    = opcode === BitPat("b1101111")
+    val is_jalr   = opcode === BitPat("b1100111")
+    val is_lui    = opcode === BitPat("b0110111")
+    val is_auipc  = opcode === BitPat("b0010111")
+    val is_op_imm = opcode === BitPat("b0010011")
+    val is_op     = opcode === BitPat("b0110011")
+    val is_csr    = opcode === BitPat("b1110011")
+
+    val is_lsu_type = is_load || is_store
+    val is_br_type  = is_branch || is_jal || is_jalr
+    val is_csr_type = is_csr
+    val is_alu_type = is_lui || is_auipc || is_op_imm || is_op
+
+    InstTypeProbe(is_alu_type, is_br_type, is_lsu_type, is_csr_type)
+  }
+
+  case class StageInfo(valid: Bool, inst: UInt)
+  val stages = Seq(
+    StageInfo(IDU.io.in.valid, IDU.io.in.bits.inst),
+    StageInfo(EXU.io.in.valid, EXU.io.in.bits.inst),
+    StageInfo(LSU.io.in.valid, LSU.io.in.bits.lsu.inst),
+    StageInfo(WBU.io.in.valid, WBU.io.in.bits.inst)
+  )
+
+  def countCycle(selector: InstTypeProbe => Bool): UInt = {
+    stages.map { stage =>
+      val info = QuickDecode(stage.inst)
+      (stage.valid && selector(info)).asUInt
+    }.reduce(_ +& _)
+  }
+
+  val alu_cycles = countCycle(_.is_alu)
+  val br_cycles  = countCycle(_.is_br)
+  val lsu_cycles = countCycle(_.is_lsu)
+  val csr_cycles = countCycle(_.is_csr)
+
+  val all_cycles = stages.map(_.valid.asUInt).reduce(_ +& _)
+
+  val other_cycles = all_cycles - (alu_cycles + br_cycles + lsu_cycles + csr_cycles)
+
+  def CycleCounter(cycles: UInt, name: String): Unit = {
+    val counter = RegInit(0.U(64.W))
+    counter := counter + cycles
+    SignalProbe(counter, name)
+  }
+
+  CycleCounter(all_cycles, "all_cycles")
+  CycleCounter(alu_cycles, "alu_cycles")
+  CycleCounter(br_cycles, "br_cycles")
+  CycleCounter(lsu_cycles, "lsu_cycles")
+  CycleCounter(csr_cycles, "csr_cycles")
+  CycleCounter(other_cycles, "other_cycles")
 }
