@@ -154,9 +154,9 @@ class EXU(
   wbu.csr_out  := csr_data
 
   val lsu = io.out.bits.lsu
-  lsu.lsu_op         := decoded.lsu_op
-  lsu.lsu_addr       := alu.io.result
-  lsu.lsu_store_data := rs2_data
+  lsu.op         := decoded.lsu_op
+  lsu.addr       := alu.io.result
+  lsu.store_data := rs2_data
 
   // EBreak
   // val ebreak = Module(new TempEBreakForSTA)

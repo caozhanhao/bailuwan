@@ -33,7 +33,7 @@ struct diff_context_t
 
 #ifdef CONFIG_DIFFTEST
 
-static void sync_regs_to_ref()
+static void sync_regs_to_ref(uint32_t pc)
 {
     auto& cpu = SIM.cpu();
 
@@ -47,9 +47,8 @@ static void sync_regs_to_ref()
         else
             ctx.csr[i] = 0;
     }
-    ctx.pc = cpu.pc();
+    ctx.pc = pc;
     ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
-    // Log("Syncing to ref at pc: " FMT_WORD "\n", cpu.pc());
 }
 
 void init_difftest(size_t img_size)
@@ -87,16 +86,8 @@ void init_difftest(size_t img_size)
     ref_difftest_memcpy(RESET_VECTOR, mem.guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
 
     // Initialize registers
-    diff_context_t ctx{};
-    auto& cpu = SIM.cpu();
-    for (int i = 0; i < 4096; i++)
-    {
-        if (cpu.is_csr_valid(i))
-            ctx.csr[i] = cpu.csr(i);
-    }
     // Don't use cpu.pc() here, since pc is a binding in EXU, and might be invalid at the beginning.
-    ctx.pc = RESET_VECTOR;
-    ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
+    sync_regs_to_ref(RESET_VECTOR);
 }
 
 static void checkregs(diff_context_t* ref)
@@ -170,14 +161,16 @@ void difftest_step()
 {
     if (is_accessing_device())
     {
-        // printf("Skipped 0x%x\n", SIM.cpu().curr_inst());
-        sync_regs_to_ref();
+        // ATTENTION: wbu_pc + 4
+        //   `is_accessing_device` can only be true in store or load, thus the dnpc
+        //   is always wbu_pc + 4. We can NOT use pc or dnpc here because they are bindings in EXU.
+        sync_regs_to_ref(SIM.cpu().wbu_pc() + 4);
         return;
     }
 
     ref_difftest_exec(1);
 
-    diff_context_t ref_r;
+    diff_context_t ref_r{};
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
     checkregs(&ref_r);
 }
