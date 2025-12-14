@@ -78,7 +78,7 @@ class Core(
   // The instruction currently in the IDU->EXU register is the jump/branch itself.
   // If the pipeline stalls, this JAL must remain in the register until it is accepted
   // by the next stage (LSU). A force flush would kill the jump/branch before it enters the LSU.
-  PipelineConnect(IDU.io.out, EXU.io.in)
+  PipelineConnect(IDU.io.out, EXU.io.in, flush, force_flush = false)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
 
