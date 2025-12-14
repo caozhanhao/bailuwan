@@ -7,29 +7,16 @@
 #include "dut_proxy.hpp"
 #include "utils/disasm.hpp"
 
-// If this instruction has been traced.
-static bool inst_has_been_traced = false;
-
 static void trace_and_difftest()
 {
-#ifdef CONFIG_ITRACE
-    static Disassembler disasm;
-    static bool inited = false;
-
-    if (!inited)
-    {
-        inited = true;
-        disasm.init();
-    }
-#endif
-
+    // Trace ready is asserted in EXU, thus operations in trace should
+    // use exu_pc, exu_inst, ...
     auto& cpu = SIM.cpu();
-    if (cpu.is_inst_valid())
-    // if (cpu.is_inst_valid() && !inst_has_been_traced)
+    if (cpu.exu_inst_trace_ready())
     {
 #ifdef CONFIG_ITRACE
-        auto str = disasm.disassemble(cpu.pc(), cpu.curr_inst());
-        fprintf(stderr, FMT_WORD ": %s\n", cpu.pc(), str.c_str());
+        auto str = rv32_disasm(cpu.exu_pc(), cpu.exu_inst());
+        fprintf(stderr, FMT_WORD ": %s\n", cpu.exu_pc(), str.c_str());
 #endif
 
 #ifdef CONFIG_FTRACE
@@ -46,7 +33,12 @@ static void trace_and_difftest()
 #endif
     }
 
-    IFDEF(CONFIG_DIFFTEST, difftest_step());
+    // Difftest ready is asserted in WBU, thus operations in trace should
+    // use wbu_pc, wbu_inst, ...
+    if (cpu.wbu_difftest_ready())
+    {
+        IFDEF(CONFIG_DIFFTEST, difftest_step());
+    }
 }
 
 static void execute(uint64_t n)
@@ -67,17 +59,8 @@ static void execute(uint64_t n)
 
         if (sdb_state != SDBState::Running) break;
 
-        // If this instruction is valid and has not been traced, trace it
-        // and set the flag.
-        if (cpu.is_inst_valid() && !inst_has_been_traced)
-        {
+        if (cpu.exu_inst_trace_ready())
             --n;
-            inst_has_been_traced = true;
-        }
-
-        // If last instruction done, clear the flag.
-        if (cpu.is_ready_for_difftest())
-            inst_has_been_traced = false;
 
         if (sim_stop_requested)
         {

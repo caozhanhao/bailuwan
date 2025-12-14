@@ -11,16 +11,34 @@ import utils.PerfCounter
 
 object PipelineConnect {
   def apply[T <: Data](
-    prevOut: DecoupledIO[T],
-    thisIn:  DecoupledIO[T],
-    flush:   Bool = false.B
+    prev_out:    DecoupledIO[T],
+    this_in:     DecoupledIO[T],
+    flush:       Bool = false.B,
+    // Force Flush indicates if we should flush the instruction stalled in register.
+    force_flush: Boolean = false
   ): Unit = {
-    prevOut.ready := thisIn.ready
-    thisIn.bits   := RegEnable(prevOut.bits, prevOut.valid && thisIn.ready)
+    prev_out.ready := this_in.ready
+    this_in.bits   := RegEnable(prev_out.bits, prev_out.valid && this_in.ready)
 
     val valid_reg = RegInit(false.B)
-    valid_reg    := Mux(flush, false.B, Mux(thisIn.ready, prevOut.valid, valid_reg))
-    thisIn.valid := valid_reg
+
+    if (force_flush) {
+      // Even if stalled, the data in this register is invalidated immediately.
+      valid_reg := Mux(flush, false.B, Mux(this_in.ready, prev_out.valid, valid_reg))
+    } else {
+      // If stalled (!this_in.ready):  Keep `valid_reg`.
+      // If not stalled, mask the input with `!flush`.
+      // Imaging a state where EXU holds jal (flush=1) and LSU is Ready (No Stall).
+      // At the exact rising edge of the clock:
+      //   1. [EXU->LSU]: LSU captures JAL from EXU.
+      //   2. [IFU->IDU]: IDU captures 0 due to force flush.
+      //   3. [IDU->EXU]: EXU captures 0 due to `!flush` mask.
+      //      Note that IDU currently holds the instruction after jal, and
+      //    ` prev_out.valid` is still HIGH. Thus, we must mask it with `!flush`
+      valid_reg := Mux(this_in.ready, !flush && prev_out.valid, valid_reg)
+    }
+
+    this_in.valid := valid_reg
   }
 }
 
@@ -60,12 +78,15 @@ class Core(
 
   val RegFile = Module(new RegFile)
 
-  // Note that redirect should flush the instruction in IFU -> IDU,
-  // but MUST NOT flush the instruction already in IDU -> EXU.
-  // The instruction in IDU -> EXU is the branch/jump itself and must complete
-  // the rest of the pipeline (for example, `jalr` must reach WBU to update rd).
-  PipelineConnect(IFU.io.out, IDU.io.in, EXU.io.redirect_valid)
-  PipelineConnect(IDU.io.out, EXU.io.in)
+  val flush = EXU.io.redirect_valid
+
+  // The instruction currently in the IFU -> IDU register is possibly on the
+  // wrong branch (or follows a jump). We must clear it immediately, even if IDU is stalled.
+  PipelineConnect(IFU.io.out, IDU.io.in, flush, force_flush = true)
+  // The instruction currently in the IDU->EXU register is the jump/branch itself.
+  // If the pipeline stalls, this JAL must remain in the register until it is accepted
+  // by the next stage (LSU). A force flush would kill the jump/branch before it enters the LSU.
+  PipelineConnect(IDU.io.out, EXU.io.in, flush, force_flush = false)
   PipelineConnect(EXU.io.out, LSU.io.in)
   PipelineConnect(LSU.io.out, WBU.io.in)
 

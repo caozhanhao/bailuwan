@@ -33,11 +33,11 @@ struct diff_context_t
 
 #ifdef CONFIG_DIFFTEST
 
-static void sync_regs_to_ref()
+static void sync_regs_to_ref(uint32_t pc)
 {
     auto& cpu = SIM.cpu();
 
-    diff_context_t ctx;
+    diff_context_t ctx{};
     for (int i = 0; i < 16; i++)
         ctx.gpr[i] = cpu.reg(i);
     for (int i = 0; i < 4096; i++)
@@ -47,9 +47,8 @@ static void sync_regs_to_ref()
         else
             ctx.csr[i] = 0;
     }
-    ctx.pc = cpu.pc();
+    ctx.pc = pc;
     ref_difftest_regcpy(&ctx, DIFFTEST_TO_REF);
-    // Log("Syncing to ref at pc: " FMT_WORD "\n", cpu.pc());
 }
 
 void init_difftest(size_t img_size)
@@ -86,10 +85,12 @@ void init_difftest(size_t img_size)
     Log("Initializing memory. RESET_VECTOR=0x%x, img_size=0x%lx", RESET_VECTOR, img_size);
     ref_difftest_memcpy(RESET_VECTOR, mem.guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
 
-    sync_regs_to_ref();
+    // Initialize registers
+    // Don't use cpu.pc() here, since pc is a binding in EXU, and might be invalid at the beginning.
+    sync_regs_to_ref(RESET_VECTOR);
 }
 
-static void checkregs(diff_context_t* ref)
+static void check_regs(diff_context_t* ref)
 {
     auto& cpu = SIM.cpu();
     bool match = true;
@@ -116,16 +117,11 @@ static void checkregs(diff_context_t* ref)
         }
     }
 
-    if (cpu.pc() != ref->pc)
-    {
-        Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", ref->pc, cpu.pc());
-        match = false;
-    }
-
     if (!match)
     {
         sdb_state = SDBState::Abort;
-        printf("Test failed at pc = " FMT_WORD "\n", cpu.pc());
+        printf("Test failed after wbu_pc=" FMT_WORD ", wbu_inst=" FMT_WORD "\n",
+               cpu.wbu_pc(), cpu.wbu_inst());
         cpu.dump();
     }
 }
@@ -133,7 +129,7 @@ static void checkregs(diff_context_t* ref)
 static bool is_accessing_device()
 {
     auto& cpu = SIM.cpu();
-    auto inst = cpu.curr_inst();
+    auto inst = cpu.wbu_inst();
 
     bool is_store = BITS(inst, 6, 0) == 0b0100011;
     bool is_load = BITS(inst, 6, 0) == 0b0000011;
@@ -161,34 +157,28 @@ static bool is_accessing_device()
     return false;
 }
 
-// Difftest happens after each cycle, and before the rising edge of the next cycle.
-//
-//              _____       _____
-//   clock     |     |_____|     |_____
-//              cycle 1        cycle 2
-//                     ^
-//                     |
-//          difftest_step is called here
 void difftest_step()
 {
-    // If this cycle is ready for difftest,
-    // skip this cycle but do NOT sync registers.
-    auto& cpu = SIM.cpu();
-    if (!cpu.is_ready_for_difftest())
-        return;
+//     fprintf(stderr, "DIFF_STEP, 0x%x: %s\n", SIM.cpu().wbu_pc(),
+//             rv32_disasm(SIM.cpu().wbu_pc(), SIM.cpu().wbu_inst()).c_str());
 
     if (is_accessing_device())
     {
-        // printf("Skipped 0x%x\n", SIM.cpu().curr_inst());
-        sync_regs_to_ref();
+        // ATTENTION: wbu_pc + 4
+        //   `is_accessing_device` can only be true in store or load, thus the dnpc
+        //   is always wbu_pc + 4. We can NOT use dnpc here because they are bindings in EXU.
+        sync_regs_to_ref(SIM.cpu().wbu_pc() + 4);
         return;
     }
 
     ref_difftest_exec(1);
 
-    diff_context_t ref_r;
+    diff_context_t ref_r{};
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-    checkregs(&ref_r);
+
+    // fprintf(stderr, "Curr Ref PC=0x%x\n", ref_r.pc);
+
+    check_regs(&ref_r);
 }
 #else
 void init_difftest()

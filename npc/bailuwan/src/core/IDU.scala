@@ -140,6 +140,7 @@ class IDU(
     val wbu_rd_valid = Input(Bool())
   })
 
+  val pc   = io.in.bits.pc
   val inst = io.in.bits.inst
 
   // Registers
@@ -159,7 +160,9 @@ class IDU(
   val fmt :: oper1_type :: oper2_type :: (we: Bool) :: alu_op :: br_op :: lsu_op :: csr_op :: exec_type :: Nil =
     ListLookup(inst, InstDecodeTable.default, InstDecodeTable.table)
 
-  assert(!io.in.valid || fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: 0x$inst%x)")
+  // Don't assert since IFU sometimes fetches invalid instructions.
+  // That does not matter because they'll be flushed later.
+  // assert(!io.in.valid || fmt =/= InstFmt.E, cf"Invalid instruction format. (Inst: 0x$inst%x)")
 
   // Choose immediate
   val imm = MuxLookup(fmt, 0.U)(
@@ -202,10 +205,14 @@ class IDU(
         || (rs === io.lsu_rd && io.lsu_rd_valid)
         || (rs === io.wbu_rd && io.wbu_rd_valid))
 
-  val hazard = has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read)
+  val wait_ebreak = exec_type === ExecType.EBreak && (
+    io.exu_rd_valid || io.lsu_rd_valid || io.wbu_rd_valid
+  )
+
+  val hazard = io.in.valid && (has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read) || wait_ebreak)
 
   // IO
-  io.out.bits.pc             := io.in.bits.pc
+  io.out.bits.pc             := pc
   io.out.bits.inst           := inst
   io.out.bits.alu_oper1_type := oper1_type
   io.out.bits.alu_oper2_type := oper2_type
@@ -228,21 +235,6 @@ class IDU(
   io.in.ready  := io.out.ready && !hazard
   io.out.valid := io.in.valid && !hazard
 
-  // Rising edge
-  val counter_inc = io.in.valid && !RegNext(io.in.valid)
-  def once(b: Bool) = counter_inc && b
-
-  PerfCounter(once(exec_type === ExecType.ALU && br_op === BrOp.Nop), "alu_ops")
-  PerfCounter(once(br_op =/= BrOp.Nop), "br_ops")
-  PerfCounter(once(exec_type === ExecType.LSU), "lsu_ops")
-  PerfCounter(once(exec_type === ExecType.CSR), "csr_ops")
-  PerfCounter(
-    once(
-      exec_type =/= ExecType.ALU &&
-        exec_type =/= ExecType.LSU &&
-        exec_type =/= ExecType.CSR
-    ),
-    "other_ops"
-  )
-  PerfCounter(once(true.B), "all_ops")
+  SignalProbe(pc, "idu_pc")
+  SignalProbe(inst, "idu_inst")
 }

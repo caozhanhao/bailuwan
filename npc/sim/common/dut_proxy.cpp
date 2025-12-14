@@ -61,17 +61,15 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
     for (size_t i = 0; i < 16; ++i)
         bindings.gprs[i] = &verilated_regs[i];
 
-    // Normal Signals
-    BIND_SIGNAL(pc, "pc")
-    BIND_SIGNAL(inst_valid, "inst_valid")
-    BIND_SIGNAL(dnpc, "dnpc")
-    BIND_SIGNAL(inst, "inst")
-    BIND_SIGNAL(difftest_ready, "difftest_ready")
-
     // CSRs
 #define CSR_TABLE_ENTRY(name, idx) BIND_SIGNAL(csrs[idx], TOSTRING(name))
     CSR_TABLE
 #undef CSR_TABLE_ENTRY
+
+    // Normal Signals
+#define SIGNAL_TABLE_ENTRY(type, name) BIND_SIGNAL(name, TOSTRING(name))
+    SIGNAL_TABLE
+#undef SIGNAL_TABLE_ENTRY
 
     // Perf Counters
 #ifdef CONFIG_PERF_COUNTERS
@@ -88,11 +86,6 @@ void CPUProxy::bind(const TOP_NAME* this_dut)
 #undef BIND_SIGNAL
 }
 
-uint32_t CPUProxy::curr_inst() const
-{
-    return *bindings.inst;
-}
-
 uint64_t CPUProxy::inst_count() const
 {
     return *bindings.perf_counters.all_ops;
@@ -101,17 +94,6 @@ uint64_t CPUProxy::inst_count() const
 uint64_t CPUProxy::cycle_count() const
 {
     return *bindings.perf_counters.all_cycles;
-}
-
-
-uint32_t CPUProxy::pc() const
-{
-    return *bindings.pc;
-}
-
-uint32_t CPUProxy::dnpc() const
-{
-    return *bindings.dnpc;
 }
 
 uint32_t CPUProxy::reg(uint32_t idx) const
@@ -132,16 +114,6 @@ uint32_t CPUProxy::csr(uint32_t idx) const
 bool CPUProxy::is_csr_valid(uint32_t idx) const
 {
     return bindings.csrs[idx] != nullptr;
-}
-
-bool CPUProxy::is_ready_for_difftest() const
-{
-    return *bindings.difftest_ready;
-}
-
-bool CPUProxy::is_inst_valid() const
-{
-    return *bindings.inst_valid;
 }
 
 void CPUProxy::dump_gprs(FILE* stream) const
@@ -168,7 +140,6 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(ifu_fetched);
     PERF(lsu_read);
     PERF(lsu_write);
-    PERF(exu_done);
     PERF(all_ops);
     PERF(all_cycles);
     PERF(icache_hit);
@@ -177,14 +148,13 @@ void CPUProxy::dump_perf_counters(FILE* stream)
 
     auto all_ops_d = static_cast<double>(*b.all_ops);
 
-    fprintf(stream, "+----------+----------+--------+------------+\n");
-    fprintf(stream, "| Type     |    Count | %%      | Avg Cycles |\n");
-    fprintf(stream, "+----------+----------+--------+------------+\n");
-#define PERF(display_name, name)  fprintf(stream, "| %-8s | %8lu | %05.2f%% | %10.2f |\n", \
+    fprintf(stream, "+----------+----------+--------+\n");
+    fprintf(stream, "| Type     |    Count | %%      |\n");
+    fprintf(stream, "+----------+----------+--------+\n");
+#define PERF(display_name, name)  fprintf(stream, "| %-8s | %8lu | %05.2f%% |\n", \
     TOSTRING(display_name), \
     *b.name##_ops, \
-    100.0 * (static_cast<double>(*b.name##_ops) / all_ops_d), \
-    (static_cast<double>(*b.name##_cycles) / static_cast<double>(*b.name##_ops)))
+    100.0 * (static_cast<double>(*b.name##_ops) / all_ops_d))
 
     PERF(ALU, alu);
     PERF(Branch, br);
@@ -192,7 +162,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     PERF(CSR, csr);
     PERF(Other, other);
 #undef PERF
-    fprintf(stream, "+----------+----------+--------+------------+\n");
+    fprintf(stream, "+----------+----------+--------+\n");
 
     // AMAT = p * access_time + (1 - p) * (access_time + miss_penalty) = access_time + (1 - p) * miss_penalty
     auto access_time = 1;
@@ -208,8 +178,10 @@ void CPUProxy::dump_perf_counters(FILE* stream)
 void CPUProxy::dump(FILE* stream)
 {
     fprintf(stream, "Dumping CPU state:\n");
-    fprintf(stream, "PC=0x%08x\n", pc());
-    fprintf(stream, "Inst=0x%08x\n", curr_inst());
+    fprintf(stream, "exu_pc=0x%08x\n", exu_pc());
+    fprintf(stream, "exu_inst=0x%08x\n", exu_inst());
+    fprintf(stream, "wbu_pc=0x%08x\n", wbu_pc());
+    fprintf(stream, "wbu_inst=0x%08x\n", wbu_inst());
     fprintf(stream, "Registers:\n");
     dump_gprs(stream);
     fprintf(stream, "CSRs:\n");
@@ -217,7 +189,6 @@ void CPUProxy::dump(FILE* stream)
     fprintf(stream, "Perfeormance Counters:\n");
     dump_perf_counters();
 }
-
 
 void DUTMemory::init(const std::string& filename)
 {
@@ -293,7 +264,8 @@ void DUTMemory::destroy()
 void DUTMemory::out_of_bound_abort(uint32_t addr)
 {
     auto& cpu = SIM.cpu();
-    printf("Out of bound memory access at PC = 0x%08x, addr = 0x%08x\n", cpu.pc(), addr);
+    printf("Out of bound memory access at addr=0x%08x\n, ifu_pc=0x%08x, lsu_pc=0x%08x",
+        addr, cpu.ifu_pc(), cpu.lsu_pc());
     cpu.dump();
     SIM.cleanup();
     exit(-1);
@@ -475,11 +447,11 @@ void SimHandle::reset(int n)
 void SimHandle::dump_after_ebreak()
 {
     auto a0 = cpu().reg(10);
-    auto pc = cpu().pc();
+    auto exu_pc = cpu().exu_pc();
     if (a0 == 0)
-        printf("\33[1;32mHIT GOOD TRAP\33[0m at pc = 0x%x\n", pc);
+        printf("\33[1;32mHIT GOOD TRAP\33[0m at exu_pc = 0x%x\n", exu_pc);
     else
-        printf("\33[1;41mHIT BAD TRAP\33[0m at pc = 0x%x, a0=%d\n", pc, a0);
+        printf("\33[1;41mHIT BAD TRAP\33[0m at exu_pc = 0x%x, a0=%d\n", exu_pc, a0);
 
     printf("Ebreak after %lu cycles\n", simulator_cycles());
     printf("Statistics:\n");

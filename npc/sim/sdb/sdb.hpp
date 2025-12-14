@@ -55,7 +55,6 @@ void bp_display();
 void bp_create(word_t addr);
 void bp_delete(int NO);
 
-
 // FTrace
 void init_ftrace(const char* elf_file);
 const char* ftrace_search(uint32_t pc, uint32_t* entry_addr);

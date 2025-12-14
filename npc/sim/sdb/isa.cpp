@@ -43,7 +43,7 @@ word_t isa_reg_str2val(const char* s, bool* success)
     if (strcmp(s, "pc") == 0)
     {
         *success = true;
-        return cpu.pc();
+        return cpu.exu_pc();
     }
 
     if (s[0] == 'x' || s[0] == 'X')
@@ -96,8 +96,8 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
         return -1;
     }
 
-    auto pc = SIM.cpu().pc();
-    auto dnpc = SIM.cpu().dnpc();
+    auto pc = SIM.cpu().exu_pc();
+    auto dnpc = SIM.cpu().exu_dnpc();
 
     if (is_call)
     {
@@ -136,7 +136,7 @@ static int ftrace_dump(int rd, int rs1, word_t imm, char* buf, size_t buf_size)
 
 int isa_ftrace_dump(char* buf, size_t buf_size)
 {
-    auto inst = SIM.cpu().curr_inst();
+    auto inst = SIM.cpu().exu_inst();
 
 
     // jal

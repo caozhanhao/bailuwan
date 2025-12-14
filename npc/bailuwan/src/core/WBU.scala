@@ -46,9 +46,18 @@ class WBU(
   io.in.ready := true.B
 
   if (p.Debug) {
-    dontTouch(io.in.bits.pc.get)
-    dontTouch(io.in.bits.inst.get)
+    dontTouch(io.in.bits.pc)
+    dontTouch(io.in.bits.inst)
   }
 
-  SignalProbe(RegNext(io.in.fire), "difftest_ready")
+  // Exposed signals for difftest
+  // Note that the width of a RegNext is not set based on the next or
+  // init connections for Element types
+  val wbu_pc = Reg(UInt(p.XLEN.W))
+  wbu_pc := io.in.bits.pc
+  val wbu_inst = Reg(UInt(32.W))
+  wbu_inst := io.in.bits.inst
+  SignalProbe(wbu_pc, "wbu_pc")
+  SignalProbe(wbu_inst, "wbu_inst")
+  SignalProbe(RegNext(io.in.fire), "wbu_difftest_ready")
 }

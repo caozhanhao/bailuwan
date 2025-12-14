@@ -29,12 +29,12 @@ class EXUOutForWBU(
 class EXUOutForLSU(
   implicit p: CoreParams)
     extends Bundle {
-  val lsu_op         = UInt(LSUOp.WIDTH)
-  val lsu_addr       = UInt(p.XLEN.W)
-  val lsu_store_data = UInt(p.XLEN.W)
+  val op         = UInt(LSUOp.WIDTH)
+  val addr       = UInt(p.XLEN.W)
+  val store_data = UInt(p.XLEN.W)
 
-  val pc   = if (p.Debug) Some(UInt(p.XLEN.W)) else None
-  val inst = if (p.Debug) Some(UInt(32.W)) else None
+  val pc        = UInt(p.XLEN.W)
+  val inst      = UInt(32.W)
 }
 
 class EXUOut(
@@ -154,9 +154,9 @@ class EXU(
   wbu.csr_out  := csr_data
 
   val lsu = io.out.bits.lsu
-  lsu.lsu_op         := decoded.lsu_op
-  lsu.lsu_addr       := alu.io.result
-  lsu.lsu_store_data := rs2_data
+  lsu.op         := decoded.lsu_op
+  lsu.addr       := alu.io.result
+  lsu.store_data := rs2_data
 
   // EBreak
   // val ebreak = Module(new TempEBreakForSTA)
@@ -181,17 +181,31 @@ class EXU(
   io.rd       := decoded.rd_addr
   io.rd_valid := io.in.valid && decoded.rd_we
 
-  // Optional Debug Signals
-  io.out.bits.lsu.pc.foreach { i => i := decoded.pc }
-  io.out.bits.lsu.inst.foreach { i => i := decoded.inst }
+  // Debug Signals
+  io.out.bits.lsu.pc   := decoded.pc
+  io.out.bits.lsu.inst := decoded.inst
 
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
 
-
   // Expose pc and inst in EXU to avoid the testbench see the flushed instructions
-  SignalProbe(decoded.pc, "pc")
-  SignalProbe(decoded.inst, "inst")
+  SignalProbe(decoded.pc, "exu_pc")
+  SignalProbe(decoded.inst, "exu_inst")
+  SignalProbe(io.in.fire, "exu_inst_trace_ready")
+  SignalProbe(Mux(io.redirect_valid, io.redirect_target, decoded.pc + 4.U), "exu_dnpc")
 
-  PerfCounter(io.out.valid, "exu_done")
+  def once(b: Bool) = io.in.fire && b
+  PerfCounter(once(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_ops")
+  PerfCounter(once(decoded.br_op =/= BrOp.Nop), "br_ops")
+  PerfCounter(once(exec_type === ExecType.LSU), "lsu_ops")
+  PerfCounter(once(exec_type === ExecType.CSR), "csr_ops")
+  PerfCounter(
+    once(
+      exec_type =/= ExecType.ALU &&
+        exec_type =/= ExecType.LSU &&
+        exec_type =/= ExecType.CSR
+    ),
+    "other_ops"
+  )
+  PerfCounter(once(true.B), "all_ops")
 }

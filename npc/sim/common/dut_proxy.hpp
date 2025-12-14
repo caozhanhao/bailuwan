@@ -59,23 +59,30 @@ enum CSR
 PERF_COUNTER_TABLE_ENTRY(ifu_fetched) \
 PERF_COUNTER_TABLE_ENTRY(lsu_read) \
 PERF_COUNTER_TABLE_ENTRY(lsu_write) \
-PERF_COUNTER_TABLE_ENTRY(exu_done) \
 PERF_COUNTER_TABLE_ENTRY(alu_ops) \
 PERF_COUNTER_TABLE_ENTRY(br_ops) \
 PERF_COUNTER_TABLE_ENTRY(lsu_ops) \
 PERF_COUNTER_TABLE_ENTRY(csr_ops) \
 PERF_COUNTER_TABLE_ENTRY(other_ops) \
 PERF_COUNTER_TABLE_ENTRY(all_ops) \
-PERF_COUNTER_TABLE_ENTRY(alu_cycles) \
-PERF_COUNTER_TABLE_ENTRY(br_cycles) \
-PERF_COUNTER_TABLE_ENTRY(lsu_cycles) \
-PERF_COUNTER_TABLE_ENTRY(csr_cycles) \
-PERF_COUNTER_TABLE_ENTRY(other_cycles) \
-PERF_COUNTER_TABLE_ENTRY(wait_cycles) \
 PERF_COUNTER_TABLE_ENTRY(all_cycles) \
 PERF_COUNTER_TABLE_ENTRY(icache_hit) \
 PERF_COUNTER_TABLE_ENTRY(icache_miss) \
 PERF_COUNTER_TABLE_ENTRY(icache_mem_access_cycles)
+
+#define SIGNAL_TABLE \
+SIGNAL_TABLE_ENTRY(uint32_t, ifu_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, idu_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, idu_inst) \
+SIGNAL_TABLE_ENTRY(uint32_t, exu_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, exu_dnpc) \
+SIGNAL_TABLE_ENTRY(uint32_t, exu_inst) \
+SIGNAL_TABLE_ENTRY(uint8_t,  exu_inst_trace_ready) \
+SIGNAL_TABLE_ENTRY(uint32_t, lsu_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, lsu_inst) \
+SIGNAL_TABLE_ENTRY(uint32_t, wbu_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, wbu_inst) \
+SIGNAL_TABLE_ENTRY(uint8_t,  wbu_difftest_ready)
 
 class CPUProxy
 {
@@ -87,16 +94,12 @@ class CPUProxy
         uint32_t* gprs[16];
         uint32_t* csrs[4096];
 
-        // Normal Signals
-        uint32_t* pc;
-        uint32_t* dnpc;
-        uint32_t* inst;
-        uint8_t* difftest_ready;
-        uint8_t* inst_valid;
+#define SIGNAL_TABLE_ENTRY(type, name) type* name;
+        SIGNAL_TABLE
+#undef SIGNAL_TABLE_ENTRY
 
         struct PerfCounters
         {
-            // Perf Counters
 #define PERF_COUNTER_TABLE_ENTRY(name) uint64_t* name;
             PERF_COUNTER_TABLE
 #undef PERF_COUNTER_TABLE_ENTRY
@@ -111,16 +114,16 @@ public:
     void dump_csrs(FILE* stream = stderr) const;
     void dump_perf_counters(FILE* stream = stderr);
     void dump(FILE* stream = stderr);
-    [[nodiscard]] uint32_t pc() const;
-    [[nodiscard]] uint32_t dnpc() const;
-    [[nodiscard]] uint32_t curr_inst() const;
+
+#define SIGNAL_TABLE_ENTRY(type, name) [[nodiscard]] type name() const { return *bindings.name; }
+    SIGNAL_TABLE
+#undef SIGNAL_TABLE_ENTRY
+
     [[nodiscard]] uint64_t inst_count() const;
     [[nodiscard]] uint64_t cycle_count() const;
     [[nodiscard]] uint32_t reg(uint32_t idx) const;
     [[nodiscard]] uint32_t csr(uint32_t idx) const;
     [[nodiscard]] bool is_csr_valid(uint32_t idx) const;
-    [[nodiscard]] bool is_ready_for_difftest() const;
-    [[nodiscard]] bool is_inst_valid() const;
 };
 
 struct DUTMemory
@@ -227,7 +230,7 @@ public:
     void drain();
     void reset(int n);
 
-    void dump_after_ebreak() ;
+    void dump_after_ebreak();
     void dump_statistics(FILE* stream = stderr) const;
     void dump_statistics_json(FILE* stream = nullptr) const;
     void ebreak() { got_ebreak = true; }

@@ -69,7 +69,7 @@ void free_bp(BP* bp)
 
 void bp_update_one(BP* p)
 {
-    if (SIM.cpu().pc() == p->addr)
+    if (SIM.cpu().exu_pc() == p->addr)
     {
         Log("Breakpoint hit at 0x%x.", p->addr);
 

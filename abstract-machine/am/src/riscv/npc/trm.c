@@ -24,9 +24,9 @@ void halt(int code) {
 }
 
 void _trm_init() {
-  uint32_t mvendorid, marchid;
-  asm volatile ("csrr %0, mvendorid" : "=r"(mvendorid));
-  asm volatile ("csrr %0, marchid" : "=r"(marchid));
+  // uint32_t mvendorid, marchid;
+  // asm volatile ("csrr %0, mvendorid" : "=r"(mvendorid));
+  // asm volatile ("csrr %0, marchid" : "=r"(marchid));
 
   // char buf[5];
   // buf[0] = (char)((mvendorid >> 24) & 0xFF);

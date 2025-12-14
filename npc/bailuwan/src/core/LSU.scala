@@ -8,7 +8,7 @@ import chisel3.util._
 import constants._
 import utils.Utils._
 import amba._
-import utils.PerfCounter
+import utils.{PerfCounter, SignalProbe}
 import bailuwan.CoreParams
 
 class LSUOut(
@@ -19,8 +19,8 @@ class LSUOut(
   val from_exu  = new EXUOutForWBU
 
   // Debug
-  val pc   = if (p.Debug) Some(UInt(p.XLEN.W)) else None
-  val inst = if (p.Debug) Some(UInt(32.W)) else None
+  val pc   = UInt(p.XLEN.W)
+  val inst = UInt(32.W)
 }
 
 class LSU(
@@ -40,9 +40,9 @@ class LSU(
 
   assert(p.XLEN == 32, s"LSU: Unsupported XLEN: ${p.XLEN.toString}");
 
-  val req_addr = io.in.bits.lsu.lsu_addr
-  val req_op   = io.in.bits.lsu.lsu_op
-  val req_data = io.in.bits.lsu.lsu_store_data
+  val req_addr = io.in.bits.lsu.addr
+  val req_op   = io.in.bits.lsu.op
+  val req_data = io.in.bits.lsu.store_data
   val wbu_info = io.in.bits.wbu
 
   // States
@@ -194,9 +194,12 @@ class LSU(
   io.rd       := wbu_info.rd_addr
   io.rd_valid := io.in.valid && wbu_info.rd_we
 
-  // Optional Debug Signals
-  io.out.bits.pc.foreach { i => i := io.in.bits.lsu.pc.get }
-  io.out.bits.inst.foreach { i => i := io.in.bits.lsu.inst.get }
+
+  val pc = io.in.bits.lsu.pc
+  val inst = io.in.bits.lsu.inst
+
+  io.out.bits.pc   := pc
+  io.out.bits.inst := inst
 
   // Debug
   val misaligned = MuxLookup(req_op, false.B)(
@@ -211,18 +214,19 @@ class LSU(
 
   assert(!misaligned, cf"LSU: Misaligned access at 0x${req_addr}%x")
 
-  val pc_for_assert   = if (p.Debug) io.in.bits.lsu.pc.get else 0x25100251.U
-  val inst_for_assert = if (p.Debug) io.in.bits.lsu.inst.get else 0x25100251.U
   assert(
     !io.mem.r.valid || io.mem.r.bits.resp === AXIResp.OKAY,
-    cf"LSU: Read fault. pc=0x${pc_for_assert}%x, inst=0x${inst_for_assert}%x, " +
-      cf"addr=0x${RegEnable(req_addr, io.mem.ar.fire)}%x, resp=${io.mem.r.bits.resp}"
+    cf"LSU: Read fault. pc=0x${pc}%x, inst=0x${inst}%x, " +
+      cf"addr=0x${req_addr}%x, resp=${io.mem.r.bits.resp}"
   )
   assert(
     !io.mem.b.valid || io.mem.b.bits.resp === AXIResp.OKAY,
-    cf"LSU: Write fault. pc=0x${pc_for_assert}%x, inst=0x${inst_for_assert}%x, " +
-      cf"addr=0x${RegEnable(req_addr, io.mem.aw.fire)}%x, resp=${io.mem.b.bits.resp}"
+    cf"LSU: Write fault. pc=0x${pc}%x, inst=0x${inst}%x, " +
+      cf"addr=0x${req_addr}%x, resp=${io.mem.b.bits.resp}"
   )
+
+  SignalProbe(pc, "lsu_pc")
+  SignalProbe(inst, "lsu_inst")
 
   PerfCounter(io.mem.r.fire, "lsu_read")
   PerfCounter(io.mem.b.fire, "lsu_write")
