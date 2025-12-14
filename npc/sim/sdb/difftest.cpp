@@ -159,7 +159,8 @@ static bool is_accessing_device()
 
 void difftest_step()
 {
-    fprintf(stderr, "STEP\n");
+    fprintf(stderr, "DIFF_STEP: %s\n", rv32_disasm(SIM.cpu().wbu_pc(), SIM.cpu().wbu_inst()).c_str());
+
     if (is_accessing_device())
     {
         // ATTENTION: wbu_pc + 4

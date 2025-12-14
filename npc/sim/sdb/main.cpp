@@ -5,6 +5,7 @@
 
 #include "sdb.hpp"
 #include "dut_proxy.hpp"
+#include "utils/disasm.hpp"
 
 #include <getopt.h>
 #include <readline/history.h>
@@ -422,6 +423,7 @@ int main(int argc, char* argv[])
     signal(SIGINT, sig_handler);
 
     init_regex();
+    init_disasm();
 
 #ifdef CONFIG_WP_BP
     init_wp_pool();

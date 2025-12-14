@@ -11,25 +11,16 @@
 
 #include "dut_proxy.hpp"
 
-void Disassembler::init()
-{
-    auto dl_handle = dlopen("sim/common/lib/libcapstone.so.5", RTLD_LAZY);
-    assert(dl_handle);
+using disasm_dl_t = size_t (*)(csh handle, const uint8_t* code,
+                               size_t code_size, uint64_t address, size_t count, cs_insn** insn);
+using free_dl_t = void (*)(cs_insn* insn, size_t count);
+using opendl_t = cs_err (*)(cs_arch arch, cs_mode mode, csh* handle);
 
-    auto cs_open_dl = reinterpret_cast<opendl_t>(dlsym(dl_handle, "cs_open"));
-    assert(cs_open_dl);
+static disasm_dl_t cs_disasm_dl;
+static free_dl_t cs_free_dl;
+static csh handle;
 
-    cs_disasm_dl = reinterpret_cast<decltype(cs_disasm_dl)>(dlsym(dl_handle, "cs_disasm"));
-    assert(cs_disasm_dl);
-
-    cs_free_dl = reinterpret_cast<decltype(cs_free_dl)>(dlsym(dl_handle, "cs_free"));
-    assert(cs_free_dl);
-
-    int ret = cs_open_dl(CS_ARCH_RISCV, CS_MODE_RISCV32, &handle);
-    assert(ret == CS_ERR_OK);
-}
-
-std::string Disassembler::disassemble(uint32_t pc, uint32_t inst) const
+std::string rv32_disasm(uint32_t pc, uint32_t inst)
 {
     if (inst == 0)
         return "<null>";
@@ -52,4 +43,22 @@ std::string Disassembler::disassemble(uint32_t pc, uint32_t inst) const
     cs_free_dl(insn, count);
 
     return {buffer};
+}
+
+void init_disasm()
+{
+    auto dl_handle = dlopen("sim/common/lib/libcapstone.so.5", RTLD_LAZY);
+    assert(dl_handle);
+
+    auto cs_open_dl = reinterpret_cast<opendl_t>(dlsym(dl_handle, "cs_open"));
+    assert(cs_open_dl);
+
+    cs_disasm_dl = reinterpret_cast<decltype(cs_disasm_dl)>(dlsym(dl_handle, "cs_disasm"));
+    assert(cs_disasm_dl);
+
+    cs_free_dl = reinterpret_cast<decltype(cs_free_dl)>(dlsym(dl_handle, "cs_free"));
+    assert(cs_free_dl);
+
+    int ret = cs_open_dl(CS_ARCH_RISCV, CS_MODE_RISCV32, &handle);
+    assert(ret == CS_ERR_OK);
 }

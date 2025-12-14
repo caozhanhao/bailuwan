@@ -9,24 +9,13 @@
 
 static void trace_and_difftest()
 {
-#ifdef CONFIG_ITRACE
-    static Disassembler disasm;
-    static bool inited = false;
-
-    if (!inited)
-    {
-        inited = true;
-        disasm.init();
-    }
-#endif
-
     // Trace ready is asserted in EXU, thus operations in trace should
     // use exu_pc, exu_inst, ...
     auto& cpu = SIM.cpu();
     if (cpu.exu_inst_trace_ready())
     {
 #ifdef CONFIG_ITRACE
-        auto str = disasm.disassemble(cpu.exu_pc(), cpu.exu_inst());
+        auto str = rv32_disasm(cpu.exu_pc(), cpu.exu_inst());
         fprintf(stderr, FMT_WORD ": %s\n", cpu.exu_pc(), str.c_str());
 #endif
 
