@@ -177,7 +177,8 @@ class EXU(
   io.btb_w.pc        := pc
   io.btb_w.is_uncond := decoded.br_op === BrOp.JAL || decoded.br_op === BrOp.JALR
 
-  io.br_mispredict := io.in.fire && ((decoded.predict_taken =/= br_taken) || (decoded.predict_target =/= br_target))
+  io.br_mispredict := io.in.fire && decoded.br_op =/= BrOp.Nop &&
+    ((decoded.predict_taken =/= br_taken) || (decoded.predict_target =/= br_target))
 
   // IO
   io.in.ready  := io.out.ready
