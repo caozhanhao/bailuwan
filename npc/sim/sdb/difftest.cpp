@@ -183,7 +183,9 @@ void difftest_step()
         // ATTENTION: wbu_pc + 4
         //   `is_accessing_device` can only be true in store or load, thus the dnpc
         //   is always wbu_pc + 4. We can NOT use dnpc here because they are bindings in EXU.
-        sync_regs_to_ref(SIM.cpu().wbu_pc() + 4);
+        auto dnpc = SIM.cpu().wbu_pc() + 4;
+        sync_regs_to_ref(dnpc);
+        expected_pc = dnpc;
         return;
     }
 
@@ -191,8 +193,6 @@ void difftest_step()
 
     diff_context_t ref_r{};
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-
-    fprintf(stderr, "Curr Ref PC=0x%x\n", ref_r.pc);
 
     check_regs(&ref_r);
 
