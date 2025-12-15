@@ -172,12 +172,14 @@ class EXU(
     )
   )
 
-  io.btb_w.en        := io.in.fire && decoded.br_op =/= BrOp.Nop
+  val valid_br = io.in.fire && decoded.br_op =/= BrOp.Nop
+
+  io.btb_w.en        := valid_br
   io.btb_w.target    := br_target
   io.btb_w.pc        := pc
   io.btb_w.is_uncond := decoded.br_op === BrOp.JAL || decoded.br_op === BrOp.JALR
 
-  io.br_mispredict := io.in.fire && decoded.br_op =/= BrOp.Nop &&
+  io.br_mispredict := valid_br &&
     ((decoded.predict_taken =/= br_taken) || (decoded.predict_target =/= br_target))
 
   // IO
