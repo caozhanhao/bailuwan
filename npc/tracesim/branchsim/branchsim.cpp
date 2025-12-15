@@ -23,11 +23,7 @@ void BranchSim::step(uint32_t pc, uint32_t target, bool is_uncond, bool taken)
         predict_target = static_cast<uint32_t>(entry.target);
     }
 
-    bool mispredicted = false;
-    if (predict_taken != target)
-        mispredicted = true;
-    else if (predict_taken && (predict_target != target))
-        mispredicted = true;
+    bool mispredicted = (predict_taken != taken) || (predict_taken && (predict_target != target));
 
     if (mispredicted)
         mispredictions++;
