@@ -61,12 +61,14 @@ class IFU(
   val predict_target = bpu.io.predict_target
 
   // Redirect (EXU/WBU) > Prediction > PC + 4
-  val dnpc = MuxCase(
+  val req_fire = icache_io.req.fire
+  val dnpc     = MuxCase(
     pc,
     Seq(
-      io.redirect_valid  -> io.redirect_target,
-      predict_taken      -> predict_target,
-      icache_io.req.fire -> (pc + 4.U)
+      io.redirect_valid           -> io.redirect_target,
+      // ATTENTION: Only update pc when the request is sent to ICache
+      (predict_taken && req_fire) -> predict_target,
+      req_fire                    -> (pc + 4.U)
     )
   )
   pc := dnpc
