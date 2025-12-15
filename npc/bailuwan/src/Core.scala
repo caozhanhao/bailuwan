@@ -81,7 +81,7 @@ class Core(
   val RegFile = Module(new RegFile)
   val CSRFile = Module(new CSRFile)
 
-  val exu_flush = EXU.io.br_valid && EXU.io.br_mispredict
+  val exu_flush = EXU.io.br_mispredict
   val wbu_flush = WBU.io.redirect_valid
 
   PipelineConnect(IFU.io.out, IDU.io.in, wbu_flush, exu_flush, exu_force_flush = true)
@@ -95,7 +95,7 @@ class Core(
 
   // Redirect
   IFU.io.redirect_valid  := exu_flush || wbu_flush
-  IFU.io.redirect_target := Mux(wbu_flush, WBU.io.redirect_target, EXU.io.br_target)
+  IFU.io.redirect_target := Mux(wbu_flush, WBU.io.redirect_target, EXU.io.btb_w.target)
   LSU.io.wbu_flush       := wbu_flush
 
   // RegFile - IDU
@@ -127,10 +127,7 @@ class Core(
   IFU.io.icache_flush := EXU.io.icache_flush
 
   // BPU
-  IFU.io.btb_w.en        := EXU.io.br_valid
-  IFU.io.btb_w.pc        := EXU.io.br_pc
-  IFU.io.btb_w.target    := EXU.io.br_target
-  IFU.io.btb_w.is_uncond := EXU.io.br_is_uncond
+  IFU.io.btb_w := EXU.io.btb_w
 
   // Hazard
   IDU.io.exu_hazard := EXU.io.hazard
