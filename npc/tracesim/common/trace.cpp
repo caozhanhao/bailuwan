@@ -106,6 +106,7 @@ struct tracesim_batch
     {
         uint32_t pc;
         uint32_t target;
+        bool is_uncond;
         bool taken;
     } * b_stream;
 
@@ -119,7 +120,7 @@ tracesim_batch::branch_entry b_buffer[BATCH_SIZE];
 void drain_stream(
     const std::function<void(uint32_t)>& pc_consumer,
     const std::function<void(bool, uint32_t)>& ldstr_consumer,
-    const std::function<void(uint32_t, uint32_t, bool)>& branch_consumer)
+    const std::function<void(uint32_t, uint32_t, bool, bool)>& branch_consumer)
 {
     tracesim_batch batch{};
     batch.i_stream = i_buffer;
@@ -137,7 +138,12 @@ void drain_stream(
             ldstr_consumer(d_buffer[i].is_read, d_buffer[i].addr);
 
         for (uint32_t i = 0; i < batch.b_size; i++)
-            branch_consumer(batch.b_stream[i].pc, batch.b_stream[i].target, batch.b_stream[i].taken);
+        {
+            branch_consumer(batch.b_stream[i].pc,
+                            batch.b_stream[i].target,
+                            batch.b_stream[i].is_uncond,
+                            batch.b_stream[i].taken);
+        }
 
         if (batch.i_size != BATCH_SIZE)
             break;

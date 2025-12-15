@@ -19,6 +19,6 @@ void drain_stream(
     const std::function<void(uint32_t)>& pc_consumer,
     // (is_read, addr)
     const std::function<void(bool, uint32_t)>& ldstr_consumer,
-    // (pc, branch target, is taken)
-    const std::function<void(uint32_t, uint32_t, bool)>& branch_consumer);
+    // (pc, branch target, is uncond, is taken)
+    const std::function<void(uint32_t, uint32_t, bool, bool)>& branch_consumer);
 #endif

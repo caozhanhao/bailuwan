@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
                  [&](bool is_read, uint32_t addr)
                  {
                      // pass
-                 }, [&](uint32_t pc, uint32_t target, bool taken)
+                 }, [&](uint32_t pc, uint32_t target, bool is_uncond, bool taken)
                  {
                      // printf("Branch: %08x -> %08x (%s)\n", pc, target, taken ? "taken" : "not taken");
                      ++total_branches;
