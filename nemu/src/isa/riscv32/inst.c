@@ -330,8 +330,9 @@ int isa_decode_ldstr(word_t inst, bool *is_read, word_t *addr) {
   return failed_to_decode;
 }
 
-int isa_decode_branch(word_t inst, word_t *target_addr, bool *taken) {
+int isa_decode_branch(word_t pc, word_t inst, word_t *target_addr, bool *taken) {
   Decode dummy_decode;
+  dummy_decode.pc = pc;
   dummy_decode.isa.inst = inst;
   Decode *s = &dummy_decode;
 

@@ -125,7 +125,7 @@ __EXPORT void difftest_tracesim_step(void *batch_) {
 
     word_t target_addr;
     bool taken;
-    if (isa_decode_branch(inst, &target_addr, &taken) == 0) {
+    if (isa_decode_branch(cpu.pc, inst, &target_addr, &taken) == 0) {
       batch->b_stream[i].pc = cpu.pc;
       batch->b_stream[i].target = target_addr;
       batch->b_stream[i].taken = taken;

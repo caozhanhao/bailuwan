@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "trace.hpp"
+#include <cassert>
 #include <dlfcn.h>
 
 enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF };
