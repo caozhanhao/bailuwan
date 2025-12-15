@@ -178,7 +178,7 @@ class EXU(
   io.btb_w.en        := valid_br
   io.btb_w.target    := br_target
   io.btb_w.pc        := pc
-  io.btb_w.is_uncond := decoded.br_op === BrOp.JAL
+  io.btb_w.is_uncond := decoded.br_op === BrOp.JAL || decoded.br_op === BrOp.JALR
 
   val predict_mismatch = (decoded.predict_taken =/= br_taken) ||
     (decoded.predict_taken && (decoded.predict_target =/= br_target))
