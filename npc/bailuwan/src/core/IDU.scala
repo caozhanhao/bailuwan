@@ -208,7 +208,7 @@ class IDU(
   }
 
   val wait_ebreak = exec_type === ExecType.EBreak &&
-    hazard_info.exists(_.valid)
+    hazard_info.map(info => info.valid).reduce(_ || _)
 
   val hazard = io.in.valid && (need_stall(rs1, rs1_read) || need_stall(rs2, rs2_read) || wait_ebreak)
 
