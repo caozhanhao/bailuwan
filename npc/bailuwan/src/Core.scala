@@ -115,6 +115,8 @@ class Core(
   CSRFile.io.read_enable := EXU.io.csr_rs_en
 
   // CSRFile - WBU
+  WBU.io.mtvec            := CSRFile.io.mtvec
+  WBU.io.mepc             := CSRFile.io.mepc
   CSRFile.io.write_addr   := WBU.io.csr_rd_addr
   CSRFile.io.write_enable := WBU.io.csr_rd_we
   CSRFile.io.write_data   := WBU.io.csr_rd_data

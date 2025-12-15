@@ -170,16 +170,7 @@ class IDU(
     )
   )
 
-  // CSR Addr:
-  //   CSR{RW, RS, RC}[I] -> the CSR indicated by inst[31:20]
-  //   ECall              -> mtvec
-  //   MRet               -> mepc
-  val csr_addr = MuxLookup(exec_type, inst(31, 20))(
-    Seq(
-      ExecType.ECall -> CSR.mtvec,
-      ExecType.MRet  -> CSR.mepc
-    )
-  )
+  val csr_addr = inst(31, 20)
 
   // Resolving Hazards
   val hazard_info = Seq(io.exu_hazard, io.lsu_hazard, io.wbu_hazard)

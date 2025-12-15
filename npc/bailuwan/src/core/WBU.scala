@@ -25,6 +25,8 @@ class WBU(
     val csr_rd_addr = Output(UInt(12.W))
     val csr_rd_data = Output(UInt(p.XLEN.W))
     val csr_epc     = Output(UInt(p.XLEN.W))
+    val mtvec       = Input(UInt(p.XLEN.W))
+    val mepc        = Input(UInt(p.XLEN.W))
 
     val exception       = Output(new ExceptionInfo)
     val redirect_valid  = Output(Bool())
@@ -53,7 +55,7 @@ class WBU(
 
   // Redirect
   io.redirect_valid  := io.in.valid && (excp.valid || io.in.bits.is_trap_return)
-  io.redirect_target := io.in.bits.ls_out
+  io.redirect_target := Mux(io.in.bits.is_trap_return, io.mepc, io.mtvec)
 
   // Hazard
   io.hazard.valid      := io.in.valid
