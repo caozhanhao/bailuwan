@@ -10,27 +10,27 @@ import chisel3.util._
 import utils.PerfCounter
 
 class ICacheReq[T <: Data](
-  gen:        T
+  gen:        => T
 )(
   implicit p: CoreParams)
     extends Bundle {
   val addr = UInt(p.XLEN.W)
-  val user = gen.cloneType
+  val user = gen
 }
 
 class ICacheResp[T <: Data](
-  gen:        T
+  gen:        => T
 )(
   implicit p: CoreParams)
     extends Bundle {
   val data  = UInt(32.W)
   val addr  = Output(UInt(p.XLEN.W))
   val error = Bool()
-  val user  = gen.cloneType
+  val user  = gen
 }
 
 class ICacheIO[T <: Data](
-  gen:        T
+  gen:        => T
 )(
   implicit p: CoreParams)
     extends Bundle {
@@ -40,7 +40,7 @@ class ICacheIO[T <: Data](
 }
 
 class ICache[T <: Data](
-  val gen:    T
+  gen:        => T
 )(
   implicit p: CoreParams,
   axi_prop:   AXIProperty)
