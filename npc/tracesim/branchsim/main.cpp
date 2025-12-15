@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
                      // pass
                  }, [&](uint32_t pc, uint32_t target, bool is_uncond, bool taken)
                  {
+                     printf("Branch: pc=%08x, target=%08x, is_uncond=%d, taken=%d\n", pc, target, is_uncond, taken);
                      sim.step(pc, target, is_uncond, taken);
                  });
 

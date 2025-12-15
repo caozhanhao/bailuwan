@@ -35,10 +35,6 @@ void BranchSim::step(uint32_t pc, uint32_t target, bool is_uncond, bool taken)
     storage[w_idx].tag = w_tag;
     storage[w_idx].target = target;
     storage[w_idx].is_uncond = is_uncond;
-
-    printf("SW_BTB: PC=%x Target=%x Uncond=%d Taken=%d | PredTaken=%d PredTarget=%x\n",
-       pc, target, is_uncond, taken,
-       predict_taken, predict_target);
 }
 
 void BranchSim::dump()

@@ -139,10 +139,8 @@ void drain_stream(
 
         for (uint32_t i = 0; i < batch.b_size; i++)
         {
-            branch_consumer(batch.b_stream[i].pc,
-                            batch.b_stream[i].target,
-                            batch.b_stream[i].is_uncond,
-                            batch.b_stream[i].taken);
+            branch_consumer(b_buffer[i].pc, b_buffer[i].target,
+                            b_buffer[i].is_uncond, b_buffer[i].taken);
         }
 
         if (batch.i_size != BATCH_SIZE)
