@@ -12,7 +12,7 @@ constexpr auto RESET_VECTOR = 0x30000000;
 constexpr auto MAX_IMAGE_SIZE = 32 * 1024 * 1024;
 constexpr auto BATCH_SIZE = 8192;
 
-void init(void* img, size_t img_size);
+void init_tracesim(void* img, size_t img_size);
 
 void drain_stream(
     // PC

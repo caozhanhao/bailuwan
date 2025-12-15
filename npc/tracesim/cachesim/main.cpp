@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 
     auto bytes_read = fread(image, 1, MAX_IMAGE_SIZE, fp);
 
-    init(image, bytes_read);
+    init_tracesim(image, bytes_read);
 
     std::vector<CacheSim> icache_sims;
     std::vector<CacheSim> dcache_sims;

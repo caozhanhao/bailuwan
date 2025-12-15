@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 
     auto bytes_read = fread(image, 1, MAX_IMAGE_SIZE, fp);
 
-    init(image, bytes_read);
+    init_tracesim(image, bytes_read);
 
     drain_stream([&](uint32_t pc)
                  {
