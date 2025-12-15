@@ -143,7 +143,4 @@ __EXPORT void difftest_tracesim_step(void *batch_) {
   batch->i_size = i;
   batch->d_size = d;
   batch->b_size = b;
-
-  for (i = 0; i < b; i++)
-    printf("NEMU pc: 0x%x\n", batch->b_stream[i].pc);
 }
