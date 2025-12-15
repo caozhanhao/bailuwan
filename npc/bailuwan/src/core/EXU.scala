@@ -10,43 +10,24 @@ import amba._
 import utils.{PerfCounter, SignalProbe}
 import bailuwan.CoreParams
 
-class EXUOutForWBU(
-  implicit p: CoreParams)
-    extends Bundle {
-  val src_type = UInt(ExecType.WIDTH)
-  val rd_addr  = UInt(5.W)
-  val rd_we    = Bool()
-
-  // ALU
-  val alu_out     = UInt(p.XLEN.W)
-  // CSR Out:
-  //   CSR{RW, RS, RC}[I] -> the CSR indicated by inst[31:20]
-  //   ECall              -> mtvec
-  //   MRet               -> mepc
-  val csr_out     = UInt(p.XLEN.W)
-  val csr_rd_addr = UInt(12.W)
-  val csr_rd_data = UInt(p.XLEN.W)
-
-  val is_trap_return = Bool()
-}
-
-class EXUOutForLSU(
-  implicit p: CoreParams)
-    extends Bundle {
-  val op         = UInt(LSUOp.WIDTH)
-  val addr       = UInt(p.XLEN.W)
-  val store_data = UInt(p.XLEN.W)
-}
-
 class EXUOut(
   implicit p: CoreParams)
     extends Bundle {
-  val lsu = new EXUOutForLSU
-  val wbu = new EXUOutForWBU
+  val lsu_op         = UInt(LSUOp.WIDTH)
+  val lsu_addr       = UInt(p.XLEN.W)
+  val lsu_store_data = UInt(p.XLEN.W)
 
-  val pc        = UInt(p.XLEN.W)
-  val inst      = UInt(32.W)
-  val exception = new ExceptionInfo
+  val ex_out      = UInt(p.XLEN.W)
+  val rd_addr     = UInt(5.W)
+  val rd_we       = Bool()
+  val csr_rd_addr = UInt(12.W)
+  val csr_rd_we   = Bool()
+  val csr_rd_data = UInt(p.XLEN.W)
+
+  val pc             = UInt(p.XLEN.W)
+  val inst           = UInt(32.W)
+  val exception      = new ExceptionInfo
+  val is_trap_return = Bool()
 }
 
 class EXU(
@@ -126,8 +107,9 @@ class EXU(
   io.csr_rs_addr := decoded.csr_addr
   io.csr_rs_en   := true.B
 
-  io.out.bits.wbu.csr_rd_addr := decoded.csr_addr
-  io.out.bits.wbu.csr_rd_data := MuxLookup(decoded.csr_op, 0.U)(
+  io.out.bits.csr_rd_addr := decoded.csr_addr
+  io.out.bits.csr_rd_we   := exec_type === ExecType.CSR
+  io.out.bits.csr_rd_data := MuxLookup(decoded.csr_op, 0.U)(
     Seq(
       CSROp.Nop -> 0.U,
       CSROp.RW  -> oper2,
@@ -136,20 +118,21 @@ class EXU(
     )
   )
 
-  val wbu = io.out.bits.wbu
-  wbu.rd_addr  := decoded.rd_addr
-  wbu.rd_we    := decoded.rd_we
-  wbu.src_type := exec_type
-  wbu.alu_out  := alu.io.result
-  wbu.csr_out  := io.csr_rs_data
+  io.out.bits.rd_addr := decoded.rd_addr
+  io.out.bits.rd_we   := decoded.rd_we
 
-  val lsu = io.out.bits.lsu
-  lsu.op         := decoded.lsu_op
-  lsu.addr       := alu.io.result
-  lsu.store_data := rs2_data
+  io.out.bits.ex_out := MuxLookup(decoded.exec_type, 0.U)(
+    Seq(
+      ExecType.ALU -> alu.io.result,
+      ExecType.CSR -> io.csr_rs_data
+    )
+  )
+
+  io.out.bits.lsu_op         := decoded.lsu_op
+  io.out.bits.lsu_addr       := alu.io.result
+  io.out.bits.lsu_store_data := rs2_data
 
   // EBreak
-  // val ebreak = Module(new TempEBreakForSTA)
   val ebreak = Module(new EBreak)
 
   ebreak.io.en    := io.in.fire && decoded.exec_type === ExecType.EBreak
@@ -161,12 +144,7 @@ class EXU(
   // Hazard
   io.hazard.valid      := io.in.valid && decoded.rd_we
   io.hazard.rd         := decoded.rd_addr
-  io.hazard.data       := MuxLookup(decoded.exec_type, 0.U)(
-    Seq(
-      ExecType.ALU -> alu.io.result,
-      ExecType.CSR -> io.csr_rs_data
-    )
-  )
+  io.hazard.data       := io.out.bits.ex_out
   io.hazard.data_valid := decoded.exec_type === ExecType.ALU || decoded.exec_type === ExecType.CSR
 
   io.out.bits.pc   := decoded.pc
