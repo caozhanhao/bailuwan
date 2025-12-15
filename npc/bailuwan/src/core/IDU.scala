@@ -210,7 +210,7 @@ class IDU(
   val wait_ebreak = exec_type === ExecType.EBreak &&
     hazard_info.map(info => info.valid).reduce(_ || _)
 
-  val hazard = io.in.valid && (need_stall(rs1, rs1_read) || need_stall(rs2, rs2_read) || wait_ebreak)
+  val hazard_stall = io.in.valid && (need_stall(rs1, rs1_read) || need_stall(rs2, rs2_read) || wait_ebreak)
 
   // Exception
   val prev_excp  = io.in.bits.exception
@@ -243,10 +243,10 @@ class IDU(
   io.rs1_addr := rs1
   io.rs2_addr := rs2
 
-  io.in.ready  := io.out.ready && !hazard
-  io.out.valid := io.in.valid && !hazard
+  io.in.ready  := io.out.ready && !hazard_stall
+  io.out.valid := io.in.valid && !hazard_stall
 
   SignalProbe(pc, "idu_pc")
   SignalProbe(inst, "idu_inst")
-  PerfCounter(hazard, "idu_hazard_stall_cycles")
+  PerfCounter(hazard_stall, "idu_hazard_stall_cycles")
 }
