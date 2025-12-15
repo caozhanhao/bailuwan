@@ -45,10 +45,10 @@ class IFU(
 
   object BPMeta {
     def apply(predict_taken: Bool, predict_target: UInt): BPMeta = {
-      val bpmeta = Wire(new BPMeta)
-      bpmeta.predict_taken  := predict_taken
-      bpmeta.predict_target := predict_target
-      bpmeta
+      val m = Wire(new BPMeta)
+      m.predict_taken  := predict_taken
+      m.predict_target := predict_target
+      m
     }
   }
 
@@ -80,7 +80,7 @@ class IFU(
     pc,
     Seq(
       io.redirect_valid           -> io.redirect_target,
-      // ATTENTION: Only update pc when the request is sent to ICache
+      // Only update pc when the request is sent to ICache
       (predict_taken && req_fire) -> predict_target,
       req_fire                    -> (pc + 4.U)
     )
