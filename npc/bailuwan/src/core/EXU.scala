@@ -69,8 +69,7 @@ class EXU(
     val icache_flush = Output(Bool())
 
     // Hazard
-    val hazard_rd       = Output(UInt(5.W))
-    val hazard_rd_valid = Output(Bool())
+    val hazard = Output(new HazardInfo)
   })
 
   val decoded = io.in.bits
@@ -160,8 +159,15 @@ class EXU(
   io.icache_flush := io.in.fire && decoded.exec_type === ExecType.FenceI
 
   // Hazard
-  io.hazard_rd       := decoded.rd_addr
-  io.hazard_rd_valid := io.in.valid && decoded.rd_we
+  io.hazard.valid      := io.in.valid && decoded.rd_we
+  io.hazard.rd         := decoded.rd_addr
+  io.hazard.data       := MuxLookup(decoded.exec_type, 0.U)(
+    Seq(
+      ExecType.ALU -> alu.io.result,
+      ExecType.CSR -> io.csr_rs_data
+    )
+  )
+  io.hazard.data_valid := decoded.exec_type === ExecType.ALU || decoded.exec_type === ExecType.CSR
 
   io.out.bits.pc   := decoded.pc
   io.out.bits.inst := decoded.inst

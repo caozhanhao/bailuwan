@@ -110,6 +110,15 @@ class IDUOut(
   val exception = new ExceptionInfo
 }
 
+class HazardInfo(
+  implicit p: CoreParams)
+    extends Bundle {
+  val valid      = Bool()
+  val rd         = UInt(5.W)
+  val data       = UInt(p.XLEN.W)
+  val data_valid = Bool()
+}
+
 class IDU(
   implicit p: CoreParams)
     extends Module {
@@ -124,12 +133,9 @@ class IDU(
     val rs2_addr = Output(UInt(5.W))
 
     // Hazard
-    val exu_hazard_rd       = Input(UInt(5.W))
-    val exu_hazard_rd_valid = Input(Bool())
-    val lsu_hazard_rd       = Input(UInt(5.W))
-    val lsu_hazard_rd_valid = Input(Bool())
-    val wbu_hazard_rd       = Input(UInt(5.W))
-    val wbu_hazard_rd_valid = Input(Bool())
+    val exu_hazard = Input(new HazardInfo)
+    val lsu_hazard = Input(new HazardInfo)
+    val wbu_hazard = Input(new HazardInfo)
   })
 
   val pc   = io.in.bits.pc
@@ -175,7 +181,17 @@ class IDU(
     )
   )
 
-  // Detecting Hazards
+  // Resolving Hazards
+  val hazard_info = Seq(io.exu_hazard, io.lsu_hazard, io.wbu_hazard)
+
+  def forward_reg(rs: UInt, regfile_data: UInt) = {
+    val cases = hazard_info.map(info => (info.valid && info.rd === rs && info.data_valid) -> info.data)
+    MuxCase(regfile_data, cases)
+  }
+
+  forward_reg(rs1, io.rs1_data)
+  forward_reg(rs2, io.rs2_data)
+
   // Don't only use oper_type to detect hazards, because jump/branch's
   // ALU Op is always pc + 4 or branch cond.
   val rs1_read = fmt === InstFmt.R || fmt === InstFmt.I ||
@@ -185,17 +201,16 @@ class IDU(
 
   val rs2_read = fmt === InstFmt.R || fmt === InstFmt.S || fmt === InstFmt.B
 
-  def has_hazard(rs: UInt, read: Bool) =
-    rs =/= 0.U && read &&
-      ((rs === io.exu_hazard_rd && io.exu_hazard_rd_valid)
-        || (rs === io.lsu_hazard_rd && io.lsu_hazard_rd_valid)
-        || (rs === io.wbu_hazard_rd && io.wbu_hazard_rd_valid))
+  def need_stall(rs: UInt, read: Bool) = {
+    // Hazard happens but data not valid
+    val stall_info = hazard_info.map { info => info.valid && info.rd === rs && !info.data_valid }
+    rs =/= 0.U && read && stall_info.reduce(_ || _)
+  }
 
-  val wait_ebreak = exec_type === ExecType.EBreak && (
-    io.exu_hazard_rd_valid || io.lsu_hazard_rd_valid || io.wbu_hazard_rd_valid
-  )
+  val wait_ebreak = exec_type === ExecType.EBreak &&
+    hazard_info.map(info => info.valid).reduce(_ || _)
 
-  val hazard = io.in.valid && (has_hazard(rs1, rs1_read) || has_hazard(rs2, rs2_read) || wait_ebreak)
+  val hazard = io.in.valid && (need_stall(rs1, rs1_read) || need_stall(rs2, rs2_read) || wait_ebreak)
 
   // Exception
   val prev_excp  = io.in.bits.exception

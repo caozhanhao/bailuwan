@@ -29,6 +29,9 @@ class WBU(
     val exception       = Output(new ExceptionInfo)
     val redirect_valid  = Output(Bool())
     val redirect_target = Output(UInt(p.XLEN.W))
+
+    // Hazard
+    val hazard = Output(new HazardInfo)
   })
 
   val exu_out = io.in.bits.from_exu
@@ -63,6 +66,12 @@ class WBU(
   // Redirect
   io.redirect_valid  := io.in.valid && (excp.valid || exu_out.is_trap_return)
   io.redirect_target := exu_out.csr_out
+
+  // Hazard
+  io.hazard.valid      := io.in.valid
+  io.hazard.rd         := exu_out.rd_addr
+  io.hazard.data       := rd_data
+  io.hazard.data_valid := true.B
 
   io.in.ready := true.B
 

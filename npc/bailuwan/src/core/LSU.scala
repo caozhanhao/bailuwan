@@ -34,8 +34,7 @@ class LSU(
     val mem = new AXI4()
 
     // Hazard
-    val hazard_rd       = Output(UInt(5.W))
-    val hazard_rd_valid = Output(Bool())
+    val hazard = Output(new HazardInfo)
 
     val wbu_flush = Input(Bool())
   })
@@ -200,8 +199,10 @@ class LSU(
   io.mem.w.bits.last := true.B
 
   // Hazard
-  io.hazard_rd       := wbu_info.rd_addr
-  io.hazard_rd_valid := io.in.valid && wbu_info.rd_we
+  io.hazard.valid      := io.in.valid && wbu_info.rd_we
+  io.hazard.rd         := wbu_info.rd_addr
+  io.hazard.data       := io.out.bits.read_data
+  io.hazard.data_valid := state === s_wait_ready
 
   // Exception
   val excp = Wire(new ExceptionInfo)
