@@ -189,8 +189,8 @@ class IDU(
     MuxCase(regfile_data, cases)
   }
 
-  forward_reg(rs1, io.rs1_data)
-  forward_reg(rs2, io.rs2_data)
+  io.rs1_data := forward_reg(rs1, io.rs1_data)
+  io.rs2_data := forward_reg(rs2, io.rs2_data)
 
   // Don't only use oper_type to detect hazards, because jump/branch's
   // ALU Op is always pc + 4 or branch cond.
