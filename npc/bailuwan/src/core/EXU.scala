@@ -169,7 +169,7 @@ class EXU(
   excp.tval  := Mux(prev_excp.valid, prev_excp.tval, decoded.pc)
 
   io.out.bits.exception          := excp
-  io.out.bits.wbu.is_trap_return := decoded.exec_type === ExecType.MRet
+  io.out.bits.is_trap_return := decoded.exec_type === ExecType.MRet
 
   // Jump
   io.br_valid  := io.in.fire && br_taken && !excp.valid
