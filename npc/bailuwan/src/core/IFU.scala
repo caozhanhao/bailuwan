@@ -38,7 +38,21 @@ class IFU(
     val btb_w = new BTBWriteIO
   })
 
-  val icache    = Module(new ICache())
+  class BPMeta extends Bundle {
+    val predict_taken  = Bool()
+    val predict_target = UInt(p.XLEN.W)
+  }
+
+  object BPMeta {
+    def apply(predict_taken: Bool, predict_target: UInt): BPMeta = {
+      val bpmeta = Wire(new BPMeta)
+      bpmeta.predict_taken  := predict_taken
+      bpmeta.predict_target := predict_target
+      bpmeta
+    }
+  }
+
+  val icache    = Module(new ICache(new BPMeta))
   val icache_io = icache.io.ifu
 
   icache.io.mem <> io.mem
@@ -90,15 +104,18 @@ class IFU(
   // IO
   icache_io.kill          := io.redirect_valid
   icache_io.req.bits.addr := pc
+  icache_io.req.bits.user := BPMeta(predict_taken, predict_target)
   icache_io.req.valid     := !reset.asBool && !io.redirect_valid
   icache_io.resp.ready    := resp_queue.io.enq.ready
 
   val out = Wire(new IFUOut)
-  out.pc             := icache_io.resp.bits.addr
-  out.inst           := icache_io.resp.bits.data
-  out.exception      := excp
-  out.predict_taken  := predict_taken
-  out.predict_target := predict_target
+  out.pc        := icache_io.resp.bits.addr
+  out.inst      := icache_io.resp.bits.data
+  out.exception := excp
+
+  val resp_meta = icache_io.resp.bits.user.asTypeOf(new BPMeta)
+  out.predict_taken  := resp_meta.predict_taken
+  out.predict_target := resp_meta.predict_target
 
   resp_queue.io.enq.valid := icache_io.resp.valid
   resp_queue.io.enq.bits  := out

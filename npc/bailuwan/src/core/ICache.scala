@@ -9,34 +9,44 @@ import chisel3._
 import chisel3.util._
 import utils.PerfCounter
 
-class ICacheReq(
+class ICacheReq[T <: Data](
+  gen:        T
+)(
   implicit p: CoreParams)
     extends Bundle {
   val addr = UInt(p.XLEN.W)
+  val user = gen.cloneType
 }
 
-class ICacheResp(
+class ICacheResp[T <: Data](
+  gen:        T
+)(
   implicit p: CoreParams)
     extends Bundle {
   val data  = UInt(32.W)
   val addr  = Output(UInt(p.XLEN.W))
   val error = Bool()
+  val user  = gen.cloneType
 }
 
-class ICacheIO(
+class ICacheIO[T <: Data](
+  gen:        T
+)(
   implicit p: CoreParams)
     extends Bundle {
-  val req  = Decoupled(new ICacheReq)
-  val resp = Flipped(Decoupled(new ICacheResp))
+  val req  = Decoupled(new ICacheReq(gen))
+  val resp = Flipped(Decoupled(new ICacheResp(gen)))
   val kill = Bool()
 }
 
-class ICache(
+class ICache[T <: Data](
+  val gen:    T
+)(
   implicit p: CoreParams,
   axi_prop:   AXIProperty)
     extends Module {
   val io = IO(new Bundle {
-    val ifu   = Flipped(new ICacheIO())
+    val ifu   = Flipped(new ICacheIO(gen))
     val mem   = new AXI4()
     val flush = Input(Bool())
   })
@@ -67,6 +77,7 @@ class ICache(
 
   // Fill Info
   val fill_addr   = RegEnable(req_addr, req.fire)
+  val fill_user   = RegEnable(req.bits.user, req.fire)
   val fill_tag    = fill_addr(31, INDEX_BITS + BLOCK_BITS)
   val fill_index  = fill_addr(INDEX_BITS + BLOCK_BITS - 1, BLOCK_BITS)
   val fill_offset = if (BLOCK_BITS > 2) fill_addr(BLOCK_BITS - 1, 2) else 0.U
@@ -133,6 +144,7 @@ class ICache(
   resp.valid      := ((req.fire && hit) || (state === s_resp)) && !is_killed
   resp.bits.data  := entry_data
   resp.bits.addr  := Mux(state === s_idle, req_addr, fill_addr)
+  resp.bits.user  := Mux(state === s_idle, req.bits.user, fill_user)
   resp.bits.error := err
   req.ready       := state === s_idle
 
