@@ -189,8 +189,8 @@ class IDU(
     MuxCase(regfile_data, cases)
   }
 
-  io.rs1_data := forward_reg(rs1, io.rs1_data)
-  io.rs2_data := forward_reg(rs2, io.rs2_data)
+  val rs1_decoded = forward_reg(rs1, io.rs1_data)
+  val rs2_decoded = forward_reg(rs2, io.rs2_data)
 
   // Don't only use oper_type to detect hazards, because jump/branch's
   // ALU Op is always pc + 4 or branch cond.
@@ -240,8 +240,8 @@ class IDU(
   // Regfile
   io.rs1_addr          := rs1
   io.rs2_addr          := rs2
-  io.out.bits.rs1_data := io.rs1_data
-  io.out.bits.rs2_data := io.rs2_data
+  io.out.bits.rs1_data := rs1_decoded
+  io.out.bits.rs2_data := rs2_decoded
 
   io.in.ready  := io.out.ready && !hazard
   io.out.valid := io.in.valid && !hazard
