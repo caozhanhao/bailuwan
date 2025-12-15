@@ -233,4 +233,5 @@ class IDU(
 
   SignalProbe(pc, "idu_pc")
   SignalProbe(inst, "idu_inst")
+  PerfCounter(hazard, "idu_hazard_stall_cycles")
 }

@@ -147,6 +147,7 @@ void CPUProxy::dump_perf_counters(FILE* stream)
 #undef PERF
 
     auto all_ops_d = static_cast<double>(*b.all_ops);
+    auto all_cycles_d = static_cast<double>(*b.all_cycles);
 
     fprintf(stream, "+----------+----------+--------+\n");
     fprintf(stream, "| Type     |    Count | %%      |\n");
@@ -172,6 +173,14 @@ void CPUProxy::dump_perf_counters(FILE* stream)
     fprintf(stream, "icache hit rate = %f\n", hit_rate);
     fprintf(stream, "icache miss penalty = %f\n", miss_penalty);
     fprintf(stream, "icache AMAT = %f\n", AMAT);
+
+    auto idu_hazard = *b.idu_hazard_stall_cycles;
+    auto idu_hazard_percent = (static_cast<double>(idu_hazard) / all_cycles_d) * 100.0;
+    fprintf(stream, "IDU hazard stalled = %lu (%f %%)\n", idu_hazard, idu_hazard_percent);
+
+    auto mispredicted_br = *b.mispredicted_branches;
+    auto mispredicted_br_percent = (static_cast<double>(mispredicted_br) / static_cast<double>(*b.br_ops)) * 100.0;
+    fprintf(stream, "Mispredicted branches = %lu (%f %%)\n", mispredicted_br, mispredicted_br_percent);
 #endif
 }
 
@@ -265,7 +274,7 @@ void DUTMemory::out_of_bound_abort(uint32_t addr)
 {
     auto& cpu = SIM.cpu();
     printf("Out of bound memory access at addr=0x%08x\n, ifu_pc=0x%08x, lsu_pc=0x%08x",
-        addr, cpu.ifu_pc(), cpu.lsu_pc());
+           addr, cpu.ifu_pc(), cpu.lsu_pc());
     cpu.dump();
     SIM.cleanup();
     exit(-1);
