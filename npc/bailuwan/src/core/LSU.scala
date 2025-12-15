@@ -208,7 +208,7 @@ class LSU(
       ExecType.LSU -> io.out.bits.read_data
     )
   )
-  io.hazard.data_valid := state === s_wait_ready
+  io.hazard.data_valid := wbu_info.src_type =/= ExecType.LSU || state === s_wait_ready
 
   // Exception
   val excp = Wire(new ExceptionInfo)
