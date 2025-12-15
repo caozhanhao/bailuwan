@@ -95,7 +95,7 @@ class Core(
 
   // Redirect
   IFU.io.redirect_valid  := exu_flush || wbu_flush
-  IFU.io.redirect_target := Mux(wbu_flush, WBU.io.redirect_target, EXU.io.btb_w.target)
+  IFU.io.redirect_target := Mux(wbu_flush, WBU.io.redirect_target, EXU.io.correct_target)
   LSU.io.wbu_flush       := wbu_flush
 
   // RegFile - IDU

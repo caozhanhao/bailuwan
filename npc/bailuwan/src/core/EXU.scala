@@ -43,8 +43,9 @@ class EXU(
     val csr_rs_data = Input(UInt(p.XLEN.W))
 
     // Branch
-    val btb_w         = Flipped(new BTBWriteIO)
-    val br_mispredict = Output(Bool())
+    val btb_w          = Flipped(new BTBWriteIO)
+    val br_mispredict  = Output(Bool())
+    val correct_target = Output(UInt(p.XLEN.W))
 
     // ICache
     val icache_flush = Output(Bool())
@@ -182,7 +183,8 @@ class EXU(
   val predict_mismatch = (decoded.predict_taken =/= br_taken) ||
     (decoded.predict_taken && (decoded.predict_target =/= br_target))
 
-  io.br_mispredict := valid_br && predict_mismatch
+  io.br_mispredict  := valid_br && predict_mismatch
+  io.correct_target := Mux(br_taken, br_target, pc + 4.U)
 
   // IO
   io.in.ready  := io.out.ready
