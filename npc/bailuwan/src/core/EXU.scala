@@ -43,10 +43,11 @@ class EXU(
     val csr_rs_data = Input(UInt(p.XLEN.W))
 
     // Branch
-    val br_valid     = Output(Bool())
-    val br_target    = Output(UInt(p.XLEN.W))
-    val br_pc        = Output(UInt(p.XLEN.W))
-    val br_is_uncond = Output(Bool())
+    val br_valid      = Output(Bool())
+    val br_target     = Output(UInt(p.XLEN.W))
+    val br_pc         = Output(UInt(p.XLEN.W))
+    val br_is_uncond  = Output(Bool())
+    val br_mispredict = Output(Bool())
 
     // ICache
     val icache_flush = Output(Bool())
@@ -175,10 +176,11 @@ class EXU(
   io.out.bits.is_trap_return := exec_type === ExecType.MRet
 
   // Branch
-  io.br_valid     := io.in.fire && br_taken && !excp.valid
-  io.br_target    := br_target
-  io.br_pc        := pc
-  io.br_is_uncond := decoded.br_op === BrOp.JAL || decoded.br_op === BrOp.JALR
+  io.br_valid      := io.in.fire && br_taken && !excp.valid
+  io.br_target     := br_target
+  io.br_pc         := pc
+  io.br_is_uncond  := decoded.br_op === BrOp.JAL || decoded.br_op === BrOp.JALR
+  io.br_mispredict := (decoded.predict_taken =/= br_taken) || (decoded.predict_target =/= br_target)
 
   // IO
   io.in.ready  := io.out.ready
@@ -204,4 +206,5 @@ class EXU(
     "other_ops"
   )
   PerfCounter(once(true.B), "all_ops")
+  PerfCounter(once(io.br_mispredict), "mispredicted_branches")
 }

@@ -16,6 +16,9 @@ class IFUOut(
   val pc        = UInt(p.XLEN.W)
   val inst      = UInt(32.W)
   val exception = new ExceptionInfo
+
+  val predict_taken  = Bool()
+  val predict_target = UInt(p.XLEN.W)
 }
 
 class IFU(
@@ -88,11 +91,16 @@ class IFU(
   icache_io.req.valid     := !reset.asBool && !io.redirect_valid
   icache_io.resp.ready    := resp_queue.io.enq.ready
 
-  resp_queue.io.enq.valid          := icache_io.resp.valid
-  resp_queue.io.enq.bits.pc        := icache_io.resp.bits.addr
-  resp_queue.io.enq.bits.inst      := icache_io.resp.bits.data
-  resp_queue.io.enq.bits.exception := excp
-  resp_queue.io.flush.get          := io.redirect_valid
+  val out = Wire(new IFUOut)
+  out.pc             := icache_io.resp.bits.addr
+  out.inst           := icache_io.resp.bits.data
+  out.exception      := excp
+  out.predict_taken  := predict_taken
+  out.predict_target := predict_target
+
+  resp_queue.io.enq.valid := icache_io.resp.valid
+  resp_queue.io.enq.bits  := out
+  resp_queue.io.flush.get := io.redirect_valid
 
   io.out.bits             := resp_queue.io.deq.bits
   io.out.valid            := resp_queue.io.deq.valid && !io.redirect_valid
