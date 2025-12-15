@@ -172,7 +172,7 @@ class EXU(
     )
   )
 
-  io.btb_w.en        := io.in.fire && br_taken && !excp.valid
+  io.btb_w.en        := io.in.fire
   io.btb_w.target    := br_target
   io.btb_w.pc        := pc
   io.btb_w.is_uncond := decoded.br_op === BrOp.JAL || decoded.br_op === BrOp.JALR
