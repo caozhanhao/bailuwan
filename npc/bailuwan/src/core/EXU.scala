@@ -121,7 +121,7 @@ class EXU(
   io.out.bits.rd_addr := decoded.rd_addr
   io.out.bits.rd_we   := decoded.rd_we
 
-  io.out.bits.ex_out := MuxLookup(decoded.exec_type, 0.U)(
+  io.out.bits.ex_out := MuxLookup(exec_type, 0.U)(
     Seq(
       ExecType.ALU -> alu.io.result,
       ExecType.CSR -> io.csr_rs_data
@@ -135,17 +135,17 @@ class EXU(
   // EBreak
   val ebreak = Module(new EBreak)
 
-  ebreak.io.en    := io.in.fire && decoded.exec_type === ExecType.EBreak
+  ebreak.io.en    := io.in.fire && exec_type === ExecType.EBreak
   ebreak.io.clock := clock
 
   // Fence
-  io.icache_flush := io.in.fire && decoded.exec_type === ExecType.FenceI
+  io.icache_flush := io.in.fire && exec_type === ExecType.FenceI
 
   // Hazard
   io.hazard.valid      := io.in.valid && decoded.rd_we
   io.hazard.rd         := decoded.rd_addr
   io.hazard.data       := io.out.bits.ex_out
-  io.hazard.data_valid := decoded.exec_type === ExecType.ALU || decoded.exec_type === ExecType.CSR
+  io.hazard.data_valid := exec_type === ExecType.ALU || exec_type === ExecType.CSR
 
   io.out.bits.pc   := decoded.pc
   io.out.bits.inst := decoded.inst
@@ -154,8 +154,8 @@ class EXU(
   val prev_excp = io.in.bits.exception
   val excp      = Wire(new ExceptionInfo)
 
-  val is_ebreak = decoded.exec_type === ExecType.EBreak
-  val is_ecall  = decoded.exec_type === ExecType.ECall
+  val is_ebreak = exec_type === ExecType.EBreak
+  val is_ecall  = exec_type === ExecType.ECall
 
   excp.valid := prev_excp.valid || is_ebreak || is_ecall
   excp.cause := MuxCase(
@@ -168,8 +168,8 @@ class EXU(
   )
   excp.tval  := Mux(prev_excp.valid, prev_excp.tval, decoded.pc)
 
-  io.out.bits.exception          := excp
-  io.out.bits.is_trap_return := decoded.exec_type === ExecType.MRet
+  io.out.bits.exception      := excp
+  io.out.bits.is_trap_return := exec_type === ExecType.MRet
 
   // Jump
   io.br_valid  := io.in.fire && br_taken && !excp.valid

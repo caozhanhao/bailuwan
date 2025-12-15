@@ -197,12 +197,13 @@ class LSU(
   io.mem.w.bits.last := true.B
 
   // EXU Forward
-  io.out.bits.rd_addr     := io.in.bits.rd_addr
-  io.out.bits.rd_we       := io.in.bits.rd_we
-  io.out.bits.csr_rd_addr := io.in.bits.csr_rd_addr
-  io.out.bits.csr_rd_we   := io.in.bits.csr_rd_we
-  io.out.bits.csr_rd_data := io.in.bits.csr_rd_data
-  io.out.bits.ls_out      := Mux(req_op === LSUOp.Nop, io.in.bits.ex_out, selected_loaded_data)
+  io.out.bits.rd_addr        := io.in.bits.rd_addr
+  io.out.bits.rd_we          := io.in.bits.rd_we
+  io.out.bits.csr_rd_addr    := io.in.bits.csr_rd_addr
+  io.out.bits.csr_rd_we      := io.in.bits.csr_rd_we
+  io.out.bits.csr_rd_data    := io.in.bits.csr_rd_data
+  io.out.bits.is_trap_return := io.in.bits.is_trap_return
+  io.out.bits.ls_out         := Mux(req_op === LSUOp.Nop, io.in.bits.ex_out, selected_loaded_data)
 
   // Hazard
   io.hazard.valid      := io.in.valid && io.in.bits.rd_we
