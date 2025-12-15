@@ -201,7 +201,13 @@ class LSU(
   // Hazard
   io.hazard.valid      := io.in.valid && wbu_info.rd_we
   io.hazard.rd         := wbu_info.rd_addr
-  io.hazard.data       := io.out.bits.read_data
+  io.hazard.data       := MuxLookup(wbu_info.src_type, 0.U)(
+    Seq(
+      ExecType.ALU -> wbu_info.alu_out,
+      ExecType.CSR -> wbu_info.csr_out,
+      ExecType.LSU -> io.out.bits.read_data
+    )
+  )
   io.hazard.data_valid := state === s_wait_ready
 
   // Exception
