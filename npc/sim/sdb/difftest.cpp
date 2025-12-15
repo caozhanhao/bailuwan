@@ -90,10 +90,20 @@ void init_difftest(size_t img_size)
     sync_regs_to_ref(RESET_VECTOR);
 }
 
+// expected_next_pc is saved after each difftest_step.
+static uint32_t expected_next_pc = RESET_VECTOR;
+
 static void check_regs(diff_context_t* ref)
 {
     auto& cpu = SIM.cpu();
     bool match = true;
+
+    if (cpu.wbu_pc() != expected_next_pc)
+    {
+        Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", expected_next_pc, cpu.wbu_pc());
+        match = false;
+    }
+
     for (int i = 0; i < 16; i++)
     {
         if (cpu.reg(i) != ref->gpr[i])
@@ -159,8 +169,8 @@ static bool is_accessing_device()
 
 void difftest_step()
 {
-     fprintf(stderr, "DIFF_STEP, 0x%x: %s\n", SIM.cpu().wbu_pc(),
-             rv32_disasm(SIM.cpu().wbu_pc(), SIM.cpu().wbu_inst()).c_str());
+    fprintf(stderr, "DIFF_STEP, 0x%x: %s\n", SIM.cpu().wbu_pc(),
+            rv32_disasm(SIM.cpu().wbu_pc(), SIM.cpu().wbu_inst()).c_str());
 
     if (is_accessing_device())
     {
@@ -175,6 +185,7 @@ void difftest_step()
 
     diff_context_t ref_r{};
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
+    expected_next_pc = ref_r.pc;
 
     fprintf(stderr, "Curr Ref PC=0x%x\n", ref_r.pc);
 
