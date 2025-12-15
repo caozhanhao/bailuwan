@@ -120,7 +120,7 @@ static void check_regs(diff_context_t* ref)
     if (!match)
     {
         sdb_state = SDBState::Abort;
-        printf("Test failed after wbu_pc=" FdMT_WORD ", wbu_inst=" FMT_WORD "\n",
+        printf("Test failed after wbu_pc=" FMT_WORD ", wbu_inst=" FMT_WORD "\n",
                cpu.wbu_pc(), cpu.wbu_inst());
         cpu.dump();
     }
