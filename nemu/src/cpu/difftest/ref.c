@@ -133,6 +133,7 @@ __EXPORT void difftest_tracesim_step(void *batch_) {
       batch->b_stream[i].is_uncond = is_uncond;
       batch->b_stream[i].taken = taken;
       b++;
+      printf("1NEMU pc: 0x%x\n", batch->b_stream[i].pc);
     }
 
     cpu_exec(1);
