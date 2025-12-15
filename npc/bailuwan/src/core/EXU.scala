@@ -176,7 +176,7 @@ class EXU(
   val valid_br = io.in.fire && decoded.br_op =/= BrOp.Nop
 
   // Don't predict jalr
-  io.btb_w.en        := valid_br && decoded.br_op =/= BrOp.JALR
+  io.btb_w.en        := valid_br
   io.btb_w.target    := br_target
   io.btb_w.pc        := pc
   io.btb_w.is_uncond := decoded.br_op === BrOp.JAL
