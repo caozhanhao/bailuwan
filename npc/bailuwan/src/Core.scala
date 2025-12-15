@@ -81,7 +81,7 @@ class Core(
   val RegFile = Module(new RegFile)
   val CSRFile = Module(new CSRFile)
 
-  val exu_flush = EXU.io.br_valid
+  val exu_flush = EXU.io.br_mispredict
   val wbu_flush = WBU.io.redirect_valid
 
   PipelineConnect(IFU.io.out, IDU.io.in, wbu_flush, exu_flush, exu_force_flush = true)
@@ -95,7 +95,7 @@ class Core(
 
   // Redirect
   IFU.io.redirect_valid  := exu_flush || wbu_flush
-  IFU.io.redirect_target := Mux(wbu_flush, WBU.io.redirect_target, EXU.io.br_target)
+  IFU.io.redirect_target := Mux(wbu_flush, WBU.io.redirect_target, EXU.io.correct_target)
   LSU.io.wbu_flush       := wbu_flush
 
   // RegFile - IDU
@@ -125,6 +125,9 @@ class Core(
 
   // ICache Flush
   IFU.io.icache_flush := EXU.io.icache_flush
+
+  // BPU
+  IFU.io.btb_w := EXU.io.btb_w
 
   // Hazard
   IDU.io.exu_hazard := EXU.io.hazard
@@ -167,5 +170,4 @@ class Core(
   arbiter.io.slave <> xbar.io.master
 
   PerfCounter(true.B, "all_cycles")
-  PerfCounter(exu_flush, "mispredicted_branches")
 }

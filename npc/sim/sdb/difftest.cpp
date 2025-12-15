@@ -90,10 +90,24 @@ void init_difftest(size_t img_size)
     sync_regs_to_ref(RESET_VECTOR);
 }
 
+// After each `difftest_step`, ref's pc is updated to `dnpc`, but wbu_pc() is the
+// current instruction's pc. And getting the dut's `dnpc` is not easy here.
+// So we delay the pc check one instruction: After each difftest_step, we save the ref's pc,
+// which is actually dnpc. At the next call to difftest_step, we check the dut's pc with the
+// saved ref's pc.
+static uint32_t expected_pc = RESET_VECTOR;
+
 static void check_regs(diff_context_t* ref)
 {
     auto& cpu = SIM.cpu();
     bool match = true;
+
+    if (cpu.wbu_pc() != expected_pc)
+    {
+        Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", expected_pc, cpu.wbu_pc());
+        match = false;
+    }
+
     for (int i = 0; i < 16; i++)
     {
         if (cpu.reg(i) != ref->gpr[i])
@@ -159,15 +173,19 @@ static bool is_accessing_device()
 
 void difftest_step()
 {
-     // fprintf(stderr, "DIFF_STEP, 0x%x: %s\n", SIM.cpu().wbu_pc(),
-     //         rv32_disasm(SIM.cpu().wbu_pc(), SIM.cpu().wbu_inst()).c_str());
+    IFDEF(CONFIG_DIFFTEST_TRACE,
+          fprintf(stderr, "DIFF_STEP, 0x%x: %s\n", SIM.cpu().wbu_pc(),
+              rv32_disasm(SIM.cpu().wbu_pc(), SIM.cpu().wbu_inst()).c_str())
+    );
 
     if (is_accessing_device())
     {
         // ATTENTION: wbu_pc + 4
         //   `is_accessing_device` can only be true in store or load, thus the dnpc
         //   is always wbu_pc + 4. We can NOT use dnpc here because they are bindings in EXU.
-        sync_regs_to_ref(SIM.cpu().wbu_pc() + 4);
+        auto dnpc = SIM.cpu().wbu_pc() + 4;
+        sync_regs_to_ref(dnpc);
+        expected_pc = dnpc;
         return;
     }
 
@@ -176,9 +194,10 @@ void difftest_step()
     diff_context_t ref_r{};
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
-    // fprintf(stderr, "Curr Ref PC=0x%x\n", ref_r.pc);
-
     check_regs(&ref_r);
+
+    // Update pc
+    expected_pc = ref_r.pc;
 }
 #else
 void init_difftest()

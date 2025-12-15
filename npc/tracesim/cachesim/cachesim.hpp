@@ -1,8 +1,8 @@
 // Copyright (c) 2025 caozhanhao
 // SPDX-License-Identifier: MIT
 
-#ifndef BAILUWAN_CACHE_SIM
-#define BAILUWAN_CACHE_SIM
+#ifndef BAILUWAN_TRACESIM_CACHESIM_CACHESIM_HPP
+#define BAILUWAN_TRACESIM_CACHESIM_CACHESIM_HPP
 
 #include <cstdint>
 #include <vector>

@@ -58,7 +58,7 @@ class WBU(
   io.redirect_target := Mux(io.in.bits.is_trap_return, io.mepc, io.mtvec)
 
   // Hazard
-  io.hazard.valid      := io.in.valid
+  io.hazard.valid      := io.in.valid && io.in.bits.rd_we && !excp.valid
   io.hazard.rd         := io.in.bits.rd_addr
   io.hazard.data       := io.in.bits.ls_out
   io.hazard.data_valid := true.B

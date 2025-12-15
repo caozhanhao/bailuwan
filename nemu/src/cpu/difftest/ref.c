@@ -73,32 +73,45 @@ __EXPORT void difftest_init(int port) {
   init_device();
 }
 
-struct cachesim_batch {
+struct tracesim_batch {
   // PC stream
-  word_t *i_stream;
+  uint32_t *i_stream;
   uint32_t i_size;
 
+  // ldstr stream
   struct dcache_entry {
     bool is_read;
-    word_t addr;
+    uint32_t addr;
   } *d_stream;
+
   uint32_t d_size;
+
+  // branch stream
+  struct branch_entry {
+    uint32_t pc;
+    uint32_t target;
+    bool is_uncond;
+    bool taken;
+  } *b_stream;
+
+  uint32_t b_size;
 };
 
-bool in_difftest_cachesim;
-static uint32_t cachesim_batch_size;
-__EXPORT void difftest_cachesim_init(uint32_t batch_size) {
-  cachesim_batch_size = batch_size;
-  in_difftest_cachesim = true;
+bool in_difftest_tracesim;
+static uint32_t tracesim_batch_size;
+__EXPORT void difftest_tracesim_init(uint32_t batch_size) {
+  tracesim_batch_size = batch_size;
+  in_difftest_tracesim = true;
 }
 
-// `batch_` should be a pointer to `cachesim_batch`, and the `stream` field in it
-// MUST allocate at least `cachesim_batch_size * sizeof(uint32_t/dcache_entry)` bytes.
-__EXPORT void difftest_cachesim_step(void *batch_) {
-  struct cachesim_batch *batch = (struct cachesim_batch *)batch_;
+// `batch_` should be a pointer to `tracesim_batch`, and the `stream` field in it
+// MUST allocate at least `tracesim_batch_size * sizeof(uint32_t/dcache_entry)` bytes.
+__EXPORT void difftest_tracesim_step(void *batch_) {
+  struct tracesim_batch *batch = (struct tracesim_batch *)batch_;
   int i = 0;
   int d = 0;
-  while (i < cachesim_batch_size) {
+  int b = 0;
+  while (i < tracesim_batch_size) {
     batch->i_stream[i++] = cpu.pc;
 
     auto inst = vaddr_ifetch(cpu.pc, 4);
@@ -111,6 +124,17 @@ __EXPORT void difftest_cachesim_step(void *batch_) {
       d++;
     }
 
+    word_t target_addr;
+    bool is_uncond;
+    bool taken;
+    if (isa_decode_branch(cpu.pc, inst, &target_addr, &is_uncond, &taken) == 0) {
+      batch->b_stream[b].pc = cpu.pc;
+      batch->b_stream[b].target = target_addr;
+      batch->b_stream[b].is_uncond = is_uncond;
+      batch->b_stream[b].taken = taken;
+      b++;
+    }
+
     cpu_exec(1);
 
     if (nemu_state.state == NEMU_END || nemu_state.state == NEMU_ABORT || nemu_state.state == NEMU_QUIT)
@@ -118,4 +142,5 @@ __EXPORT void difftest_cachesim_step(void *batch_) {
   }
   batch->i_size = i;
   batch->d_size = d;
+  batch->b_size = b;
 }

@@ -43,8 +43,9 @@ class EXU(
     val csr_rs_data = Input(UInt(p.XLEN.W))
 
     // Branch
-    val br_valid  = Output(Bool())
-    val br_target = Output(UInt(p.XLEN.W))
+    val btb_w          = Flipped(new BTBWriteIO)
+    val br_mispredict  = Output(Bool())
+    val correct_target = Output(UInt(p.XLEN.W))
 
     // ICache
     val icache_flush = Output(Bool())
@@ -55,6 +56,7 @@ class EXU(
 
   val decoded = io.in.bits
 
+  val pc        = decoded.pc
   val exec_type = decoded.exec_type
   val rs1_data  = decoded.rs1_data
   val rs2_data  = decoded.rs2_data
@@ -65,7 +67,7 @@ class EXU(
     OperType.Imm  -> decoded.imm,
     OperType.Zero -> 0.U,
     OperType.Four -> 4.U,
-    OperType.PC   -> decoded.pc,
+    OperType.PC   -> pc,
     OperType.CSR  -> io.csr_rs_data
   )
 
@@ -78,29 +80,6 @@ class EXU(
   alu.io.oper1  := oper1
   alu.io.oper2  := oper2
   alu.io.alu_op := decoded.alu_op
-
-  // Branch
-  // Default to be `pc + imm` for  beq/bne/... and jal.
-  val br_target = MuxLookup(decoded.br_op, (decoded.pc + decoded.imm).asUInt)(
-    Seq(
-      BrOp.Nop  -> 0.U,
-      BrOp.JALR -> (rs1_data + decoded.imm)(p.XLEN - 1, 1) ## 0.U
-    )
-  )
-
-  val br_taken = MuxLookup(decoded.br_op, false.B)(
-    Seq(
-      BrOp.Nop  -> false.B,
-      BrOp.JAL  -> true.B,
-      BrOp.JALR -> true.B,
-      BrOp.BEQ  -> (alu.io.result === 0.U).asBool,
-      BrOp.BNE  -> (alu.io.result =/= 0.U).asBool,
-      BrOp.BLT  -> alu.io.result(0),
-      BrOp.BGE  -> !alu.io.result(0),
-      BrOp.BLTU -> alu.io.result(0),
-      BrOp.BGEU -> !alu.io.result(0)
-    )
-  )
 
   // CSR
   // Use oper2 to select imm for CSR{RWI/RSI/RCI}
@@ -147,7 +126,7 @@ class EXU(
   io.hazard.data       := io.out.bits.ex_out
   io.hazard.data_valid := exec_type === ExecType.ALU || exec_type === ExecType.CSR
 
-  io.out.bits.pc   := decoded.pc
+  io.out.bits.pc   := pc
   io.out.bits.inst := decoded.inst
 
   // Exception
@@ -166,24 +145,56 @@ class EXU(
       is_ecall        -> ExceptionCode.EnvironmentCallFromMMode
     )
   )
-  excp.tval  := Mux(prev_excp.valid, prev_excp.tval, decoded.pc)
+  excp.tval  := Mux(prev_excp.valid, prev_excp.tval, pc)
 
   io.out.bits.exception      := excp
   io.out.bits.is_trap_return := exec_type === ExecType.MRet
 
-  // Jump
-  io.br_valid  := io.in.fire && br_taken && !excp.valid
-  io.br_target := br_target
+  // Branch
+  // Default to be `pc + imm` for  beq/bne/... and jal.
+  val br_target = MuxLookup(decoded.br_op, (pc + decoded.imm).asUInt)(
+    Seq(
+      BrOp.Nop  -> 0.U,
+      BrOp.JALR -> (rs1_data + decoded.imm)(p.XLEN - 1, 1) ## 0.U
+    )
+  )
+
+  val br_taken = MuxLookup(decoded.br_op, false.B)(
+    Seq(
+      BrOp.Nop  -> false.B,
+      BrOp.JAL  -> true.B,
+      BrOp.JALR -> true.B,
+      BrOp.BEQ  -> (alu.io.result === 0.U).asBool,
+      BrOp.BNE  -> (alu.io.result =/= 0.U).asBool,
+      BrOp.BLT  -> alu.io.result(0),
+      BrOp.BGE  -> !alu.io.result(0),
+      BrOp.BLTU -> alu.io.result(0),
+      BrOp.BGEU -> !alu.io.result(0)
+    )
+  )
+
+  val valid_br = io.in.fire && decoded.br_op =/= BrOp.Nop
+
+  io.btb_w.en        := valid_br
+  io.btb_w.target    := br_target
+  io.btb_w.pc        := pc
+  io.btb_w.is_uncond := decoded.br_op === BrOp.JAL || decoded.br_op === BrOp.JALR
+
+  val predict_mismatch = (decoded.predict_taken =/= br_taken) ||
+    (decoded.predict_taken && (decoded.predict_target =/= br_target))
+
+  io.br_mispredict  := valid_br && predict_mismatch
+  io.correct_target := Mux(br_taken, br_target, pc + 4.U)
 
   // IO
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
 
   // Expose pc and inst in EXU to avoid the testbench see the flushed instructions
-  SignalProbe(decoded.pc, "exu_pc")
+  SignalProbe(pc, "exu_pc")
   SignalProbe(decoded.inst, "exu_inst")
   SignalProbe(io.in.fire, "exu_inst_trace_ready")
-  SignalProbe(Mux(io.br_valid, io.br_target, decoded.pc + 4.U), "exu_dnpc")
+  SignalProbe(Mux(io.btb_w.en, io.btb_w.target, pc + 4.U), "exu_dnpc")
 
   def once(b: Bool) = io.in.fire && b
   PerfCounter(once(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_ops")
@@ -199,4 +210,5 @@ class EXU(
     "other_ops"
   )
   PerfCounter(once(true.B), "all_ops")
+  PerfCounter(once(io.br_mispredict), "mispredicted_branches")
 }

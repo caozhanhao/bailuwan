@@ -108,6 +108,9 @@ class IDUOut(
   val csr_op    = UInt(CSROp.WIDTH)
 
   val exception = new ExceptionInfo
+
+  val predict_taken  = Bool()
+  val predict_target = UInt(p.XLEN.W)
 }
 
 class HazardInfo(
@@ -213,22 +216,27 @@ class IDU(
   excp.tval  := Mux(prev_excp.valid, prev_excp.tval, inst)
 
   // IO
-  io.out.bits.pc             := pc
-  io.out.bits.inst           := inst
-  io.out.bits.rs1_data       := rs1_decoded
-  io.out.bits.rs2_data       := rs2_decoded
-  io.out.bits.alu_oper1_type := oper1_type
-  io.out.bits.alu_oper2_type := oper2_type
-  io.out.bits.imm            := imm
-  io.out.bits.csr_addr       := csr_addr
-  io.out.bits.alu_op         := alu_op
-  io.out.bits.lsu_op         := lsu_op
-  io.out.bits.br_op          := br_op
-  io.out.bits.exec_type      := exec_type
-  io.out.bits.csr_op         := csr_op
-  io.out.bits.rd_addr        := rd
-  io.out.bits.rd_we          := we
-  io.out.bits.exception      := excp
+  val out = Wire(new IDUOut)
+  out.pc             := pc
+  out.inst           := inst
+  out.rs1_data       := rs1_decoded
+  out.rs2_data       := rs2_decoded
+  out.alu_oper1_type := oper1_type
+  out.alu_oper2_type := oper2_type
+  out.imm            := imm
+  out.csr_addr       := csr_addr
+  out.alu_op         := alu_op
+  out.lsu_op         := lsu_op
+  out.br_op          := br_op
+  out.exec_type      := exec_type
+  out.csr_op         := csr_op
+  out.rd_addr        := rd
+  out.rd_we          := we
+  out.exception      := excp
+  out.predict_taken  := io.in.bits.predict_taken
+  out.predict_target := io.in.bits.predict_target
+
+  io.out.bits := out
 
   // Regfile
   io.rs1_addr := rs1
