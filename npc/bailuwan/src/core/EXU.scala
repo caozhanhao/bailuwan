@@ -211,4 +211,13 @@ class EXU(
   )
   PerfCounter(once(true.B), "all_ops")
   PerfCounter(once(io.br_mispredict), "mispredicted_branches")
+
+
+  when (io.btb_w.en) {
+    printf("HW_BTB: PC=%x Target=%x Uncond=%d Taken=%d | PredTaken=%d PredTarget=%x\n",
+      io.btb_w.pc, io.btb_w.target, io.btb_w.is_uncond,
+      (io.correct_target =/= (io.btb_w.pc + 4.U)),
+      decoded.predict_taken, decoded.predict_target
+    )
+  }
 }
