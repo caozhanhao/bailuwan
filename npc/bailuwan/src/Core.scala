@@ -115,6 +115,8 @@ class Core(
   CSRFile.io.read_enable := EXU.io.csr_rs_en
 
   // CSRFile - WBU
+  WBU.io.mtvec            := CSRFile.io.mtvec
+  WBU.io.mepc             := CSRFile.io.mepc
   CSRFile.io.write_addr   := WBU.io.csr_rd_addr
   CSRFile.io.write_enable := WBU.io.csr_rd_we
   CSRFile.io.write_data   := WBU.io.csr_rd_data
@@ -125,12 +127,9 @@ class Core(
   IFU.io.icache_flush := EXU.io.icache_flush
 
   // Hazard
-  IDU.io.exu_hazard_rd       := EXU.io.hazard_rd
-  IDU.io.exu_hazard_rd_valid := EXU.io.hazard_rd_valid
-  IDU.io.lsu_hazard_rd       := LSU.io.hazard_rd
-  IDU.io.lsu_hazard_rd_valid := LSU.io.hazard_rd_valid
-  IDU.io.wbu_hazard_rd       := WBU.io.rd_addr
-  IDU.io.wbu_hazard_rd_valid := WBU.io.rd_we
+  IDU.io.exu_hazard := EXU.io.hazard
+  IDU.io.lsu_hazard := LSU.io.hazard
+  IDU.io.wbu_hazard := WBU.io.hazard
 
   // Memory, LSU > IFU
   val arbiter = Module(new AXI4Arbiter(2))

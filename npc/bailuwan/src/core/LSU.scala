@@ -14,13 +14,17 @@ import bailuwan.CoreParams
 class LSUOut(
   implicit p: CoreParams)
     extends Bundle {
-  val read_data = UInt(p.XLEN.W)
-  // Forward from EXU
-  val from_exu  = new EXUOutForWBU
+  val ls_out      = UInt(p.XLEN.W)
+  val rd_addr     = UInt(5.W)
+  val rd_we       = Bool()
+  val csr_rd_addr = UInt(12.W)
+  val csr_rd_we   = Bool()
+  val csr_rd_data = UInt(p.XLEN.W)
 
-  val pc        = UInt(p.XLEN.W)
-  val inst      = UInt(32.W)
-  val exception = new ExceptionInfo
+  val pc             = UInt(p.XLEN.W)
+  val inst           = UInt(32.W)
+  val exception      = new ExceptionInfo
+  val is_trap_return = Bool()
 }
 
 class LSU(
@@ -34,8 +38,7 @@ class LSU(
     val mem = new AXI4()
 
     // Hazard
-    val hazard_rd       = Output(UInt(5.W))
-    val hazard_rd_valid = Output(Bool())
+    val hazard = Output(new HazardInfo)
 
     val wbu_flush = Input(Bool())
   })
@@ -46,10 +49,9 @@ class LSU(
   val inst      = io.in.bits.inst
   val prev_excp = io.in.bits.exception
 
-  val req_addr = io.in.bits.lsu.addr
-  val req_data = io.in.bits.lsu.store_data
-  val wbu_info = io.in.bits.wbu
-  val req_op   = Mux(prev_excp.valid, LSUOp.Nop, io.in.bits.lsu.op)
+  val req_addr = io.in.bits.lsu_addr
+  val req_data = io.in.bits.lsu_store_data
+  val req_op   = Mux(prev_excp.valid, LSUOp.Nop, io.in.bits.lsu_op)
 
   // States
   val (s_idle :: s_r_addr :: s_r_wait_mem ::
@@ -108,9 +110,6 @@ class LSU(
   //        to assert ready would cause a deadlock.
   io.in.ready := (state === s_idle && !io.in.valid) || (state === s_wait_ready && io.out.ready)
 
-  // EXU Forward
-  io.out.bits.from_exu := wbu_info
-
   // Read
   io.mem.ar.bits.addr := req_addr
   io.mem.ar.valid     := state === s_r_addr
@@ -155,8 +154,6 @@ class LSU(
     )
   )
 
-  io.out.bits.read_data := selected_loaded_data
-
   // Store
   val write_mask = MuxLookup(req_op, 0.U(4.W))(
     Seq(
@@ -199,9 +196,20 @@ class LSU(
 
   io.mem.w.bits.last := true.B
 
+  // EXU Forward
+  io.out.bits.rd_addr        := io.in.bits.rd_addr
+  io.out.bits.rd_we          := io.in.bits.rd_we
+  io.out.bits.csr_rd_addr    := io.in.bits.csr_rd_addr
+  io.out.bits.csr_rd_we      := io.in.bits.csr_rd_we
+  io.out.bits.csr_rd_data    := io.in.bits.csr_rd_data
+  io.out.bits.is_trap_return := io.in.bits.is_trap_return
+  io.out.bits.ls_out         := Mux(req_op === LSUOp.Nop, io.in.bits.ex_out, selected_loaded_data)
+
   // Hazard
-  io.hazard_rd       := wbu_info.rd_addr
-  io.hazard_rd_valid := io.in.valid && wbu_info.rd_we
+  io.hazard.valid      := io.in.valid && io.in.bits.rd_we
+  io.hazard.rd         := io.in.bits.rd_addr
+  io.hazard.data       := io.out.bits.ls_out
+  io.hazard.data_valid := req_op === LSUOp.Nop || state === s_wait_ready
 
   // Exception
   val excp = Wire(new ExceptionInfo)

@@ -25,34 +25,27 @@ class WBU(
     val csr_rd_addr = Output(UInt(12.W))
     val csr_rd_data = Output(UInt(p.XLEN.W))
     val csr_epc     = Output(UInt(p.XLEN.W))
+    val mtvec       = Input(UInt(p.XLEN.W))
+    val mepc        = Input(UInt(p.XLEN.W))
 
     val exception       = Output(new ExceptionInfo)
     val redirect_valid  = Output(Bool())
     val redirect_target = Output(UInt(p.XLEN.W))
+
+    // Hazard
+    val hazard = Output(new HazardInfo)
   })
 
-  val exu_out = io.in.bits.from_exu
-  val lsu_out = io.in.bits.read_data
-  val excp    = io.in.bits.exception
+  val excp = io.in.bits.exception
 
-  import ExecType._
-  val rd_data = MuxLookup(exu_out.src_type, 0.U)(
-    Seq(
-      ALU -> exu_out.alu_out,
-      LSU -> lsu_out,
-      CSR -> exu_out.csr_out
-    )
-  )
-
-  io.rd_addr := exu_out.rd_addr
-  io.rd_data := rd_data
-  io.rd_we   := io.in.valid && exu_out.rd_we && !excp.valid
+  io.rd_addr := io.in.bits.rd_addr
+  io.rd_data := io.in.bits.ls_out
+  io.rd_we   := io.in.valid && io.in.bits.rd_we && !excp.valid
 
   // CSR
-  val is_csr = exu_out.src_type === ExecType.CSR
-  io.csr_rd_we   := io.in.valid && !excp.valid && is_csr
-  io.csr_rd_addr := exu_out.csr_rd_addr
-  io.csr_rd_data := exu_out.csr_rd_data
+  io.csr_rd_we   := io.in.valid && io.in.bits.csr_rd_we && !excp.valid
+  io.csr_rd_addr := io.in.bits.csr_rd_addr
+  io.csr_rd_data := io.in.bits.csr_rd_data
 
   // Exception
   io.exception.valid := io.in.valid && excp.valid
@@ -61,8 +54,14 @@ class WBU(
   io.csr_epc         := io.in.bits.pc
 
   // Redirect
-  io.redirect_valid  := io.in.valid && (excp.valid || exu_out.is_trap_return)
-  io.redirect_target := exu_out.csr_out
+  io.redirect_valid  := io.in.valid && (excp.valid || io.in.bits.is_trap_return)
+  io.redirect_target := Mux(io.in.bits.is_trap_return, io.mepc, io.mtvec)
+
+  // Hazard
+  io.hazard.valid      := io.in.valid
+  io.hazard.rd         := io.in.bits.rd_addr
+  io.hazard.data       := io.in.bits.ls_out
+  io.hazard.data_valid := true.B
 
   io.in.ready := true.B
 

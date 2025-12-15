@@ -23,6 +23,9 @@ class CSRFile(
 
     val exception = Input(new ExceptionInfo())
     val epc       = Input(UInt(p.XLEN.W))
+
+    val mtvec = Output(UInt(p.XLEN.W))
+    val mepc  = Output(UInt(p.XLEN.W))
   })
 
   val excp = io.exception
@@ -71,6 +74,8 @@ class CSRFile(
   // printf("[CSR] read_addr: %x, read_data: %x\n", io.read_addr, read_data)
 
   io.read_data := Mux(io.read_enable, read_data, 0.U)
+  io.mtvec     := mtvec
+  io.mepc      := mepc
 
   SignalProbe(mstatus, "mstatus")
   SignalProbe(mtvec, "mtvec")
