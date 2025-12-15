@@ -3,7 +3,10 @@
 
 #include "trace.hpp"
 #include <cassert>
+#include <cstdio>
+#include <cstdlib>
 #include <dlfcn.h>
+#include <string>
 
 enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF };
 
@@ -32,10 +35,19 @@ struct diff_context_t
 
 void init_tracesim(void* img, size_t img_size)
 {
-    const char* ref_so_file = "sim/common/lib/riscv32-nemu-interpreter-so";
+    auto npc_home = getenv("NPC_HOME");
+    assert(npc_home);
 
-    auto handle = dlopen(ref_so_file, RTLD_LAZY);
-    assert(handle);
+    auto ref_so_path = std::string(npc_home) + "/sim/common/lib/riscv32-nemu-interpreter-so";
+
+    printf("Loading %s\n", ref_so_path.c_str());
+
+    auto handle = dlopen(ref_so_path.c_str(), RTLD_LAZY);
+    if (!handle)
+    {
+        fprintf(stderr, "dlopen error: %s\n", dlerror());
+        assert(false);
+    }
 
     ref_difftest_memcpy = reinterpret_cast<difftest_memcpy_t>(dlsym(handle, "difftest_memcpy"));
     assert(ref_difftest_memcpy);
