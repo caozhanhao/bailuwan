@@ -90,17 +90,21 @@ void init_difftest(size_t img_size)
     sync_regs_to_ref(RESET_VECTOR);
 }
 
-// expected_next_pc is saved after each difftest_step.
-static uint32_t expected_next_pc = RESET_VECTOR;
+// After each `difftest_step`, ref's pc is updated to `dnpc`, but wbu_pc() is the
+// current instruction's pc. And getting the dut's `dnpc` is not easy here.
+// So we delay the pc check one instruction: After each difftest_step, we save the ref's pc,
+// which is actually dnpc. At the next call to difftest_step, we check the dut's pc with the
+// saved ref's pc.
+static uint32_t expected_pc = RESET_VECTOR;
 
 static void check_regs(diff_context_t* ref)
 {
     auto& cpu = SIM.cpu();
     bool match = true;
 
-    if (cpu.wbu_pc() != expected_next_pc)
+    if (cpu.wbu_pc() != expected_pc)
     {
-        Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", expected_next_pc, cpu.wbu_pc());
+        Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", expected_pc, cpu.wbu_pc());
         match = false;
     }
 
@@ -188,8 +192,8 @@ void difftest_step()
 
     check_regs(&ref_r);
 
-    // Update next pc
-    expected_next_pc = ref_r.pc;
+    // Update pc
+    expected_pc = ref_r.pc;
 }
 #else
 void init_difftest()
