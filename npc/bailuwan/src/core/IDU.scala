@@ -185,7 +185,7 @@ class IDU(
   val hazard_info = Seq(io.exu_hazard, io.lsu_hazard, io.wbu_hazard)
 
   def forward_reg(rs: UInt, regfile_data: UInt) = {
-    val cases = hazard_info.map(info => (info.valid && info.rd === rs && info.data_valid) -> info.data)
+    val cases = hazard_info.map(info => (rs =/= 0.U && info.valid && info.rd === rs && info.data_valid) -> info.data)
     MuxCase(regfile_data, cases)
   }
 
