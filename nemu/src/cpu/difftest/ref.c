@@ -128,12 +128,11 @@ __EXPORT void difftest_tracesim_step(void *batch_) {
     bool is_uncond;
     bool taken;
     if (isa_decode_branch(cpu.pc, inst, &target_addr, &is_uncond, &taken) == 0) {
-      batch->b_stream[i].pc = cpu.pc;
-      batch->b_stream[i].target = target_addr;
-      batch->b_stream[i].is_uncond = is_uncond;
-      batch->b_stream[i].taken = taken;
+      batch->b_stream[b].pc = cpu.pc;
+      batch->b_stream[b].target = target_addr;
+      batch->b_stream[b].is_uncond = is_uncond;
+      batch->b_stream[b].taken = taken;
       b++;
-      printf("1NEMU pc: 0x%x\n", batch->b_stream[i].pc);
     }
 
     cpu_exec(1);
