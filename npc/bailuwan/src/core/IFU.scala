@@ -113,7 +113,7 @@ class IFU(
   out.inst      := icache_io.resp.bits.data
   out.exception := excp
 
-  val resp_meta = icache_io.resp.bits.user.asTypeOf(new BPMeta)
+  val resp_meta = icache_io.resp.bits.user
   out.predict_taken  := resp_meta.predict_taken
   out.predict_target := resp_meta.predict_target
 
