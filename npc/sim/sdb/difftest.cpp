@@ -185,11 +185,11 @@ void difftest_step()
 
     diff_context_t ref_r{};
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-    expected_next_pc = ref_r.pc;
-
-    fprintf(stderr, "Curr Ref PC=0x%x\n", ref_r.pc);
 
     check_regs(&ref_r);
+
+    // Update next pc
+    expected_next_pc = ref_r.pc;
 }
 #else
 void init_difftest()
