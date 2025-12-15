@@ -224,6 +224,8 @@ class IDU(
   // IO
   io.out.bits.pc             := pc
   io.out.bits.inst           := inst
+  io.out.bits.rs1_data       := rs1_decoded
+  io.out.bits.rs2_data       := rs2_decoded
   io.out.bits.alu_oper1_type := oper1_type
   io.out.bits.alu_oper2_type := oper2_type
   io.out.bits.imm            := imm
@@ -238,10 +240,8 @@ class IDU(
   io.out.bits.exception      := excp
 
   // Regfile
-  io.rs1_addr          := rs1
-  io.rs2_addr          := rs2
-  io.out.bits.rs1_data := rs1_decoded
-  io.out.bits.rs2_data := rs2_decoded
+  io.rs1_addr := rs1
+  io.rs2_addr := rs2
 
   io.in.ready  := io.out.ready && !hazard
   io.out.valid := io.in.valid && !hazard
