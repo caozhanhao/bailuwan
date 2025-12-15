@@ -30,6 +30,9 @@ class IFU(
 
     val mem          = new AXI4()
     val icache_flush = Input(Bool())
+
+    // BPU
+    val btb_w = new BTBWriteIO
   })
 
   val icache    = Module(new ICache())
@@ -40,10 +43,26 @@ class IFU(
 
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
 
+  // BPU
+  val btb = Module(new BTB())
+  val bpu = Module(new BPU())
+
+  btb.io.w             := io.btb_w
+  btb.io.r.pc          := pc
+  bpu.io.pc            := pc
+  bpu.io.btb_valid     := btb.io.r.valid
+  bpu.io.btb_target    := btb.io.r.target
+  bpu.io.btb_is_uncond := btb.io.r.is_uncond
+
+  val predict_taken  = bpu.io.predict_taken
+  val predict_target = bpu.io.predict_target
+
+  // Redirect (EXU/WBU) > Prediction > PC + 4
   val dnpc = MuxCase(
     pc,
     Seq(
       io.redirect_valid  -> io.redirect_target,
+      predict_taken      -> predict_target,
       icache_io.req.fire -> (pc + 4.U)
     )
   )

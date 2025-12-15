@@ -43,8 +43,10 @@ class EXU(
     val csr_rs_data = Input(UInt(p.XLEN.W))
 
     // Branch
-    val br_valid  = Output(Bool())
-    val br_target = Output(UInt(p.XLEN.W))
+    val br_valid     = Output(Bool())
+    val br_target    = Output(UInt(p.XLEN.W))
+    val br_pc        = Output(UInt(p.XLEN.W))
+    val br_is_uncond = Output(Bool())
 
     // ICache
     val icache_flush = Output(Bool())
@@ -55,6 +57,7 @@ class EXU(
 
   val decoded = io.in.bits
 
+  val pc        = decoded.pc
   val exec_type = decoded.exec_type
   val rs1_data  = decoded.rs1_data
   val rs2_data  = decoded.rs2_data
@@ -65,7 +68,7 @@ class EXU(
     OperType.Imm  -> decoded.imm,
     OperType.Zero -> 0.U,
     OperType.Four -> 4.U,
-    OperType.PC   -> decoded.pc,
+    OperType.PC   -> pc,
     OperType.CSR  -> io.csr_rs_data
   )
 
@@ -81,7 +84,7 @@ class EXU(
 
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
-  val br_target = MuxLookup(decoded.br_op, (decoded.pc + decoded.imm).asUInt)(
+  val br_target = MuxLookup(decoded.br_op, (pc + decoded.imm).asUInt)(
     Seq(
       BrOp.Nop  -> 0.U,
       BrOp.JALR -> (rs1_data + decoded.imm)(p.XLEN - 1, 1) ## 0.U
@@ -147,7 +150,7 @@ class EXU(
   io.hazard.data       := io.out.bits.ex_out
   io.hazard.data_valid := exec_type === ExecType.ALU || exec_type === ExecType.CSR
 
-  io.out.bits.pc   := decoded.pc
+  io.out.bits.pc   := pc
   io.out.bits.inst := decoded.inst
 
   // Exception
@@ -166,24 +169,26 @@ class EXU(
       is_ecall        -> ExceptionCode.EnvironmentCallFromMMode
     )
   )
-  excp.tval  := Mux(prev_excp.valid, prev_excp.tval, decoded.pc)
+  excp.tval  := Mux(prev_excp.valid, prev_excp.tval, pc)
 
   io.out.bits.exception      := excp
   io.out.bits.is_trap_return := exec_type === ExecType.MRet
 
-  // Jump
-  io.br_valid  := io.in.fire && br_taken && !excp.valid
-  io.br_target := br_target
+  // Branch
+  io.br_valid     := io.in.fire && br_taken && !excp.valid
+  io.br_target    := br_target
+  io.br_pc        := pc
+  io.br_is_uncond := decoded.br_op === BrOp.JAL || decoded.br_op === BrOp.JALR
 
   // IO
   io.in.ready  := io.out.ready
   io.out.valid := io.in.valid
 
   // Expose pc and inst in EXU to avoid the testbench see the flushed instructions
-  SignalProbe(decoded.pc, "exu_pc")
+  SignalProbe(pc, "exu_pc")
   SignalProbe(decoded.inst, "exu_inst")
   SignalProbe(io.in.fire, "exu_inst_trace_ready")
-  SignalProbe(Mux(io.br_valid, io.br_target, decoded.pc + 4.U), "exu_dnpc")
+  SignalProbe(Mux(io.br_valid, io.br_target, pc + 4.U), "exu_dnpc")
 
   def once(b: Bool) = io.in.fire && b
   PerfCounter(once(exec_type === ExecType.ALU && decoded.br_op === BrOp.Nop), "alu_ops")

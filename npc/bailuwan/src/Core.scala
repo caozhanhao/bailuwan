@@ -126,6 +126,12 @@ class Core(
   // ICache Flush
   IFU.io.icache_flush := EXU.io.icache_flush
 
+  // BPU
+  IFU.io.btb_w.en        := EXU.io.br_valid
+  IFU.io.btb_w.pc        := EXU.io.br_pc
+  IFU.io.btb_w.target    := EXU.io.br_target
+  IFU.io.btb_w.is_uncond := EXU.io.br_is_uncond
+
   // Hazard
   IDU.io.exu_hazard := EXU.io.hazard
   IDU.io.lsu_hazard := LSU.io.hazard
