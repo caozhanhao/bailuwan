@@ -102,11 +102,11 @@ static void check_regs(diff_context_t* ref)
     auto& cpu = SIM.cpu();
     bool match = true;
 
-    // if (cpu.wbu_pc() != expected_pc)
-    // {
-    //     Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", expected_pc, cpu.wbu_pc());
-    //     match = false;
-    // }
+    if (cpu.wbu_pc() != expected_pc)
+    {
+        Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", expected_pc, cpu.wbu_pc());
+        match = false;
+    }
 
     for (int i = 0; i < 16; i++)
     {
