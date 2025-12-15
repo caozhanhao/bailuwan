@@ -45,6 +45,10 @@ int isa_exec_once(struct Decode *s);
 // Returns 0 if decode successfully.
 int isa_decode_ldstr(word_t inst, bool* is_read, word_t* addr);
 
+// branch sim
+// Returns 0 if decode successfully.
+int isa_decode_branch(word_t inst, word_t* target_addr, bool* taken);
+
 // memory
 enum { MMU_DIRECT, MMU_TRANSLATE, MMU_FAIL };
 enum { MEM_TYPE_IFETCH, MEM_TYPE_READ, MEM_TYPE_WRITE };

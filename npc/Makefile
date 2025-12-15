@@ -52,6 +52,7 @@ $(shell mkdir -p $(BUILD_DIR))
 ### Compilation targets
 BIN = $(BUILD_DIR)/$(TOPNAME)-$(HW)-$(TRACE)
 CACHESIM_BIN = $(BUILD_DIR)/cachesim
+BRANCHSIM_BIN = $(BUILD_DIR)/branchsim
 VERILOG_STAMP := $(BUILD_DIR)/bailuwan_verilog_$(TOPNAME)_$(RESET_VECTOR)_$(WITHOUT_SOC).timestamp
 
 ### Collect the files to be built and linked
@@ -62,9 +63,11 @@ SOC_VSRCS ?=
 SOC_VINC_PATH ?=
 CHISEL_SRCS = $(shell find $(abspath ./$(PRJ)) -name "*.scala")
 SOC_CHISEL_DEPS = $(shell find $(YSYXSOC_HOME)/src -name "*.scala")
-CACHESIM_HEADERS = $(shell find $(abspath ./cachesim) -maxdepth 1 -name "*.hpp" -or -name "*.h")
-CACHESIM_SRCS = $(shell find $(abspath ./cachesim) -maxdepth 1 -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 
+CACHESIM_HEADERS = $(shell find $(abspath ./tracesim/cachesim ./tracesim/common) -maxdepth 1 -name "*.hpp" -or -name "*.h")
+CACHESIM_SRCS = $(shell find $(abspath ./tracesim/cachesim ./tracesim/common) -maxdepth 1 -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+BRANCHSIM_HEADERS = $(shell find $(abspath ./tracesim/branchsim ./tracesim/common) -maxdepth 1 -name "*.hpp" -or -name "*.h")
+BRANCHSIM_SRCS = $(shell find $(abspath ./tracesim/branchsim ./tracesim/common) -maxdepth 1 -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 
 ## 3. General Compilation Flags
 
@@ -129,6 +132,9 @@ $(BIN): $(HEADERS) $(CSRCS) $(LINKAGE) $(VERILOG_STAMP) $(SOC_CHISEL_DEPS)
 $(CACHESIM_BIN): $(CACHESIM_HEADERS) $(CACHESIM_SRCS)
 	$(CXX) $(CACHESIM_SRCS) -o $(abspath $(CACHESIM_BIN))
 
+$(BRANCHSIM_BIN): $(BRANCHSIM_HEADERS) $(BRANCHSIM_SRCS)
+	$(CXX) $(BRANCHSIM_SRCS) -o $(abspath $(BRANCHSIM_BIN))
+
 ## 6. Miscellaneous
 
 ### Simulation
@@ -159,6 +165,12 @@ cachesim:
 	$(MAKE) $(CACHESIM_BIN)
 	$(CACHESIM_BIN) $(IMG)
 
+### Branch Sim
+branchsim:
+	$(MAKE) $(BRANCHSIM_BIN)
+	$(BRANCHSIM_BIN) $(IMG)
+
+
 ### Reformat
 reformat:
 	./mill -i __.reformat
@@ -183,5 +195,5 @@ clean-all:
 	-rm -rf $(BUILD_DIR)
 	-rm -rf $(YSYXSOC_HOME)/build/
 
-.PHONY: test verilog reformat checkformat clean sim cachesim
+.PHONY: test verilog reformat checkformat clean sim cachesim branchsim
 -include ../Makefile
