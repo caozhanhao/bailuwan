@@ -90,7 +90,7 @@ void init_difftest(size_t img_size)
     sync_regs_to_ref(RESET_VECTOR);
 }
 
-// After each `difftest_step`, ref's pc is updated to `dnpc`, but wbu_pc() is the
+// After each `difftest_step`, ref's pc is updated to `dnpc`, but difftest_pc() is the
 // current instruction's pc. And getting the dut's `dnpc` is not easy here.
 // So we delay the pc check one instruction: After each difftest_step, we save the ref's pc,
 // which is actually dnpc. At the next call to difftest_step, we check the dut's pc with the
@@ -102,9 +102,9 @@ static void check_regs(diff_context_t* ref)
     auto& cpu = SIM.cpu();
     bool match = true;
 
-    if (cpu.wbu_pc() != expected_pc)
+    if (cpu.difftest_pc() != expected_pc)
     {
-        Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", expected_pc, cpu.wbu_pc());
+        Log("pc: expected " FMT_WORD ", but got " FMT_WORD "\n", expected_pc, cpu.difftest_pc());
         match = false;
     }
 
@@ -134,8 +134,8 @@ static void check_regs(diff_context_t* ref)
     if (!match)
     {
         sdb_state = SDBState::Abort;
-        printf("Test failed after wbu_pc=" FMT_WORD ", wbu_inst=" FMT_WORD "\n",
-               cpu.wbu_pc(), cpu.wbu_inst());
+        printf("Test failed after difftest_pc=" FMT_WORD ", difftest_inst=" FMT_WORD "\n",
+               cpu.difftest_pc(), cpu.difftest_inst());
         cpu.dump();
     }
 }
@@ -143,7 +143,7 @@ static void check_regs(diff_context_t* ref)
 static bool is_accessing_device()
 {
     auto& cpu = SIM.cpu();
-    auto inst = cpu.wbu_inst();
+    auto inst = cpu.difftest_inst();
 
     bool is_store = BITS(inst, 6, 0) == 0b0100011;
     bool is_load = BITS(inst, 6, 0) == 0b0000011;
@@ -173,17 +173,19 @@ static bool is_accessing_device()
 
 void difftest_step()
 {
+    auto difftest_pc = SIM.cpu().difftest_pc();
+
     IFDEF(CONFIG_DIFFTEST_TRACE,
-          fprintf(stderr, "DIFF_STEP, 0x%x: %s\n", SIM.cpu().wbu_pc(),
-              rv32_disasm(SIM.cpu().wbu_pc(), SIM.cpu().wbu_inst()).c_str())
+          fprintf(stderr, "DIFF_STEP, 0x%x: %s\n", difftest_pc,
+              rv32_disasm(difftest_pc, SIM.cpu().difftest_inst()).c_str())
     );
 
     if (is_accessing_device())
     {
-        // ATTENTION: wbu_pc + 4
+        // ATTENTION: difftest_pc + 4
         //   `is_accessing_device` can only be true in store or load, thus the dnpc
-        //   is always wbu_pc + 4. We can NOT use dnpc here because they are bindings in EXU.
-        auto dnpc = SIM.cpu().wbu_pc() + 4;
+        //   is always difftest_pc + 4. We can NOT use dnpc here because they are bindings in EXU.
+        auto dnpc = difftest_pc + 4;
         sync_regs_to_ref(dnpc);
         expected_pc = dnpc;
         return;

@@ -9,36 +9,23 @@ import core._
 import amba._
 import utils.PerfCounter
 
+// invalidate: Forces the valid bit to 0 in the next cycle.
+//             Thus, the data currently in this register is immediately flushed.
+// inject_bubble: Let a bubble (valid=0) enters this stage instead of the upstream data.
+//                Unlike invalidate, this only acts when the pipeline advances (ready=1).
+//                Thus, the data currently in this register is preserved if the pipeline stalls.
 object PipelineConnect {
   def apply[T <: Data](
-    prev_out:        DecoupledIO[T],
-    this_in:         DecoupledIO[T],
-    wbu_flush:       Bool, // WBU always force flush
-    exu_flush:       Bool = false.B,
-    // Force Flush indicates if we should flush the instruction stalled in register.
-    exu_force_flush: Boolean = false
+    prev_out:      DecoupledIO[T],
+    this_in:       DecoupledIO[T],
+    invalidate:    Bool = false.B,
+    inject_bubble: Bool = false.B
   ): Unit = {
     prev_out.ready := this_in.ready
     this_in.bits   := RegEnable(prev_out.bits, prev_out.valid && this_in.ready)
 
     val valid_reg = RegInit(false.B)
-
-    if (exu_force_flush) {
-      // Even if stalled, the data in this register is invalidated immediately.
-      valid_reg := Mux(wbu_flush || exu_flush, false.B, Mux(this_in.ready, prev_out.valid, valid_reg))
-    } else {
-      // For non-force exu flush:
-      // If stalled (!this_in.ready):  Keep `valid_reg`.
-      // If not stalled, mask the input with `!flush`.
-      // Imaging a state where EXU holds jal (flush=1) and LSU is Ready (No Stall).
-      // At the exact rising edge of the clock:
-      //   1. [EXU->LSU]: LSU captures JAL from EXU.
-      //   2. [IFU->IDU]: IDU captures 0 due to force flush.
-      //   3. [IDU->EXU]: EXU captures 0 due to `!flush` mask.
-      //      Note that IDU currently holds the instruction after jal, and
-      //    ` prev_out.valid` is still HIGH. Thus, we must mask it with `!flush`
-      valid_reg := Mux(wbu_flush, false.B, Mux(this_in.ready, !exu_flush && prev_out.valid, valid_reg))
-    }
+    valid_reg := Mux(invalidate, false.B, Mux(this_in.ready, !inject_bubble && prev_out.valid, valid_reg))
 
     this_in.valid := valid_reg
   }
@@ -84,14 +71,32 @@ class Core(
   val exu_flush = EXU.io.br_mispredict
   val wbu_flush = WBU.io.redirect_valid
 
-  PipelineConnect(IFU.io.out, IDU.io.in, wbu_flush, exu_flush, exu_force_flush = true)
-  // The instruction currently in the IDU->EXU register is the jump/branch itself.
+  // IFU -> IDU:
+  // Flush on either branch mispredict (EXU) or exception/redirect (WBU).
+  PipelineConnect(IFU.io.out, IDU.io.in, invalidate = wbu_flush || exu_flush)
+
+  // IDU -> EXU:
+  // Note that for [IDU->EXU], exu_flush should not flush that instruction immediately.
+  // Because the instruction currently in the [IDU->EXU] register is the jump/branch itself.
   // If the pipeline stalls, this JAL must remain in the register until it is accepted
-  // by the next stage (LSU). EXU's flush MUST NOT kill the jump/branch before
-  // it enters the LSU.
-  PipelineConnect(IDU.io.out, EXU.io.in, wbu_flush, exu_flush, exu_force_flush = false)
-  PipelineConnect(EXU.io.out, LSU.io.in, wbu_flush)
-  PipelineConnect(LSU.io.out, WBU.io.in, wbu_flush)
+  // by the next stage (LSU).
+  //
+  // Besides, `inject_bubble` ensures that when the pipeline advances, the EXU accepts
+  // a bubble instead of the wrong instruction from IDU.
+  // Imaging a state where EXU holds jal (flush=1) and LSU is Ready (No Stall).
+  // And wbu_flush = false, exu_flush = true
+  // At the exact rising edge of the clock:
+  //   1. [EXU->LSU]: LSU captures JAL from EXU.
+  //   2. [IDU->EXU]: EXU captures 0 due to inject_bubble.
+  //      Note that IDU currently holds the wrong instruction after jal, and
+  //    ` prev_out.valid` is still HIGH. Thus, we must inject a bubble in EXU.
+  //   3. [IFU->IDU]: IDU captures 0 due to invalidate by exu_flush.
+  PipelineConnect(IDU.io.out, EXU.io.in, invalidate = wbu_flush, inject_bubble = exu_flush)
+
+  // EXU -> LSU, LSU -> WBU:
+  // Flush only on exception/redirect (WBU).
+  PipelineConnect(EXU.io.out, LSU.io.in, invalidate = wbu_flush)
+  PipelineConnect(LSU.io.out, WBU.io.in, invalidate = wbu_flush)
 
   // Redirect
   IFU.io.redirect_valid  := exu_flush || wbu_flush
@@ -124,7 +129,7 @@ class Core(
   CSRFile.io.epc          := WBU.io.csr_epc
 
   // LSU Flush
-  LSU.io.wbu_flush       := wbu_flush
+  LSU.io.wbu_flush := wbu_flush
 
   // ICache Flush
   IFU.io.icache_flush := WBU.io.icache_flush

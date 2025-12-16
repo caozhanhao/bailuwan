@@ -83,9 +83,9 @@ SIGNAL_TABLE_ENTRY(uint32_t, exu_inst) \
 SIGNAL_TABLE_ENTRY(uint8_t,  exu_inst_trace_ready) \
 SIGNAL_TABLE_ENTRY(uint32_t, lsu_pc) \
 SIGNAL_TABLE_ENTRY(uint32_t, lsu_inst) \
-SIGNAL_TABLE_ENTRY(uint32_t, wbu_pc) \
-SIGNAL_TABLE_ENTRY(uint32_t, wbu_inst) \
-SIGNAL_TABLE_ENTRY(uint8_t,  wbu_difftest_ready)
+SIGNAL_TABLE_ENTRY(uint32_t, difftest_pc) \
+SIGNAL_TABLE_ENTRY(uint32_t, difftest_inst) \
+SIGNAL_TABLE_ENTRY(uint8_t,  difftest_ready)
 
 class CPUProxy
 {

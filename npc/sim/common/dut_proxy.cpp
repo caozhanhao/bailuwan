@@ -189,8 +189,8 @@ void CPUProxy::dump(FILE* stream)
     fprintf(stream, "Dumping CPU state:\n");
     fprintf(stream, "exu_pc=0x%08x\n", exu_pc());
     fprintf(stream, "exu_inst=0x%08x\n", exu_inst());
-    fprintf(stream, "wbu_pc=0x%08x\n", wbu_pc());
-    fprintf(stream, "wbu_inst=0x%08x\n", wbu_inst());
+    fprintf(stream, "difftest_pc=0x%08x\n", difftest_pc());
+    fprintf(stream, "difftest_inst=0x%08x\n", difftest_inst());
     fprintf(stream, "Registers:\n");
     dump_gprs(stream);
     fprintf(stream, "CSRs:\n");
