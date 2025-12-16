@@ -32,6 +32,8 @@ class WBU(
     val redirect_valid  = Output(Bool())
     val redirect_target = Output(UInt(p.XLEN.W))
 
+    val icache_flush = Output(Bool())
+
     // Hazard
     val hazard = Output(new HazardInfo)
   })
@@ -56,6 +58,9 @@ class WBU(
   // Redirect
   io.redirect_valid  := io.in.valid && (excp.valid || io.in.bits.is_trap_return)
   io.redirect_target := Mux(io.in.bits.is_trap_return, io.mepc, io.mtvec)
+
+  // FenceI
+  io.icache_flush := io.in.valid && io.in.bits.is_fence_i
 
   // Hazard
   io.hazard.valid      := io.in.valid && io.in.bits.rd_we && !excp.valid
