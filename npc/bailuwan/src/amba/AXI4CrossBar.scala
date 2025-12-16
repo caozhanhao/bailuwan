@@ -85,7 +85,7 @@ class AXI4CrossBar(
   }
   err_slave.io <> slaves(n)
 
-  // First block all slaves
+  // First block all slaves (including the error slave)
   for (i <- 0 until n + 1) {
     val s = slaves(i)
     s.ar.valid := false.B
