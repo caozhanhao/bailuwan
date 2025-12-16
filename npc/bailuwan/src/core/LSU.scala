@@ -25,6 +25,7 @@ class LSUOut(
   val inst           = UInt(32.W)
   val exception      = new ExceptionInfo
   val is_trap_return = Bool()
+  val is_fence_i     = Bool()
 }
 
 class LSU(
@@ -203,6 +204,7 @@ class LSU(
   io.out.bits.csr_rd_we      := io.in.bits.csr_rd_we
   io.out.bits.csr_rd_data    := io.in.bits.csr_rd_data
   io.out.bits.is_trap_return := io.in.bits.is_trap_return
+  io.out.bits.is_fence_i     := io.in.bits.is_fence_i
   io.out.bits.ls_out         := Mux(req_op === LSUOp.Nop, io.in.bits.ex_out, selected_loaded_data)
 
   // Hazard

@@ -123,8 +123,11 @@ class Core(
   CSRFile.io.exception    := WBU.io.exception
   CSRFile.io.epc          := WBU.io.csr_epc
 
+  // LSU Flush
+  LSU.io.wbu_flush       := wbu_flush
+
   // ICache Flush
-  IFU.io.icache_flush := EXU.io.icache_flush
+  IFU.io.icache_flush := WBU.io.icache_flush
 
   // BPU
   IFU.io.btb_w := EXU.io.btb_w

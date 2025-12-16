@@ -96,6 +96,8 @@ class IDUOut(
 
   val rs1_data = UInt(p.XLEN.W)
   val rs2_data = UInt(p.XLEN.W)
+  val rs1_addr = UInt(5.W)
+  val rs2_addr = UInt(5.W)
   val rd_addr  = UInt(5.W)
   val rd_we    = Bool()
   val imm      = UInt(p.XLEN.W)
@@ -221,6 +223,8 @@ class IDU(
   out.inst           := inst
   out.rs1_data       := rs1_decoded
   out.rs2_data       := rs2_decoded
+  out.rs1_addr       := rs1
+  out.rs2_addr       := rs2
   out.alu_oper1_type := oper1_type
   out.alu_oper2_type := oper2_type
   out.imm            := imm

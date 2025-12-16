@@ -32,11 +32,15 @@ class WBU(
     val redirect_valid  = Output(Bool())
     val redirect_target = Output(UInt(p.XLEN.W))
 
+    val icache_flush = Output(Bool())
+
     // Hazard
     val hazard = Output(new HazardInfo)
   })
 
-  val excp = io.in.bits.exception
+  val excp        = io.in.bits.exception
+  val is_trap_ret = io.in.bits.is_trap_return
+  val is_fence_i  = io.in.bits.is_fence_i
 
   io.rd_addr := io.in.bits.rd_addr
   io.rd_data := io.in.bits.ls_out
@@ -54,8 +58,17 @@ class WBU(
   io.csr_epc         := io.in.bits.pc
 
   // Redirect
-  io.redirect_valid  := io.in.valid && (excp.valid || io.in.bits.is_trap_return)
-  io.redirect_target := Mux(io.in.bits.is_trap_return, io.mepc, io.mtvec)
+  io.redirect_valid  := io.in.valid && (excp.valid || is_trap_ret || is_fence_i)
+  io.redirect_target := MuxCase(
+    io.mtvec,
+    Seq(
+      is_trap_ret -> io.mepc,
+      is_fence_i  -> (io.in.bits.pc + 4.U)
+    )
+  )
+
+  // FenceI
+  io.icache_flush := io.in.valid && io.in.bits.is_fence_i
 
   // Hazard
   io.hazard.valid      := io.in.valid && io.in.bits.rd_we && !excp.valid
