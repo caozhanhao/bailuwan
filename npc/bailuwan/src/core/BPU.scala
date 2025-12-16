@@ -89,7 +89,15 @@ class RAS(
   val ptr   = RegInit(0.U(log2Ceil(entries).W))
 
   stack(ptr) := Mux(io.push, io.push_val, stack(ptr))
-  ptr        := MuxCase(ptr, Seq(io.push -> (ptr + 1.U), io.pop -> (ptr - 1.U)))
+
+  ptr := MuxCase(
+    ptr,
+    Seq(
+      (io.push && io.pop) -> ptr,
+      io.push             -> (ptr + 1.U),
+      io.pop              -> (ptr - 1.U)
+    )
+  )
 
   io.peek := stack(ptr - 1.U)
 }
@@ -127,7 +135,7 @@ class BPU(
 
   ras.io.pop := is_ret
 
-  io.predict_taken := valid && (is_ret || btype === BranchType.Jump ||
+  io.predict_taken := valid && (is_ret || is_call || btype === BranchType.Jump ||
     (btype === BranchType.Branch && target < io.pc))
 
   io.predict_target := Mux(is_ret, ras.io.peek, target)
