@@ -83,6 +83,7 @@ class RAS(
     val push_val = Input(UInt(p.XLEN.W))
     val pop      = Input(Bool())
     val peek     = Output(UInt(p.XLEN.W))
+    val empty    = Output(Bool())
   })
 
   val stack = Reg(Vec(entries, UInt(p.XLEN.W)))
@@ -99,7 +100,8 @@ class RAS(
     )
   )
 
-  io.peek := stack(ptr - 1.U)
+  io.peek  := stack(ptr - 1.U)
+  io.empty := ptr === 0.U
 }
 
 // Simple BPU (BTFN + RAS)

@@ -127,17 +127,18 @@ class ICache[T <: Data](
   )
 
   // Fill
+  val err          = RegInit(false.B)
+  val mem_resp_err = io.mem.r.fire && io.mem.r.bits.resp =/= AXIResp.OKAY
+  val fill_error   = err || mem_resp_err
+  err := MuxCase(err, Seq((state === s_idle) -> false.B, io.mem.r.fire -> fill_error))
+
   valid_storage.zipWithIndex.foreach { case (r, i) =>
-    r := Mux(io.flush, false.B, Mux(fill_done && (fill_index === i.U), true.B, r))
+    r := Mux(io.flush, false.B, Mux(fill_done && (fill_index === i.U) && !fill_error, true.B, r))
   }
   tag_storage(fill_index) := Mux(fill_done, fill_tag, tag_storage(fill_index))
 
   data_storage(fill_index)(fill_cnt) :=
     Mux(io.mem.r.fire, io.mem.r.bits.data, data_storage(fill_index)(fill_cnt))
-
-  val err      = RegInit(false.B)
-  val curr_err = io.mem.r.bits.resp =/= AXIResp.OKAY
-  err := Mux(state === s_idle, false.B, Mux(io.mem.r.fire, err || curr_err, err))
 
   // IFU IO
   // Immediate hit or s_resp
