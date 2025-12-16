@@ -38,6 +38,8 @@ class WBU(
     val hazard = Output(new HazardInfo)
   })
 
+  val pc          = io.in.bits.pc
+  val inst        = io.in.bits.inst
   val excp        = io.in.bits.exception
   val is_trap_ret = io.in.bits.is_trap_return
   val is_fence_i  = io.in.bits.is_fence_i
@@ -79,18 +81,18 @@ class WBU(
   io.in.ready := true.B
 
   if (p.Debug) {
-    dontTouch(io.in.bits.pc)
-    dontTouch(io.in.bits.inst)
+    dontTouch(pc)
+    dontTouch(inst)
   }
 
   // Exposed signals for difftest
   // Note that the width of a RegNext is not set based on the next or
   // init connections for Element types
-  val wbu_pc = Reg(UInt(p.XLEN.W))
-  wbu_pc := io.in.bits.pc
-  val wbu_inst = Reg(UInt(32.W))
-  wbu_inst := io.in.bits.inst
-  SignalProbe(wbu_pc, "wbu_pc")
-  SignalProbe(wbu_inst, "wbu_inst")
-  SignalProbe(RegNext(io.in.fire), "wbu_difftest_ready")
+  val difftest_pc = Reg(UInt(p.XLEN.W))
+  difftest_pc := pc
+  val difftest_inst = Reg(UInt(32.W))
+  difftest_inst := inst
+  SignalProbe(difftest_pc, "difftest_pc")
+  SignalProbe(difftest_inst, "difftest_inst")
+  SignalProbe(RegNext(io.in.fire), "difftest_ready")
 }
