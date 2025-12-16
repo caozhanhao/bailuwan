@@ -413,8 +413,8 @@ int main(int argc, char* argv[])
         if (Verilated::gotError())
         {
             Log("Terminating due to a verilator error.");
-            printf("exu_pc=" FMT_WORD ", wbu_pc=" FMT_WORD "\n",
-                   SIM.cpu().exu_pc(), SIM.cpu().wbu_pc());
+            printf("exu_pc=" FMT_WORD ", difftest_pc=" FMT_WORD "\n",
+                   SIM.cpu().exu_pc(), SIM.cpu().difftest_pc());
             SIM.cpu().dump();
             // SIM.cleanup();
         }
