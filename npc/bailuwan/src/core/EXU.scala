@@ -28,6 +28,7 @@ class EXUOut(
   val inst           = UInt(32.W)
   val exception      = new ExceptionInfo
   val is_trap_return = Bool()
+  val is_fence_i     = Bool()
 }
 
 class EXU(
@@ -46,9 +47,6 @@ class EXU(
     val btb_w          = Flipped(new BTBWriteIO)
     val br_mispredict  = Output(Bool())
     val correct_target = Output(UInt(p.XLEN.W))
-
-    // ICache
-    val icache_flush = Output(Bool())
 
     // Hazard
     val hazard = Output(new HazardInfo)
@@ -117,9 +115,6 @@ class EXU(
   ebreak.io.en    := io.in.fire && exec_type === ExecType.EBreak
   ebreak.io.clock := clock
 
-  // Fence
-  io.icache_flush := io.in.fire && exec_type === ExecType.FenceI
-
   // Hazard
   io.hazard.valid      := io.in.valid && decoded.rd_we
   io.hazard.rd         := decoded.rd_addr
@@ -149,6 +144,7 @@ class EXU(
 
   io.out.bits.exception      := excp
   io.out.bits.is_trap_return := exec_type === ExecType.MRet
+  io.out.bits.is_fence_i     := exec_type === ExecType.FenceI
 
   // Branch
   // Default to be `pc + imm` for  beq/bne/... and jal.
