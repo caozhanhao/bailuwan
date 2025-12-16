@@ -119,11 +119,6 @@ class IFU(
   io.out.valid            := resp_queue.io.deq.valid && !io.redirect_valid
   resp_queue.io.deq.ready := io.out.ready && !io.redirect_valid
 
-  assert(
-    !icache_io.resp.valid || !icache_io.resp.bits.error,
-    cf"IFU: Access fault at 0x${RegEnable(pc, icache_io.req.fire)}%x"
-  )
-
   SignalProbe(pc, "ifu_pc")
   PerfCounter(icache_io.resp.fire, "ifu_fetched")
 }
