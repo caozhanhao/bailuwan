@@ -33,9 +33,9 @@ static void trace_and_difftest()
 #endif
     }
 
-    // Difftest ready is asserted in WBU, thus operations in trace should
-    // use wbu_pc, wbu_inst, ...
-    if (cpu.wbu_difftest_ready())
+    // Difftest ready is asserted in WBU, and operations in trace should
+    // use difftest_pc, difftest_inst, ...
+    if (cpu.difftest_ready())
     {
         IFDEF(CONFIG_DIFFTEST, difftest_step());
     }
