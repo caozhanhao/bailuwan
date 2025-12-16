@@ -20,8 +20,8 @@ private:
         }
     };
 
-    const uint32_t entries;
-    const uint32_t index_bits;
+    const int entries;
+    const int index_bits;
     const uint64_t index_mask;
 
     std::vector<BTBEntry> storage;
@@ -38,7 +38,7 @@ private:
     }
 
 public:
-    explicit BranchSim(int btb_entries = 32)
+    BranchSim(int btb_entries = 32)
         : entries(btb_entries),
           index_bits(log2_u32(btb_entries)),
           index_mask(btb_entries - 1),

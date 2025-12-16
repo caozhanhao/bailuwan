@@ -21,8 +21,8 @@ object CSR {
 object CSROp {
   val WIDTH = log2Ceil(4).W
 
-  val Nop = 0.U(CSROp.WIDTH)
-  val RW  = 1.U(CSROp.WIDTH)
-  val RS  = 2.U(CSROp.WIDTH)
-  val RC  = 3.U(CSROp.WIDTH)
+  val Nop = 0.U(WIDTH)
+  val RW  = 1.U(WIDTH)
+  val RS  = 2.U(WIDTH)
+  val RC  = 3.U(WIDTH)
 }

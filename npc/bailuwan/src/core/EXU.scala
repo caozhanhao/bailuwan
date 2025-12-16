@@ -175,10 +175,22 @@ class EXU(
 
   val valid_br = io.in.fire && decoded.br_op =/= BrOp.Nop
 
-  io.btb_w.en        := valid_br
-  io.btb_w.target    := br_target
-  io.btb_w.pc        := pc
-  io.btb_w.is_uncond := decoded.br_op === BrOp.JAL || decoded.br_op === BrOp.JALR
+  def isLink(rd: UInt) = rd === 1.U || rd === 5.U
+  val is_uncond = decoded.br_op === BrOp.JAL || decoded.br_op === BrOp.JALR
+  val is_call   = is_uncond && isLink(decoded.rd_addr)
+  val is_ret    = decoded.br_op === BrOp.JALR && isLink(decoded.rs1_addr) && decoded.rd_addr === 0.U
+
+  io.btb_w.en     := valid_br
+  io.btb_w.target := br_target
+  io.btb_w.pc     := pc
+  io.btb_w.btype  := MuxCase(
+    BranchType.Branch,
+    Seq(
+      is_call   -> BranchType.Call,
+      is_ret    -> BranchType.Ret,
+      is_uncond -> BranchType.Jump
+    )
+  )
 
   val predict_mismatch = (decoded.predict_taken =/= br_taken) ||
     (decoded.predict_taken && (decoded.predict_target =/= br_target))

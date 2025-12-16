@@ -61,15 +61,9 @@ class IFU(
   val pc = RegInit(p.ResetVector.S(p.XLEN.W).asUInt)
 
   // BPU
-  val btb = Module(new BTB())
   val bpu = Module(new BPU())
-
-  btb.io.w             := io.btb_w
-  btb.io.r.pc          := pc
-  bpu.io.pc            := pc
-  bpu.io.btb_valid     := btb.io.r.valid
-  bpu.io.btb_target    := btb.io.r.target
-  bpu.io.btb_is_uncond := btb.io.r.is_uncond
+  bpu.io.pc    := pc
+  bpu.io.btb_w := io.btb_w
 
   val predict_taken  = bpu.io.predict_taken
   val predict_target = bpu.io.predict_target
