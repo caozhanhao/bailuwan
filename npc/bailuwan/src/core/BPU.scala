@@ -28,7 +28,7 @@ class BTBWriteIO(
 
 // Simple Branch Target Buffer
 class BTB(
-  val entries: Int = 16
+  val entries: Int = 8
 )(
   implicit p:  CoreParams)
     extends Module {
