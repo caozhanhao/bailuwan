@@ -36,7 +36,7 @@
 #define CONFIG_FTRACE 1
 #define CONFIG_WP_BP
 #define CONFIG_PERF_COUNTERS 1
-#define CONFIG_DIFFTEST 1
+// #define CONFIG_DIFFTEST 1
 // #define CONFIG_DIFFTEST_TRACE 1
 
 #endif
