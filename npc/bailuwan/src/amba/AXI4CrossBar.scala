@@ -77,13 +77,17 @@ class AXI4CrossBar(
   val idx_width = math.max(1, log2Ceil(n + 1)) // reserve 1 for err
   val err_idx   = n.U
   val master    = io.master
+
   val err_slave = Module(new AXI4ErrorSlave)
   val slaves    = Wire(Vec(n + 1, new AXI4))
-  slaves := io.slaves :+ err_slave.io
+  for (i <- 0 until n) {
+    io.slaves(i) <> slaves(i)
+  }
+  err_slave.io <> slaves(n)
 
   // First block all slaves
-  for (i <- 0 until n) {
-    val s = io.slaves(i)
+  for (i <- 0 until n + 1) {
+    val s = slaves(i)
     s.ar.valid := false.B
     s.ar.bits  := 0.U.asTypeOf(s.ar.bits)
 
