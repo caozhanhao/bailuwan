@@ -1,9 +1,21 @@
-# "一生一芯"工程项目
+# BaiLuWan
 
-这是"一生一芯"的工程项目. 通过运行
-```bash
-bash init.sh subproject-name
-```
-进行初始化, 具体请参考[实验讲义][lecture note].
+BaiLuWan (白鹭湾) is an open-source RISC-V processor in Chisel.
 
-[lecture note]: https://ysyx.oscc.cc/docs/
+## Development Status
+
+🚧 Work in progress  
+
+Currently it's a 5-stage pipelined RV32E processor.
+
+## One Student One Chip (一生一芯)
+
+This project was developed during my participation in the *One Student One Chip* program.
+
+- Homepage: https://ysyx.oscc.cc
+- Student ID: `ysyx_25100251`
+
+## License
+
+BaiLuWan is licensed under Mulan PSL v2.  
+See [LICENSE](LICENSE) for details.

@@ -1,3 +1,6 @@
-# BaiLuWan
+# npc
 
-BaiLuWan (白鹭湾) is an open-source RISC-V processor project.
+This directory mainly contains:
+- `bailuwan/`: RTL design of the processor
+- `sim/`: C++ Testbench
+- `tracesim/`: Cache & Branch Predictor simulator based on NEMU

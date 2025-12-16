@@ -1,5 +1,5 @@
 // Copyright (c) 2025 caozhanhao
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MulanPSL-2.0
 
 #ifndef BAILUWAN_COMMON_DUT_PROXY_HPP
 #define BAILUWAN_COMMON_DUT_PROXY_HPP
@@ -18,23 +18,6 @@
 #include "verilated_vcd_c.h"
 #define TFP_TYPE VerilatedVcdC
 #endif
-
-class EBreakException : public std::exception
-{
-    int code;
-
-public:
-    explicit EBreakException(int code_) : code(code_)
-    {
-    }
-
-    [[nodiscard]] const char* what() const noexcept override
-    {
-        return "EBreakException";
-    }
-
-    [[nodiscard]] int get_code() const { return code; }
-};
 
 #define CSR_TABLE                                                                                                      \
 CSR_TABLE_ENTRY(mstatus, 0x300)                                                                                      \
