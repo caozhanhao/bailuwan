@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 
     init_tracesim(image, bytes_read);
 
-    BranchSim sim;
+    BranchSim sim(16);
 
     drain_stream([&](uint32_t pc)
                  {
