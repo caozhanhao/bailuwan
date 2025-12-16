@@ -1,5 +1,5 @@
 // Copyright (c) 2025 caozhanhao
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MulanPSL-2.0
 
 #ifndef BAILUWAN_TRACESIM_CACHESIM_CACHESIM_HPP
 #define BAILUWAN_TRACESIM_CACHESIM_CACHESIM_HPP

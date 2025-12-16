@@ -1,5 +1,5 @@
 // Copyright (c) 2025 caozhanhao
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MulanPSL-2.0
 
 #ifndef BAILUWAN_COMMON_DUT_PROXY_HPP
 #define BAILUWAN_COMMON_DUT_PROXY_HPP
