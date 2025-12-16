@@ -58,7 +58,7 @@ class WBU(
   io.csr_epc         := io.in.bits.pc
 
   // Redirect
-  io.redirect_valid  := io.in.valid && (excp.valid || is_trap_ret || is_fence_i)
+  io.redirect_valid  := io.in.valid && (excp.valid || is_trap_ret)
   io.redirect_target := MuxCase(
     io.mtvec,
     Seq(
