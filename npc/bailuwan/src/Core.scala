@@ -81,22 +81,22 @@ class Core(
   val RegFile = Module(new RegFile)
   val CSRFile = Module(new CSRFile)
 
-  val exu_mispredict = EXU.io.br_mispredict
-  val wbu_redirect   = WBU.io.redirect_valid
-  val wbu_flush      = WBU.io.redirect_valid || WBU.io.icache_flush
+  val exu_flush = EXU.io.br_mispredict
+  val wbu_flush = WBU.io.redirect_valid
 
-  PipelineConnect(IFU.io.out, IDU.io.in, wbu_flush, exu_mispredict, exu_force_flush = true)
+  PipelineConnect(IFU.io.out, IDU.io.in, wbu_flush, exu_flush, exu_force_flush = true)
   // The instruction currently in the IDU->EXU register is the jump/branch itself.
   // If the pipeline stalls, this JAL must remain in the register until it is accepted
   // by the next stage (LSU). EXU's flush MUST NOT kill the jump/branch before
   // it enters the LSU.
-  PipelineConnect(IDU.io.out, EXU.io.in, wbu_flush, exu_mispredict, exu_force_flush = false)
+  PipelineConnect(IDU.io.out, EXU.io.in, wbu_flush, exu_flush, exu_force_flush = false)
   PipelineConnect(EXU.io.out, LSU.io.in, wbu_flush)
   PipelineConnect(LSU.io.out, WBU.io.in, wbu_flush)
 
   // Redirect
-  IFU.io.redirect_valid  := exu_mispredict || wbu_redirect
-  IFU.io.redirect_target := Mux(wbu_redirect, WBU.io.redirect_target, EXU.io.correct_target)
+  IFU.io.redirect_valid  := exu_flush || wbu_flush
+  IFU.io.redirect_target := Mux(wbu_flush, WBU.io.redirect_target, EXU.io.correct_target)
+  LSU.io.wbu_flush       := wbu_flush
 
   // RegFile - IDU
   IDU.io.rs1_data     := RegFile.io.rs1_data
