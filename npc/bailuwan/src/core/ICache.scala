@@ -146,7 +146,7 @@ class ICache[T <: Data](
   resp.bits.data  := entry_data
   resp.bits.addr  := Mux(state === s_idle, req_addr, fill_addr)
   resp.bits.user  := Mux(state === s_idle, req.bits.user, fill_user)
-  resp.bits.error := err
+  resp.bits.error := Mux(state === s_idle, false.B, err)
   req.ready       := state === s_idle
 
   // Mem IO
