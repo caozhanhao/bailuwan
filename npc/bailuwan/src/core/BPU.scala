@@ -135,10 +135,12 @@ class BPU(
   ras.io.push     := is_call
   ras.io.push_val := io.pc + 4.U
 
-  ras.io.pop := is_ret
+  val use_ras = is_ret && !ras.io.empty
+
+  ras.io.pop := use_ras
 
   io.predict_taken := valid && (is_ret || is_call || btype === BranchType.Jump ||
     (btype === BranchType.Branch && target < io.pc))
 
-  io.predict_target := Mux(is_ret, ras.io.peek, target)
+  io.predict_target := Mux(use_ras, ras.io.peek, target)
 }
