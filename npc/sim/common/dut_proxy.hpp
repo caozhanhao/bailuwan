@@ -19,23 +19,6 @@
 #define TFP_TYPE VerilatedVcdC
 #endif
 
-class EBreakException : public std::exception
-{
-    int code;
-
-public:
-    explicit EBreakException(int code_) : code(code_)
-    {
-    }
-
-    [[nodiscard]] const char* what() const noexcept override
-    {
-        return "EBreakException";
-    }
-
-    [[nodiscard]] int get_code() const { return code; }
-};
-
 #define CSR_TABLE                                                                                                      \
 CSR_TABLE_ENTRY(mstatus, 0x300)                                                                                      \
 CSR_TABLE_ENTRY(mtvec, 0x305)                                                                                        \
