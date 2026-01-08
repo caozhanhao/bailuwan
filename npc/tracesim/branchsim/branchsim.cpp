@@ -1,3 +1,6 @@
+// Copyright (c) 2025-2026 caozhanhao
+// SPDX-License-Identifier: MulanPSL-2.0
+
 #include "branchsim.hpp"
 #include <cstdint>
 #include <cstdio>

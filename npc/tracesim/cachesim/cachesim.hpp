@@ -1,4 +1,4 @@
-// Copyright (c) 2025 caozhanhao
+// Copyright (c) 2025-2026 caozhanhao
 // SPDX-License-Identifier: MulanPSL-2.0
 
 #ifndef BAILUWAN_TRACESIM_CACHESIM_CACHESIM_HPP

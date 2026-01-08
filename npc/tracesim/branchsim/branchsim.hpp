@@ -1,3 +1,6 @@
+// Copyright (c) 2025-2026 caozhanhao
+// SPDX-License-Identifier: MulanPSL-2.0
+
 #ifndef BAILUWAN_TRACESIM_BRANCHSIM_H
 #define BAILUWAN_TRACESIM_BRANCHSIM_H
 
